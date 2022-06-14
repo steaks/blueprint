@@ -23,12 +23,16 @@ interface AsyncOperator<A, B, C, R> {
 
 type Operator<A, B, C, R> = AsyncOperator<A, B, C, R>
 
-interface Graph<A, B> {
+export interface Graph<A, B> {
     (a: A): Promise<B>;
+    readonly __name: string;
     readonly __operators: Operator<any, any, any, any>[];
 }
 
-type Sheet = {name: string, graph: {name: string, type: string}[]}[];
+export type Sheet = {
+    name: string,
+    graph: {name: string, type: string}[]
+}[];
 
 const sync = <A, B, C, R>(func: SyncFunc<A, B, C, R>): AsyncOperator<A, B, C, R> => {
     const apply = (a: A, context: C) => Promise.resolve(func(a, context));
@@ -132,11 +136,12 @@ const graph1 = <A, B, C>(name: string, context: C, o0: Operator<A, B, C, B>): Gr
         }
         return b as B;
     };
+    apply.__name = name;
     apply.__operators = [o0];
     return apply;
 };
 
-const graph2 = <A, B, C, Context>(context: Context, o0: AsyncOperator<A, B, Context, C>, o1: AsyncOperator<B, C, Context, C>): Graph<A, C> => {
+const graph2 = <A, B, C, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, C>, o1: AsyncOperator<B, C, Context, C>): Graph<A, C> => {
     const apply = async (a: A) => {
         const b = await o0(a, context);
         if ((b as End<C>).__type === "END") {
@@ -148,11 +153,12 @@ const graph2 = <A, B, C, Context>(context: Context, o0: AsyncOperator<A, B, Cont
         }
         return c as C;
     };
-    apply.__operators = [o0];
+    apply.__name = name;
+    apply.__operators = [o0, o1];
     return apply;
 };
 
-const graph3 = <A, B, C, D, Context>(context: Context, o0: AsyncOperator<A, B, Context, D>, o1: AsyncOperator<B, C, Context, D>, o2: AsyncOperator<C, D, Context, D>): Graph<A, D> => {
+const graph3 = <A, B, C, D, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, D>, o1: AsyncOperator<B, C, Context, D>, o2: AsyncOperator<C, D, Context, D>): Graph<A, D> => {
     const apply = async (a: A) => {
         const b = await o0(a, context);
         if ((b as End<D>).__type === "END") {
@@ -168,7 +174,8 @@ const graph3 = <A, B, C, D, Context>(context: Context, o0: AsyncOperator<A, B, C
         }
         return d as D;
     };
-    apply.__operators = [o0];
+    apply.__name = name;
+    apply.__operators = [o0, o1, o2];
     return apply;
 };
 
@@ -178,7 +185,7 @@ const end = <R>(r: R): End<R> =>
 const sheet = (graphs: Graph<any, any>[]): Sheet => {
     return graphs.map(g => {
         const graph = g.__operators.map(o => ({name: o.__name, type: o.__type}));
-        return {name: g.name, graph};
+        return {name: g.__name, graph};
     });
 
 };
