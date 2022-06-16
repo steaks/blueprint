@@ -29,11 +29,6 @@ export interface Graph<A, B> {
     readonly __operators: Operator<any, any, any, any>[];
 }
 
-export type Sheet = {
-    name: string,
-    graph: {name: string, type: string}[]
-}[];
-
 const sync = <A, B, C, R>(func: SyncFunc<A, B, C, R>): AsyncOperator<A, B, C, R> => {
     const apply = (a: A, context: C) => Promise.resolve(func(a, context));
     return async<A, B, C, R>(apply).bname(func.name);
@@ -182,14 +177,6 @@ const graph3 = <A, B, C, D, Context>(name: string, context: Context, o0: AsyncOp
 const end = <R>(r: R): End<R> =>
     ({__type: "END", value: r});
 
-const sheet = (graphs: Graph<any, any>[]): Sheet => {
-    return graphs.map(g => {
-        const graph = g.__operators.map(o => ({name: o.__name, type: o.__type}));
-        return {name: g.__name, graph};
-    });
-
-};
-
 const operator = {
     tap,
     sync,
@@ -197,12 +184,11 @@ const operator = {
     if: _if
 };
 
-const blueprint = {
+const core = {
     operator,
     graph1,
     graph2,
     graph3,
-    sheet,
     end
 };
-export default blueprint;
+export default core;

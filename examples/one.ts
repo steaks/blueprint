@@ -16,7 +16,7 @@ Farther future, out of scope:
 - UI-first development
 */
 
-import blueprint from "../src/blueprint";
+import blueprint from "../blueprint";
 
 const foo = () => {
     console.log("FOO");
@@ -65,7 +65,7 @@ const doBoth = (name: string) => {
     return "SNAPS";
 };
 
-const mySheet = blueprint.sheet([
+const mySheet = blueprint.serialize.sheet("MySheet", [
     foobar,
     foobarbaz
 ]);
