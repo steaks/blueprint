@@ -6,30 +6,26 @@ const mx = factory({
 });
 console.log(mx.mxClient.VERSION);
 
-interface Operator {
+interface OperatorJSON {
     readonly name: string;
-    readonly __type: "Operator" | "ParallelOperator";
-    readonly __operators: Operator[];
+    readonly type: string;
+    readonly operators: OperatorJSON[];
 }
 
-interface Graph {
-    readonly operators: Operator[];
-}
-
-interface DAG {
+interface GraphJSON {
     readonly name: string;
-    readonly graph: Graph;
+    readonly operators: OperatorJSON[];
 }
 
-type Sheet = {
-  name: string,
-  graph: {name: string, type: string}[]
-}[];
+interface SheetJSON {
+    name: string,
+    graphs: GraphJSON[]
+}
 
 
 const drawGraph = async () => {
-    const sheetResponse = await fetch("http://localhost:3000/api/users/blueprint", {headers: { 'Content-Type': 'application/json'}})
-    const graphs = await sheetResponse.json() as Sheet;
+    const sheetResponse = await fetch("http://localhost:3000/build/one.json", {headers: { 'Content-Type': 'application/json'}})
+    const sheet = await sheetResponse.json() as SheetJSON;
     const container = document.getElementById("foobar")!;
 
     const graph = new mx.mxGraph(container);
@@ -41,10 +37,10 @@ const drawGraph = async () => {
 // Adds cells to the model in a single step
     model.beginUpdate();
     try {
-         graphs.forEach((g, i) => {
+         sheet.graphs.forEach((g, i) => {
             const y = 20 + i * 200;
             graph.insertVertex(parent, null, g.name, 0, y, 100, 30);
-            g.graph.reduce((prev, o, j) => {
+            g.operators.reduce((prev, o, j) => {
                 if (o.type === "ParallelOperator") {
                     const v = o.operators.map((o, k) => graph.insertVertex(parent, null, o.name, 150 + 150 * j, y + 50 * k, 100, 30))
                     if (prev !== null) {

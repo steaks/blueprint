@@ -1,0 +1,40 @@
+{
+  "name": "MySheet",
+  "graphs": [
+    {
+      "name": "foobar",
+      "operators": [
+        {
+          "name": "foo",
+          "type": "Operator",
+          "operators": []
+        },
+        {
+          "name": "bar",
+          "type": "Operator",
+          "operators": []
+        }
+      ]
+    },
+    {
+      "name": "foobarbaz",
+      "operators": [
+        {
+          "name": "foo",
+          "type": "Operator",
+          "operators": []
+        },
+        {
+          "name": "bar",
+          "type": "Operator",
+          "operators": []
+        },
+        {
+          "name": "baz",
+          "type": "Operator",
+          "operators": []
+        }
+      ]
+    }
+  ]
+}
