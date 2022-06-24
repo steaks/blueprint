@@ -19,7 +19,11 @@ Blueprint - A NodeJS framework that creates a visual flowchart diagram of the co
 
 ## Guiding Principles
 
-Intuitiveness -
+Intuitive - Prefer intuitive over elegant.
+
+Simple - Prefer simple over complex.
+
+Less is More - Prefer fewer features that achieves most cases over many features that accomplish all cases.
 
 ## Success Metrics
 
@@ -32,3 +36,7 @@ Intuitiveness -
 - An engineering tech lead of ~5 junior to mid-level engineers claims that blueprint did not slow his development time down by more than 10%.
 
 - An engineering tech lead of ~5 junior to mid-level engineers claims that his developers were able to become blueprint users within 2 hours of onboarding.
+
+## Objectives and Key Metrics
+
+[Objectives and Key Metrics](https://docs.google.com/document/d/1TNdooNyGvyNNydvW9fkVBMM3S_ukWkT_R70jLejDSqU/edit)
