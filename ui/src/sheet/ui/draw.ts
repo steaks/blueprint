@@ -103,7 +103,6 @@ const yPadding = 50;
 const xPadding = 20;
 
 const graph = async (sheet: SheetJSON) => {
-  console.log(sheet.name);
   const container = document.getElementById(sheet.name)!;
 
   const graph = new mx.mxGraph(container);

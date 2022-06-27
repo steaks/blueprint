@@ -11,7 +11,7 @@ const write = (graph: SheetJSON, file: string) => {
   fs.writeFileSync(`../ui/public/build/${file}.json`, json)
 };
 
-write(one, "one");
-write(two, "two");
-write(branch, "branch");
-write(eslint, "eslint");
+write(one, one.name);
+write(two, two.name);
+write(branch, branch.name);
+write(eslint, eslint.name);
