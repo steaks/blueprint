@@ -19,55 +19,61 @@ Farther future, out of scope:
 import blueprint from "../blueprint";
 
 const foo = () => {
-    console.log("FOO");
-    return "FOO";
+  console.log("FOO");
+  return "FOO";
 };
 
 const bar = (foo: string) => {
-    console.log(foo + "BAR");
-    return Promise.resolve(foo + "BAR");
+  console.log(foo + "BAR");
+  return Promise.resolve(foo + "BAR");
 };
 
 const baz = (foobar: string) => {
-    console.log(foobar + "BAZ");
-    return Promise.resolve(foobar + "BAZ");
+  console.log(foobar + "BAZ");
+  return Promise.resolve(foobar + "BAZ");
 };
 
 const foobar = blueprint.graph2(
-    "foobar",
-    {},
-    blueprint.operator.sync(foo),
-    blueprint.operator.async(bar)
+  "foobar",
+  {},
+  blueprint.operator.async(foo),
+  blueprint.operator.async(bar)
 );
 
 console.log(foobar.name);
 
 const foobarbaz = blueprint.graph3(
-    "foobarbaz",
-    {},
-    blueprint.operator.sync(foo),
-    blueprint.operator.async(bar),
-    blueprint.operator.async(baz)
+  "foobarbaz",
+  {},
+  blueprint.operator.async(foo),
+  blueprint.operator.async(bar),
+  blueprint.operator.async(baz)
 );
 
-const doSteven = (name: string) => {
-    console.log("DO STEVEN");
-    return Promise.resolve("EJACULATION");
-};
+const hmm = blueprint.graph3(
+  "hmm",
+  {},
+  blueprint.operator.async(foo),
+  blueprint.operator.async(bar),
+  blueprint.operator
+    .if(a => true, foobar)
+    .else(foobar)
+);
 
-const doBecky = (name: string) => {
-    console.log("DO BECKY");
-    return "NO EJACULATION BUT ORGASM";
-};
+const hmm2 = blueprint.graph3(
+  "hmm2",
+  {},
+  blueprint.operator.async(foo),
+  blueprint.operator.async(bar),
+  blueprint.operator.parallel(foobar, foobar)
+);
 
-const doBoth = (name: string) => {
-    console.log("DO STEVEN AND BECKY");
-    return "SNAPS";
-};
 
-const mySheet = blueprint.serialize.sheet("MySheet", [
-    foobar,
-    foobarbaz
+const mySheet = blueprint.serialize.sheet("one", [
+  foobar,
+  foobarbaz,
+  hmm,
+  hmm2
 ]);
 
 export default mySheet;
