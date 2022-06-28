@@ -19,11 +19,13 @@ interface AsyncOperator<A, B, C, R> {
     readonly __type: string;
     readonly _suboperators: AsyncOperator<any, any, any, any>[];
     readonly _subgraph: Graph<any, any> | null;
+    readonly _check: string | null;
     readonly glue: (value: boolean) => AsyncOperator<A, B, C, R>;
     readonly allowShortCircuit: (value: boolean) => AsyncOperator<A, B, C, R>;
     readonly bname: (value: string) => AsyncOperator<A, B, C, R>;
     readonly suboperators: (value: AsyncOperator<any, any, any, any>[]) => AsyncOperator<A, B, C, R>;
     readonly subgraph: (value: Graph<any, any> | null) => AsyncOperator<A, B, C, R>;
+    readonly check: (value: string) => AsyncOperator<A, B, C, R>;
     readonly type: (value: string) => AsyncOperator<A, B, C, R>;
 }
 
@@ -54,6 +56,7 @@ const async = <A, B, C, R>(func: AsyncParams<A, B, C, R>): AsyncOperator<A, B, C
     apply._allowShortCircuit = false;
     apply._suboperators = [] as AsyncOperator<any, any, any, any>[];
     apply._subgraph = null as Graph<any, any> | null;
+    apply._check = null as string | null;
     apply.glue = (value: boolean) => {
         apply._glue = value;
         return apply;
@@ -78,6 +81,10 @@ const async = <A, B, C, R>(func: AsyncParams<A, B, C, R>): AsyncOperator<A, B, C
         apply._subgraph = value;
         return apply;
     }
+    apply.check = (value: string | null) => {
+        apply._check = value;
+        return apply;
+    };
     if ((func as Graph<any, any>).__type === "Graph") {
         apply._subgraph = func as Graph<any, any>;
     }
@@ -86,12 +93,20 @@ const async = <A, B, C, R>(func: AsyncParams<A, B, C, R>): AsyncOperator<A, B, C
 
 interface Branch<A, B, C, R> {
     readonly elseif: (check: (a: A, context: C) => boolean, func: AsyncParams<A, B, C, R>) => Branch<A, B, C, R>,
-    readonly else: (func: AsyncParams<A, B, C, R>) => AsyncOperator<A, B, C, R>,
-    readonly end: () => AsyncOperator<A, B, C, R>
+    readonly else: (func: AsyncParams<A, B, C, R>) => EndBranch<A, B, C, R>,
+    readonly end: (name: string) => AsyncOperator<A, B, C, R>
+}
+
+interface EndBranch<A, B, C, R> {
+    readonly end: (name: string) => AsyncOperator<A, B, C, R>
 }
 
 const _if = <A, B, C, R>(check: (a: A, context: C) => boolean, func: AsyncParams<A, B, C, R>): Branch<A, B, C, R> => {
     let executed = false;
+    console.log("check.name", check.name);
+    console.log("check.toString()", check.toString());
+    console.log("func.name", func.name);
+    console.log("func.toString", func.toString());
     let result: B | End<R>;
     const funcs: AsyncOperator<A, B, C, R>[] = [];
     const name = (func as any).__name || func.name;
@@ -101,7 +116,10 @@ const _if = <A, B, C, R>(check: (a: A, context: C) => boolean, func: AsyncParams
             result = await func(a, context);
             return result;
         }
-    }).bname(name).subgraph((func as any).__type === "Graph" ? func as Graph<any, any> : null) as unknown as AsyncOperator<A, B, C, R>;
+    })
+      .bname(name)
+      .check(check.name || check.toString())
+      .subgraph((func as any).__type === "Graph" ? func as Graph<any, any> : null) as unknown as AsyncOperator<A, B, C, R>;
     funcs.push(apply);
     const _elseif = (check: (a: A, context: C) => boolean, func: AsyncParams<A, B, C, R>) => {
         const name = (func as any).__name || func.name;
@@ -110,7 +128,10 @@ const _if = <A, B, C, R>(check: (a: A, context: C) => boolean, func: AsyncParams
                 executed = true;
                 return await func(a, context);
             }
-        }).bname(name).subgraph((func as any).__type === "Graph" ? func as Graph<any, any> : null) as unknown as AsyncOperator<A, B, C, R>;
+        })
+          .bname(name)
+          .check(check.name || check.toString())
+          .subgraph((func as any).__type === "Graph" ? func as Graph<any, any> : null) as unknown as AsyncOperator<A, B, C, R>;
         funcs.push(apply);
         return {
             elseif: _elseif,
@@ -125,18 +146,23 @@ const _if = <A, B, C, R>(check: (a: A, context: C) => boolean, func: AsyncParams
                 executed = true;
                 return await func(a, context);
             }
-        }).bname(name).subgraph((func as any).__type === "Graph" ? func as Graph<any, any> : null) as unknown as AsyncOperator<A, B, C, R>;
+        })
+          .bname(name)
+          .check(check.name || check.toString())
+          .subgraph((func as any).__type === "Graph" ? func as Graph<any, any> : null) as unknown as AsyncOperator<A, B, C, R>;
         funcs.push(apply);
-        return _end();
+        return {
+            end: _end
+        }
     };
-    const _end = (): AsyncOperator<A, B, C, R> => {
+    const _end = (name: string): AsyncOperator<A, B, C, R> => {
         const apply: ShortcircuitAsyncFunc<A, B, C, R> = async (a: A, context: C) => {
             for (const cur of funcs) {
                 await cur(a, context)
             }
             return result;
         }
-        return async(apply).suboperators(funcs).type("BranchOperator");
+        return async(apply).suboperators(funcs).type("BranchOperator").bname(name);
     };
     return {
         elseif: _elseif,

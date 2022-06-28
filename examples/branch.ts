@@ -19,28 +19,24 @@ Farther future, out of scope:
 import blueprint from "../blueprint";
 
 const foo = () => {
-    console.log("FOO");
-    return "FOO";
+  return "FOO";
 };
 
 const bar = (foo: string) => {
-    console.log(foo + "BAR");
-    return Promise.resolve(foo + "BAR");
+  return Promise.resolve(foo + "BAR");
 };
 
 const baz = (foobar: string) => {
-    console.log(foobar + "BAZ");
-    return Promise.resolve(foobar + "BAZ");
+  return Promise.resolve(foobar + "BAZ");
 };
 
 const foobar = blueprint.graph2(
-    "foobar",
-    {},
-    blueprint.operator.async(foo),
-    blueprint.operator.async(bar)
+  "foobar",
+  {},
+  blueprint.operator.async(foo),
+  blueprint.operator.async(bar)
 );
 
-console.log(foobar.name);
 
 const case1 = (a: string) => a;
 const case2 = (a: string) => a;
@@ -49,24 +45,24 @@ const case4 = (a: string) => a;
 const case5 = (a: string) => a;
 
 
-
 const foobarbaz = blueprint.graph3(
-    "foobarbaz",
-    {},
-    blueprint.operator.async(foo),
-    blueprint.operator
-        .if(a => a === "foo", case1)
-        .elseif(a => a === "foo", case2)
-        .elseif(a => a === "foo", case3)
-        .elseif(a => a === "foo", case4)
-        .else(case5),
-    blueprint.operator.parallel(blueprint.operator.async(baz), blueprint.operator.async(baz)),
-    // blueprint.operator.async(baz),
+  "foobarbaz",
+  {},
+  blueprint.operator.async(foo),
+  blueprint.operator
+    .if(a => a === "foo", case1)
+    .elseif(a => a === "foo", case2)
+    .elseif(a => a === "foo", case3)
+    .elseif(a => a === "foo", case4)
+    .else(case5)
+    .end("testA"),
+  blueprint.operator.parallel(blueprint.operator.async(baz), blueprint.operator.async(baz)),
+  // blueprint.operator.async(baz),
 );
 
 const mySheet = blueprint.serialize.sheet("branch", [
-    foobar,
-    foobarbaz
+  foobar,
+  foobarbaz
 ]);
 
 export default mySheet;

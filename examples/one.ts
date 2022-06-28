@@ -33,11 +33,12 @@ const baz = (foobar: string) => {
   return Promise.resolve(foobar + "BAZ");
 };
 
-const foobar = blueprint.graph2(
+const foobar = blueprint.graph3(
   "foobar",
   {},
   blueprint.operator.async(foo),
-  blueprint.operator.async(bar)
+  blueprint.operator.async(bar),
+  blueprint.operator.parallel(foo, bar)
 );
 
 console.log(foobar.name);
@@ -47,7 +48,7 @@ const foobarbaz = blueprint.graph3(
   {},
   blueprint.operator.async(foo),
   blueprint.operator.async(bar),
-  blueprint.operator.async(baz)
+  blueprint.operator.parallel(foobar, foobar)
 );
 
 const hmm = blueprint.graph3(
@@ -58,6 +59,7 @@ const hmm = blueprint.graph3(
   blueprint.operator
     .if(a => true, foobar)
     .else(foobar)
+    .end("ifA")
 );
 
 const hmm2 = blueprint.graph3(
