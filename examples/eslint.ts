@@ -57,10 +57,12 @@ const eslint = blueprint.graph5(
     .elseif(() => true, version)
     .elseif(() => true, envInfo)
     .elseif(() => true, printConfig)
-    .else(noop),
+    .else(noop)
+    .end("checkOption"),
   blueprint.operator
     .if(() => true, lintTextG)
-    .else(lintFilesG),
+    .else(lintFilesG)
+    .end("textOrFiles"),
   blueprint.operator.async(fix),
   blueprint.operator.async(handleErrors)
 )
