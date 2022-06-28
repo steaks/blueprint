@@ -36,8 +36,8 @@ const baz = (foobar: string) => {
 const foobar = blueprint.graph3(
   "foobar",
   {},
-  blueprint.operator.async(foo),
-  blueprint.operator.async(bar),
+  blueprint.operator.operator(foo),
+  blueprint.operator.operator(bar),
   blueprint.operator.parallel(foo, bar)
 );
 
@@ -46,16 +46,16 @@ console.log(foobar.name);
 const foobarbaz = blueprint.graph3(
   "foobarbaz",
   {},
-  blueprint.operator.async(foo),
-  blueprint.operator.async(bar),
+  blueprint.operator.operator(foo),
+  blueprint.operator.operator(bar),
   blueprint.operator.parallel(foobar, foobar)
 );
 
 const hmm = blueprint.graph3(
   "hmm",
   {},
-  blueprint.operator.async(foo),
-  blueprint.operator.async(bar),
+  blueprint.operator.operator(foo),
+  blueprint.operator.operator(bar),
   blueprint.operator
     .if(a => true, foobar)
     .else(foobar)
@@ -65,8 +65,8 @@ const hmm = blueprint.graph3(
 const hmm2 = blueprint.graph3(
   "hmm2",
   {},
-  blueprint.operator.async(foo),
-  blueprint.operator.async(bar),
+  blueprint.operator.operator(foo),
+  blueprint.operator.operator(bar),
   blueprint.operator.parallel(foobar, foobar)
 );
 
