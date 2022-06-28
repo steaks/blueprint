@@ -43,10 +43,10 @@ const tap = <A, C>(func: TapFunc<A, C>): AsyncOperator<A, A, C, unknown> => {
         func(a, context);
         return Promise.resolve(a);
     };
-    return async<A, A, C, unknown>(apply).bname(func.name);
+    return _operator<A, A, C, unknown>(apply).bname(func.name);
 };
 
-const async = <A, B, C, R>(func: AsyncParams<A, B, C, R>): AsyncOperator<A, B, C, R> => {
+const _operator = <A, B, C, R>(func: AsyncParams<A, B, C, R>): AsyncOperator<A, B, C, R> => {
     const name = (func as any).__name || func.name;
     const apply = async (a: A, context: C) =>
         await func(a, context)
@@ -110,7 +110,7 @@ const _if = <A, B, C, R>(check: (a: A, context: C) => boolean, func: AsyncParams
     let result: B | End<R>;
     const funcs: AsyncOperator<A, B, C, R>[] = [];
     const name = (func as any).__name || func.name;
-    const apply = async(async (a: A, context: C) => {
+    const apply = _operator(async (a: A, context: C) => {
         if (check(a, context)) {
             executed = true;
             result = await func(a, context);
@@ -123,7 +123,7 @@ const _if = <A, B, C, R>(check: (a: A, context: C) => boolean, func: AsyncParams
     funcs.push(apply);
     const _elseif = (check: (a: A, context: C) => boolean, func: AsyncParams<A, B, C, R>) => {
         const name = (func as any).__name || func.name;
-        const apply = async(async (a: A, context: C) => {
+        const apply = _operator(async (a: A, context: C) => {
             if (!executed && check(a, context)) {
                 executed = true;
                 return await func(a, context);
@@ -141,7 +141,7 @@ const _if = <A, B, C, R>(check: (a: A, context: C) => boolean, func: AsyncParams
     };
     const _else = (func: AsyncParams<A, B, C, R>) => {
         const name = (func as any).__name || func.name;
-        const apply = async(async (a: A, context: C) => {
+        const apply = _operator(async (a: A, context: C) => {
             if (!executed) {
                 executed = true;
                 return await func(a, context);
@@ -162,7 +162,7 @@ const _if = <A, B, C, R>(check: (a: A, context: C) => boolean, func: AsyncParams
             }
             return result;
         }
-        return async(apply).suboperators(funcs).type("BranchOperator").bname(name);
+        return _operator(apply).suboperators(funcs).type("BranchOperator").bname(name);
     };
     return {
         elseif: _elseif,
@@ -184,9 +184,9 @@ const parallel = <A, B, C, R>(func0: AsyncParams<A, B, C, R>, func1: AsyncParams
         }
         return [r0 as B, r1 as B] as [B, B];
     };
-    const o0 = async(func0).bname(name0);
-    const o1 = async(func1).bname(name1);
-    return async(apply)
+    const o0 = _operator(func0).bname(name0);
+    const o1 = _operator(func1).bname(name1);
+    return _operator(apply)
         .bname(`${name0}_${name1}`)
         .type("ParallelOperator")
         .suboperators([o0, o1]) as AsyncOperator<A, [B, B], C, R>;
@@ -308,7 +308,7 @@ const end = <R>(r: R): End<R> =>
 
 const operator = {
     tap,
-    async,
+    operator: _operator,
     parallel,
     if: _if
 };

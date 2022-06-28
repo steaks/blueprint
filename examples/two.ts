@@ -36,8 +36,8 @@ const baz = (p: string) => {
 const foobar = blueprint.graph2(
     "foobar",
     {},
-    blueprint.operator.async(foo),
-    blueprint.operator.parallel(blueprint.operator.async(bar), blueprint.operator.async(baz)),
+    blueprint.operator.operator(foo),
+    blueprint.operator.parallel(blueprint.operator.operator(bar), blueprint.operator.operator(baz)),
 );
 
 const mySheet = blueprint.serialize.sheet("two", [

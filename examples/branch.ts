@@ -33,8 +33,8 @@ const baz = (foobar: string) => {
 const foobar = blueprint.graph2(
   "foobar",
   {},
-  blueprint.operator.async(foo),
-  blueprint.operator.async(bar)
+  blueprint.operator.operator(foo),
+  blueprint.operator.operator(bar)
 );
 
 
@@ -48,7 +48,7 @@ const case5 = (a: string) => a;
 const foobarbaz = blueprint.graph3(
   "foobarbaz",
   {},
-  blueprint.operator.async(foo),
+  blueprint.operator.operator(foo),
   blueprint.operator
     .if(a => a === "foo", case1)
     .elseif(a => a === "foo", case2)
@@ -56,7 +56,7 @@ const foobarbaz = blueprint.graph3(
     .elseif(a => a === "foo", case4)
     .else(case5)
     .end("testA"),
-  blueprint.operator.parallel(blueprint.operator.async(baz), blueprint.operator.async(baz)),
+  blueprint.operator.parallel(blueprint.operator.operator(baz), blueprint.operator.operator(baz)),
   // blueprint.operator.async(baz),
 );
 

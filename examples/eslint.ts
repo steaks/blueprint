@@ -45,13 +45,13 @@ const handleResults = (a: string) => {
   return "help";
 };
 
-const lintTextG: Graph<string, string> = blueprint.graph1("lintText", {}, blueprint.operator.async(lintText));
-const lintFilesG: Graph<string, string> = blueprint.graph1("lintFiles", {}, blueprint.operator.async(lintFiles));
+const lintTextG: Graph<string, string> = blueprint.graph1("lintText", {}, blueprint.operator.operator(lintText));
+const lintFilesG: Graph<string, string> = blueprint.graph1("lintFiles", {}, blueprint.operator.operator(lintFiles));
 
 const eslint = blueprint.graph5(
   "eslint",
   {},
-  blueprint.operator.async(parseOptions),
+  blueprint.operator.operator(parseOptions),
   blueprint.operator
     .if(() => true, help)
     .elseif(() => true, version)
@@ -63,8 +63,8 @@ const eslint = blueprint.graph5(
     .if(() => true, lintTextG)
     .else(lintFilesG)
     .end("textOrFiles"),
-  blueprint.operator.async(fix),
-  blueprint.operator.async(handleErrors)
+  blueprint.operator.operator(fix),
+  blueprint.operator.operator(handleErrors)
 )
 
 
