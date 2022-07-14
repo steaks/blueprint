@@ -101,20 +101,19 @@ interface EndBranch<A, B, C, R> {
     readonly end: (name: string) => AsyncOperator<A, B, C, R>
 }
 
+const FAILED_CHECK = {};
 const _if = <A, B, C, R>(check: (a: A, context: C) => boolean, func: AsyncParams<A, B, C, R>): Branch<A, B, C, R> => {
-    let executed = false;
     console.log("check.name", check.name);
     console.log("check.toString()", check.toString());
     console.log("func.name", func.name);
     console.log("func.toString", func.toString());
-    let result: B | End<R>;
     const funcs: AsyncOperator<A, B, C, R>[] = [];
     const name = (func as any).__name || func.name;
     const apply = _operator(async (a: A, context: C) => {
         if (check(a, context)) {
-            executed = true;
-            result = await func(a, context);
-            return result;
+            return await func(a, context);
+        } else {
+            return Promise.resolve(FAILED_CHECK);
         }
     })
       .bname(name)
@@ -124,9 +123,10 @@ const _if = <A, B, C, R>(check: (a: A, context: C) => boolean, func: AsyncParams
     const _elseif = (check: (a: A, context: C) => boolean, func: AsyncParams<A, B, C, R>) => {
         const name = (func as any).__name || func.name;
         const apply = _operator(async (a: A, context: C) => {
-            if (!executed && check(a, context)) {
-                executed = true;
+            if (check(a, context)) {
                 return await func(a, context);
+            } else {
+                return Promise.resolve(FAILED_CHECK);
             }
         })
           .bname(name)
@@ -142,10 +142,7 @@ const _if = <A, B, C, R>(check: (a: A, context: C) => boolean, func: AsyncParams
     const _else = (func: AsyncParams<A, B, C, R>) => {
         const name = (func as any).__name || func.name;
         const apply = _operator(async (a: A, context: C) => {
-            if (!executed) {
-                executed = true;
-                return await func(a, context);
-            }
+            return await func(a, context);
         })
           .bname(name)
           .check(check.name || check.toString())
@@ -157,10 +154,14 @@ const _if = <A, B, C, R>(check: (a: A, context: C) => boolean, func: AsyncParams
     };
     const _end = (name: string): AsyncOperator<A, B, C, R> => {
         const apply: ShortcircuitAsyncFunc<A, B, C, R> = async (a: A, context: C) => {
+            let result: B | End<R>;
             for (const cur of funcs) {
-                await cur(a, context)
+                result = await cur(a, context)
+                if (result !== FAILED_CHECK) {
+                    return result;
+                }
             }
-            return result;
+            throw new Error("No branch was taken");
         }
         return _operator(apply).suboperators(funcs).type("BranchOperator").bname(name);
     };
