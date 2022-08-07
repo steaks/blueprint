@@ -11,10 +11,6 @@ const root = process.cwd();
 const sheetsDirectory = path.join(root, blueprintPath, "/build");
 const staticDirectory = path.join(root, "node_modules/blueprint-ui/build/static");
 const indexPath = path.join(root, "node_modules/blueprint-ui/build/index.html");
-console.log("root", root);
-console.log("resourcesDirectory", sheetsDirectory);
-console.log("staticDirectory", staticDirectory);
-console.log("indexPath", indexPath);
 
 app.use("/static", express.static(staticDirectory));
 app.use("/sheets", express.static(sheetsDirectory));

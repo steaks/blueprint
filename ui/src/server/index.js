@@ -19,7 +19,6 @@ const port = 3000;
 
 
 app.get("*", (req, res) => {
-    console.log("HERE");
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 

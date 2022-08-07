@@ -59,6 +59,6 @@ npm run blueprint
 
 ```
 cd webserver
-npm run helloworld
-npm run helloworld-blueprint
+npm run examples/helloworld
+npm run examples/helloworld-blueprint
 ```
