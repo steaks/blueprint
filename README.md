@@ -41,8 +41,7 @@ Less is More - Prefer fewer features that achieves most cases over many features
 
 [Objectives and Key Metrics](https://docs.google.com/document/d/1TNdooNyGvyNNydvW9fkVBMM3S_ukWkT_R70jLejDSqU/edit)
 
-## Getting Started
+## Installation
 
-1. `bash install.sh`
-
-
+1. Requirements: Node 16.x.x or NPM 8.x.x
+2. Run installation script `bash install.sh`
