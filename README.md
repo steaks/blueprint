@@ -44,7 +44,7 @@ Less is More - Prefer fewer features that achieves most cases over many features
 ## Getting Started
 ### Installation
 
-1. Requirements: Node 16.x.x or NPM 8.x.x
+1. Requirements: Node 16.x.x, NPM 8.x.x, and GNU Make 4.x.
 2. Run installation script `make install`
 
 ### View general purpose code examples
