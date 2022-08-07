@@ -40,3 +40,9 @@ Less is More - Prefer fewer features that achieves most cases over many features
 ## Objectives and Key Metrics
 
 [Objectives and Key Metrics](https://docs.google.com/document/d/1TNdooNyGvyNNydvW9fkVBMM3S_ukWkT_R70jLejDSqU/edit)
+
+## Getting Started
+
+1. `bash install.sh`
+
+
