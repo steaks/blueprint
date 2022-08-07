@@ -112,10 +112,6 @@ interface EndBranch<A, B, C, R> {
 
 const FAILED_CHECK = {};
 const _if = <A, B, C, R>(check: (a: A, context: C) => boolean, func: AsyncParams<A, B, C, R>): Branch<A, B, C, R> => {
-    console.log("check.name", check.name);
-    console.log("check.toString()", check.toString());
-    console.log("func.name", func.name);
-    console.log("func.toString", func.toString());
     const funcs: AsyncOperator<A, B, C, R>[] = [];
     const name = (func as any).__name || func.name;
     const apply = _operator(async (a: A, context: C) => {

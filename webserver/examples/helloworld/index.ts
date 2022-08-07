@@ -1,5 +1,5 @@
 import webserver, {BResponse, WithQuery} from "../../index";
-import blueprint, {AsyncOperator, AsyncParams, Graph, Branch} from "blueprint";
+import blueprint, {Graph} from "blueprint";
 
 const before = blueprint.graph1(
   "before",
@@ -7,83 +7,23 @@ const before = blueprint.graph1(
   blueprint.operator.operator((p: WithQuery) => p).bname("session")
 ) as unknown as Graph<WithQuery, WithQuery>;
 
-interface Router {
-  readonly path: string;
-  readonly routes: Graph<WithQuery, any>;
-}
-
-const router = <A>(namespace: string) => {
-  let logic: null | Branch<WithQuery, any, any, any> = null;
-
-  const api = {
-    get: (path: string, func: AsyncParams<WithQuery, any, any, any>) => {
-      if (!logic) {
-        logic = blueprint.operator.if(
-          (r: WithQuery) => r.req.method === "GET" && r.url.path !== null && r.url.path.startsWith(`${namespace}${path}`),
-          blueprint.operator.operator(func).bname(path)
-        );
-      } else {
-        logic = logic.elseif(
-          (r: WithQuery) => r.req.method === "GET" && r.url.path !== null && r.url.path.startsWith(`${namespace}${path}`),
-          blueprint.operator.operator(func).bname(path)
-        );
-      }
-      return api;
-    },
-    post: (path: string, func: AsyncParams<WithQuery, any, any, any>) => {
-      if (!logic) {
-        logic = blueprint.operator.if(
-          (r: WithQuery) => r.req.method === "POST" && r.url.path !== null && r.url.path.startsWith(`${namespace}${path}`),
-          blueprint.operator.operator(func).bname(path)
-        );
-      } else {
-        logic = logic.elseif(
-          (r: WithQuery) => r.req.method === "POST" && r.url.path !== null && r.url.path.startsWith(`${namespace}${path}`),
-          blueprint.operator.operator(func).bname(path)
-        );
-      }
-      return api;
-    },
-    notFound: (p: AsyncParams<WithQuery, any, any, any>): Router => {
-      const op = logic!.else(blueprint.operator.operator(p).bname("404")).end("routes");
-      const routes = blueprint.graph1(namespace, {}, op);
-      return {path: namespace, routes};
-    }
-  };
-
-  return api;
-};
-
-const routers = (r: Router[]) => {
-  let logic = blueprint.operator.if((p: WithQuery) => p.url.path !== null && p.url.path.startsWith(r[0].path), r[0].routes);
-  logic = r.slice(1).reduce((logic, rr) => {
-    return logic.elseif((p: WithQuery) => p.url.path !== null && p.url.path.startsWith(rr.path), rr.routes);
-  }, logic);
-  return {
-    notFound: (p: AsyncParams<WithQuery, any, any, any>): AsyncOperator<WithQuery, any, any, any> =>
-      logic.else(blueprint.operator.operator(p).bname("404")).end("routers")
-  }
-};
-
-const v1 = router("/v1")
-  .get("/foo", (p: WithQuery) => send({...p, data: "GET /v1/foo", statusCode: 200}))
-  .post("/foo", (p: WithQuery) => send({...p, data: "POST /v1/foo", statusCode: 200}))
+const v1 = webserver.router.router("/v1")
+  .get("/foo", (p: WithQuery) => send({...p, data: "Woohoo! This is the response for /v1/foo!", statusCode: 200}))
   .notFound((p: WithQuery) => send({...p, data: "NOT FOUND", statusCode: 404}));
 
-const v2 = router("/v2")
-  .get("/foo", (p: WithQuery) => send({...p, data: "GET /v2/foo", statusCode: 200}))
-  .post("/foo", (p: WithQuery) => send({...p, data: "POST /v2/foo", statusCode: 200}))
+const v2 = webserver.router.router("/v2")
+  .get("/foo", (p: WithQuery) => send({...p, data: "Woohoo! This is the response for /v2/foo!", statusCode: 200}))
   .notFound((p: WithQuery) => send({...p, data: "NOT FOUND", statusCode: 404}));
 
-const home = router("")
+const home = webserver.router.router("")
   .get("/", (p: WithQuery) => send({
     ...p,
-    data: JSON.stringify(["GET /v1/foo", "POST /v1/foo", "GET /v2/foo", "POST /v2/foo"]),
+    data: "<a href='/v1/foo'>v1/foo</a><br/><a href='/v2/foo'>v2/foo</a>",
     statusCode: 200
   }))
   .notFound((p: WithQuery) => send({...p, data: "NOT FOUND", statusCode: 404}));
 
-const _routes = routers([home, v1, v2])
+const _routes = webserver.router.routers([v1, v2, home])
   .notFound((p: WithQuery) => send({...p, data: "NOT FOUND", statusCode: 404}));
 
 const routesGraph = blueprint.graph1("routes", {}, _routes);
@@ -96,8 +36,8 @@ const onResponse = blueprint.graph1(
   blueprint.operator.tap(logResponse)
 ) as unknown as Graph<BResponse, BResponse>;
 
-const receive = webserver.receive(before, routesGraph)
-const send = webserver.send(onResponse)
+const receive = webserver.receiver(before, routesGraph)
+const send = webserver.deliverer(onResponse)
 
 const infrastructure = blueprint.serialize.sheet("infrastructure", [receive, before, send, onResponse]);
 const routes = blueprint.serialize.sheet("routes", [routesGraph, v1.routes, v2.routes]);

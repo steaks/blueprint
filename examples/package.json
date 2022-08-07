@@ -5,6 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "build": "npx ts-node .",
+    "blueprint": "npx blueprint",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -17,5 +18,9 @@
   },
   "devDependencies": {
     "blueprint-ui": "file:../ui"
+  },
+  "engines": {
+    "npm" : ">=8.0.0",
+    "node" : ">=16.0.0"
   }
 }
