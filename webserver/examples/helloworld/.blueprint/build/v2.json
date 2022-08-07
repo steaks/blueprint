@@ -1,0 +1,35 @@
+{
+  "name": "v2",
+  "graphs": [
+    {
+      "name": "/v2",
+      "operators": [
+        {
+          "name": "routes",
+          "type": "BranchOperator",
+          "suboperators": [
+            {
+              "name": "/foo",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "/foo",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "404",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            }
+          ],
+          "subgraph": null
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "name": "app",
+  "graphs": [
+    {
+      "name": "webserver",
+      "operators": [
+        {
+          "name": "parseUrl",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "parseQuery",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "before",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": "before"
+        },
+        {
+          "name": "routes",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": "routes"
+        }
+      ]
+    },
+    {
+      "name": "before",
+      "operators": [
+        {
+          "name": "session",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "routes",
+      "operators": [
+        {
+          "name": "routers",
+          "type": "BranchOperator",
+          "suboperators": [
+            {
+              "name": "/v1",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": "/v1"
+            },
+            {
+              "name": "/v2",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": "/v2"
+            },
+            {
+              "name": "404",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            }
+          ],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "/v1",
+      "operators": [
+        {
+          "name": "routes",
+          "type": "BranchOperator",
+          "suboperators": [
+            {
+              "name": "/foo",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "/foo",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "404",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            }
+          ],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "/v2",
+      "operators": [
+        {
+          "name": "routes",
+          "type": "BranchOperator",
+          "suboperators": [
+            {
+              "name": "/foo",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "/foo",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "404",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            }
+          ],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "send",
+      "operators": [
+        {
+          "name": "onResponse",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": "onResponse"
+        },
+        {
+          "name": "sendMessage",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "onResponse",
+      "operators": [
+        {
+          "name": "logResponse",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ]
+    }
+  ]
+}

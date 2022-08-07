@@ -1,5 +1,4 @@
-import blueprint from "../blueprint";
-import {Graph} from "../blueprint/src/core";
+import blueprint, {Graph} from "blueprint";
 
 const parseOptions = (a: string) => {
   return "parseOptions";

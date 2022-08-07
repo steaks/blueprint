@@ -1,10 +1,14 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import Sheet from "./sheet/ui/sheet";
 import Home from "./home";
 import {Routes, Route} from "react-router-dom";
+import data from "./sheet/data";
 
 const App = () => {
-  const sheets = ["one", "two", "branch", "eslint"]
+  const [sheets, setSheets] = useState([] as string[]);
+  useEffect(() => {
+    data.fetchIndex().then(setSheets);
+  }, []);
   return (
     <div>
       <Routes>

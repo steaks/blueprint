@@ -22,6 +22,8 @@ Output: Person's name
 
 */
 
+import blueprint from "blueprint";
+
 type GetEater = (pieType: string) => string;
 const getEater: GetEater = pieType => {
   if (pieType === "blueberry") {
