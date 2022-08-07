@@ -5,10 +5,10 @@ const path = require('path');
 const app = express();
 const port = 3001;
 
-const blueprintPath = process.argv[2] || ".blueprint/build";
+const blueprintPath = process.argv[2] || ".blueprint";
 
 const root = process.cwd();
-const sheetsDirectory = path.join(root, blueprintPath);
+const sheetsDirectory = path.join(root, blueprintPath, "/build");
 const staticDirectory = path.join(root, "node_modules/blueprint-ui/build/static");
 const indexPath = path.join(root, "node_modules/blueprint-ui/build/index.html");
 console.log("root", root);
