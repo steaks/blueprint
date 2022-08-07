@@ -1,0 +1,84 @@
+{
+  "name": "eslint",
+  "graphs": [
+    {
+      "name": "eslint",
+      "operators": [
+        {
+          "name": "parseOptions",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "checkOption",
+          "type": "BranchOperator",
+          "suboperators": [
+            {
+              "name": "help",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "version",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "envInfo",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "printConfig",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "noop",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            }
+          ],
+          "subgraph": null
+        },
+        {
+          "name": "textOrFiles",
+          "type": "BranchOperator",
+          "suboperators": [
+            {
+              "name": "lintText",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": "lintText"
+            },
+            {
+              "name": "lintFiles",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": "lintFiles"
+            }
+          ],
+          "subgraph": null
+        },
+        {
+          "name": "fix",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "handleErrors",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ]
+    }
+  ]
+}

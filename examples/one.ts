@@ -16,7 +16,7 @@ Farther future, out of scope:
 - UI-first development
 */
 
-import blueprint from "../blueprint";
+import blueprint from "blueprint";
 
 const foo = () => {
   console.log("FOO");
@@ -33,10 +33,14 @@ const baz = (foobar: string) => {
   return Promise.resolve(foobar + "BAZ");
 };
 
+const Test = {
+  foo
+};
+
 const foobar = blueprint.graph3(
   "foobar",
   {},
-  blueprint.operator.operator(foo),
+  blueprint.operator.operator(Test.foo),
   blueprint.operator.operator(bar),
   blueprint.operator.parallel(foo, bar)
 );
@@ -69,6 +73,7 @@ const hmm2 = blueprint.graph3(
   blueprint.operator.operator(bar),
   blueprint.operator.parallel(foobar, foobar)
 );
+
 
 
 const mySheet = blueprint.serialize.sheet("one", [

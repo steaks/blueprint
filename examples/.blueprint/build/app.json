@@ -1,0 +1,171 @@
+{
+  "name": "app",
+  "graphs": [
+    {
+      "name": "webserver",
+      "operators": [
+        {
+          "name": "before",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "methods",
+          "type": "BranchOperator",
+          "suboperators": [
+            {
+              "name": "gets",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": "gets"
+            },
+            {
+              "name": "posts",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": "posts"
+            },
+            {
+              "name": "404",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            }
+          ],
+          "subgraph": null
+        },
+        {
+          "name": "after",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "before",
+      "operators": [
+        {
+          "name": "cors",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "queryStringParser",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "bodyParser",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "cookieParser",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "logger",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "authentication",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "after",
+      "operators": [
+        {
+          "name": "compress",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "gets",
+      "operators": [
+        {
+          "name": "routes",
+          "type": "BranchOperator",
+          "suboperators": [
+            {
+              "name": "/foo",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "/bar",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "/baz",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "404",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            }
+          ],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "posts",
+      "operators": [
+        {
+          "name": "routes",
+          "type": "BranchOperator",
+          "suboperators": [
+            {
+              "name": "/foo",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "/bar",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "/baz",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "404",
+              "type": "Operator",
+              "suboperators": [],
+              "subgraph": null
+            }
+          ],
+          "subgraph": null
+        }
+      ]
+    }
+  ]
+}

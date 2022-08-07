@@ -1,4 +1,6 @@
 import {Graph} from "./core";
+import * as _ from "lodash";
+import * as fs from "fs";
 
 interface OperatorJSON {
     readonly name: string;
@@ -35,6 +37,23 @@ const sheet = (name: string, graphs: Graph<any, any>[]): SheetJSON => {
     return {name, graphs: graphsJSON};
 };
 
+const build = (sheets: SheetJSON[], path: string = "./.blueprint") => {
+    const fullPath = `${path}/build`;
+
+    if (!fs.existsSync(fullPath)){
+        fs.mkdirSync(fullPath, {recursive: true});
+    }
+    const names = sheets.map(s => s.name);
+    sheets.forEach(sheet => {
+        const json = JSON.stringify(sheet, null, 2);
+        const file = sheet.name;
+        fs.writeFileSync(`${fullPath}/${file}.json`, json);
+    });
+    const index = JSON.stringify(names, null, 2);
+    fs.writeFileSync(`${fullPath}/index.json`, index);
+};
+
 export default {
-    sheet
+    sheet,
+    build
 };
