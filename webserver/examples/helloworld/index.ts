@@ -28,7 +28,9 @@ const _routes = webserver.router.routers([v1, v2, home])
 
 const routesGraph = blueprint.graph1("routes", {}, _routes);
 
-const logResponse = (p: BResponse) => console.log("HERE");
+const logResponse = (p: BResponse) => {
+  console.log("Response:", p.data);
+};
 
 const onResponse = blueprint.graph1(
   "onResponse",

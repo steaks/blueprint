@@ -6,8 +6,8 @@
   "scripts": {
     "build": "npx ts-node .",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "helloworld": "npx ts-node examples/helloworld",
-    "helloworld-blueprint": "npx blueprint examples/helloworld/.blueprint"
+    "examples/helloworld": "npx ts-node examples/helloworld",
+    "examples/helloworld-blueprint": "npx blueprint examples/helloworld/.blueprint"
   },
   "author": "",
   "license": "ISC",
