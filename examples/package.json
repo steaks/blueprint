@@ -5,6 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "build": "npx ts-node .",
+    "blueprint": "npx blueprint",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

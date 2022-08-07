@@ -41,7 +41,24 @@ Less is More - Prefer fewer features that achieves most cases over many features
 
 [Objectives and Key Metrics](https://docs.google.com/document/d/1TNdooNyGvyNNydvW9fkVBMM3S_ukWkT_R70jLejDSqU/edit)
 
-## Installation
+## Getting Started
+### Installation
 
 1. Requirements: Node 16.x.x or NPM 8.x.x
-2. Run installation script `bash install.sh`
+2. Run installation script `make install`
+
+### View general purpose code examples
+
+```
+cd examples
+npm run build
+npm run blueprint
+```
+
+### View webserver examples
+
+```
+cd webserver
+npm run helloworld
+npm run helloworld-blueprint
+```
