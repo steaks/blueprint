@@ -47,15 +47,7 @@ Less is More - Prefer fewer features that achieves most cases over many features
 1. Requirements: Node 16.x.x, NPM 8.x.x, and GNU Make 4.x.
 2. Run installation script `make install`
 
-### View general purpose code examples
-
-```
-cd examples
-npm run build
-npm run blueprint
-```
-
-### View webserver examples
+### View webserver helloworld example
 
 ```
 cd webserver
