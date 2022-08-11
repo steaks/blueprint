@@ -1,7 +1,14 @@
-import {BResponse} from "./webserver";
 import blueprint, {Graph} from "blueprint";
+import {OutgoingHttpHeaders} from "http";
+import {Params} from "./webserver";
 
-const sendResponse = (p: BResponse) => {
+export type BResponse = Params & {
+  readonly statusCode: number;
+  readonly headers?: OutgoingHttpHeaders;
+  readonly data: any;
+}
+
+const send = (p: BResponse) => {
   p.res.statusCode = p.statusCode;
   if (p.headers) {
     for (const name in p.headers) {
@@ -35,15 +42,6 @@ const sendResponse = (p: BResponse) => {
 
   p.res.write(data);
   p.res.end();
-};
-
-const send = (beforeSend: Graph<BResponse, BResponse>): Graph<BResponse, any> => {
-  return blueprint.graph2(
-    "send",
-    {},
-    blueprint.operator.operator(beforeSend),
-    blueprint.operator.tap(sendResponse)
-  );
 };
 
 export default send;

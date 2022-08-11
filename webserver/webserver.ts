@@ -1,11 +1,12 @@
 import * as http from "http";
-import {IncomingMessage, ServerResponse} from "http";
+import {IncomingMessage,OutgoingHttpHeaders, ServerResponse} from "http";
 import {Url} from "url";
-import blueprint, {Graph} from "blueprint";
+import blueprint, {Graph,SheetJSON} from "blueprint";
 import * as qs from "qs";
 import {ParsedQs} from "qs";
 // @ts-ignore
 import parseurl from "parseurl";
+import send from "./send";
 
 const parseUrl = (p: Params): WithUrl => {
   const url = parseurl(p.req) as Url;
@@ -30,6 +31,13 @@ export type WithQuery = WithUrl & {
   readonly query: ParsedQs;
 };
 
+
+export type BResponse = Params & {
+  readonly statusCode: number;
+  readonly headers?: OutgoingHttpHeaders;
+  readonly data: any;
+}
+
 const listen = (receive: Graph<Params, any>) => {
   const server = http.createServer((req, res: ServerResponse) => {
     receive({req, res});
@@ -39,16 +47,22 @@ const listen = (receive: Graph<Params, any>) => {
   server.listen(3000);
 };
 
-const receiver = <A>(before: Graph<WithQuery, A>, routes: Graph<A, any>): Graph<Params, any> => {
-  const _receive = blueprint.graph4("webserver",
+const serve = <A>(before: Graph<WithQuery, A>, routes: Graph<A, BResponse>, beforeSend: Graph<BResponse, BResponse>): [Graph<Params, any>, SheetJSON] => {
+  const server = blueprint.graph6("server",
     {},
     blueprint.operator.operator(parseUrl),
     blueprint.operator.operator(parseQuery),
     blueprint.operator.operator(before),
     blueprint.operator.operator(routes),
+    blueprint.operator.operator(beforeSend),
+    blueprint.operator.tap(send)
   );
-  listen(_receive);
-  return _receive;
+  listen(server);
+
+  const sheet = blueprint.serialize.sheet("webserver", [server, before, beforeSend]);
+  return [server, sheet];
 };
 
-export default receiver;
+
+
+export default serve;

@@ -40,7 +40,7 @@ export const router = <A>(namespace: string) => {
     },
     notFound: (p: AsyncParams<WithQuery, any, any, any>): Router => {
       const op = logic!.else(blueprint.operator.operator(p).bname("404")).end("routes");
-      const routes = blueprint.graph1(namespace, {}, op);
+      const routes = blueprint.graph1(namespace || "*", {}, op);
       return {path: namespace, routes};
     }
   };
