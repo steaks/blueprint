@@ -5,7 +5,7 @@ type TapFunc<A, C> = (p: A, context: C) => any;
 type AsyncFunc<A, B, C, R> = (p: A, context: C) => Promise<B | End<R>>;
 type ShortcircuitAsyncFunc<A, B, C, R> = (p: A, context: C) => Promise<B | End<R>>;
 export type AsyncParams<A, B, C, R> = AsyncFunc<A, B, C, R> | Graph<A, B> | ShortcircuitAsyncFunc<A, B, C, R> | SyncFunc<A, B, C, R>;
-type TapParams<A, C> = AsyncFunc<A, A, C, A> | Graph<A, A> | TapFunc<A, C>;
+type TapParams<A, C> = AsyncFunc<A, any, C, any> | Graph<A, any> | TapFunc<A, C>;
 
 //test test test
 

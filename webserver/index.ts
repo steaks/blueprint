@@ -1,12 +1,9 @@
 import router from "./router";
-import receiver from "./receiver";
-import deliverer from "./deliverer";
+import serve from "./webserver";
 
-export {WithQuery} from "./receiver";
-export {BResponse} from "./deliverer";
+export {WithQuery, BResponse} from "./webserver";
 
 export default {
-  receiver,
-  deliverer,
+  serve,
   router
 };
