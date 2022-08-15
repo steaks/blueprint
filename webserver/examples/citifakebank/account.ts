@@ -16,6 +16,10 @@ type WithFees = WithWithdraws & {
   readonly fees: Fee[];
 }
 
+type WithBalance = WithFees & {
+  readonly balance: number;
+}
+
 const getDeposits = async (req: WithUser) => {
   const deposits = await activity.deposits(req.user.username);
   return {deposits, req};
@@ -44,12 +48,16 @@ const toActivityHTML = (p: WithFees): BResponse => {
   };
 };
 
-const toBalanceHTML = (p: WithFees): BResponse => {
+const calculate = (p: WithFees): WithBalance => {
   const deposits = p.deposits.reduce((sum, a) => sum + a.amount, 0);
   const withdraws = p.withdraws.reduce((sum, a) => sum + a.amount, 0);
   const fees = p.fees.reduce((sum, a) => sum + a.amount, 0);
+  const balance = deposits - withdraws - fees;
+  return {...p, balance};
+};
 
-  const data = `<div><h2>Balance</h2>${deposits - withdraws - fees}</div>`;
+const toBalanceHTML = (p: WithBalance): BResponse => {
+  const data = `<div><h2>Balance</h2>${p.balance}</div>`;
   return {
     ...p.req,
     statusCode: 200,
@@ -68,6 +76,7 @@ export const getBalance = blueprint.graph("/balance", {},
   blueprint.operator.operator(getDeposits),
   blueprint.operator.operator(getWithdraws),
   blueprint.operator.operator(getFees),
+  blueprint.operator.operator(calculate),
   blueprint.operator.operator(toBalanceHTML)
 );
 
