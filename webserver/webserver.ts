@@ -47,8 +47,8 @@ const listen = (receive: Graph<Params, any>) => {
   server.listen(3000);
 };
 
-const serve = <A>(before: Graph<WithQuery, A>, routes: Graph<A, BResponse>, beforeSend: Graph<BResponse, BResponse>): [Graph<Params, any>, SheetJSON] => {
-  const server = blueprint.graph6("server",
+const serve = <A>(before: Graph<WithQuery, A>, routes: Graph<A, BResponse>, beforeSend: Graph<BResponse, BResponse>): Graph<Params, any> => {
+  const server = blueprint.graph("server",
     {},
     blueprint.operator.operator(parseUrl),
     blueprint.operator.operator(parseQuery),
@@ -59,8 +59,7 @@ const serve = <A>(before: Graph<WithQuery, A>, routes: Graph<A, BResponse>, befo
   );
   listen(server);
 
-  const sheet = blueprint.serialize.sheet("webserver", [server, before, beforeSend]);
-  return [server, sheet];
+  return server;
 };
 
 

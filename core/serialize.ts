@@ -1,5 +1,4 @@
 import {Graph} from "./core";
-import * as _ from "lodash";
 import * as fs from "fs";
 
 interface OperatorJSON {

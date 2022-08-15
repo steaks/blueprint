@@ -13,7 +13,7 @@ const logger = (request: Req) => console.log("LOG");
 const authentication = (request: Req) => console.log("AUTHENTICATION");
 const compress = () => console.log("COMPRESS")
 
-const before = blueprint.graph6(
+const before = blueprint.graph(
   "before",
   {},
   blueprint.operator.tap(headersParser),
@@ -24,7 +24,7 @@ const before = blueprint.graph6(
   blueprint.operator.tap(authentication)
 );
 
-const after = blueprint.graph1(
+const after = blueprint.graph(
   "after",
   {},
   blueprint.operator.tap(compress)
@@ -48,7 +48,7 @@ const getRoutes = blueprint.operator
   .else(notFound)
   .end("routes");
 
-const gets = blueprint.graph1("gets", {}, getRoutes);
+const gets = blueprint.graph("gets", {}, getRoutes);
 
 const postRoutes = blueprint.operator
   .if(foo, blueprint.operator.tap(doFoo).bname("/foo"))
@@ -57,7 +57,7 @@ const postRoutes = blueprint.operator
   .else(notFound)
   .end("routes");
 
-const posts = blueprint.graph1("posts", {}, postRoutes);
+const posts = blueprint.graph("posts", {}, postRoutes);
 
 const routes = blueprint.operator
   .if(get, gets)
@@ -65,7 +65,7 @@ const routes = blueprint.operator
   .else(notFound)
   .end("methods");
 
-const app = blueprint.graph3(
+const app = blueprint.graph(
   "webserver",
   {},
   blueprint.operator.tap(before).bname("before"),

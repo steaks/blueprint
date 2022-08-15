@@ -243,7 +243,7 @@ const cli = {
             return await engine.lintFiles(files);
         };
 
-        blueprint.graph5(
+        blueprint.graph(
             "cli",
             {},
             op.tap(withContext).glue(),

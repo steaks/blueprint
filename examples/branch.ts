@@ -30,7 +30,7 @@ const baz = (foobar: string) => {
   return Promise.resolve(foobar + "BAZ");
 };
 
-const foobar = blueprint.graph2(
+const foobar = blueprint.graph(
   "foobar",
   {},
   blueprint.operator.operator(foo),
@@ -45,7 +45,7 @@ const case4 = (a: string) => a;
 const case5 = (a: string) => a;
 
 
-const foobarbaz = blueprint.graph3(
+const foobarbaz = blueprint.graph(
   "foobarbaz",
   {},
   blueprint.operator.operator(foo),

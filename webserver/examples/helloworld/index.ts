@@ -1,46 +1,52 @@
 import webserver, {BResponse, WithQuery} from "../../index";
 import blueprint, {Graph} from "blueprint";
+import authentication ,{WithUser}from "./authentication";
 
-const beforeRoutes = blueprint.graph1(
+const logRequest = (p: WithQuery) => {
+  console.log("Request:", p.url);
+};
+
+const beforeRoutes = blueprint.graph(
   "beforeRoutes",
   {},
-  blueprint.operator.operator((p: WithQuery) => p).bname("session")
+  blueprint.operator.tap(logRequest)
 ) as unknown as Graph<WithQuery, WithQuery>;
 
-const v1 = webserver.router.router("/v1")
-  .get("/foo", (p: WithQuery) => ({...p, data: "Woohoo! This is the response for /v1/foo!", statusCode: 200}))
-  .get("/bar", (p: WithQuery) => ({...p, data: "Woohoo! This is the response for /v1/bar!", statusCode: 200}))
+const account = webserver.router.router<WithQuery, WithUser>("/account")
+  .before(authentication.authenticate)
+  .get("/profile", (p: WithUser) => ({...p, data: `User profile: ${p.user.username}`, statusCode: 200}))
+  .get("/activity", (p: WithUser) => ({...p, data: `User history: ${p.user.username} hasn't done anything yet!`, statusCode: 200}))
   .notFound((p: WithQuery) => ({...p, data: "NOT FOUND", statusCode: 404}));
 
-const v2 = webserver.router.router("/v2")
-  .get("/foo", (p: WithQuery) => ({...p, data: "Woohoo! This is the response for /v2/foo!", statusCode: 200}))
-  .get("/bar", (p: WithQuery) => ({...p, data: "Woohoo! This is the response for /v2/bar!", statusCode: 200}))
-  .notFound((p: WithQuery) => ({...p, data: "NOT FOUND", statusCode: 404}));
+const about = webserver.router.router<WithQuery, WithUser>("/about")
+  .get("/team", (p: WithUser) => ({...p, data: "The team is just one dude...Steven.", statusCode: 200}))
+  .get("/history", (p: WithUser) => ({...p, data: "The team formed in 2022!", statusCode: 200}))
+  .notFound((p: WithUser) => ({...p, data: "NOT FOUND", statusCode: 404}));
 
 const home = webserver.router.router("")
   .get("/", (p: WithQuery) => ({
     ...p,
-    data: "<a href='/v1/foo'>v1/foo</a><br/><a href='/v1/bar'>v1/bar</a><br/><a href='/v2/foo'>v2/foo</a><br/><a href='/v2/bar'>v2/bar</a>",
+    data: "<a href='/account/profile?token=stevenstoken'>account/profile</a><br/><a href='/account/activity?token=stevenstoken'>account/activity</a><br/><a href='/about/team'>about/team</a><br/><a href='/about/history'>about/history</a>",
     statusCode: 200
   }))
   .notFound((p: WithQuery) => ({...p, data: "NOT FOUND", statusCode: 404}));
 
-const _routes = webserver.router.routers([v1, v2, home])
+const _routes = webserver.router.routers([account, about, home])
   .notFound((p: WithQuery) => ({...p, data: "NOT FOUND", statusCode: 404}));
 
-const routesGraph = blueprint.graph1("routes", {}, _routes);
+const routesGraph = blueprint.graph("routes", {}, _routes);
 
 const logResponse = (p: BResponse) => {
   console.log("Response:", p.data);
 };
 
-const beforeSend = blueprint.graph1(
+const beforeSend = blueprint.graph(
   "beforeSend",
   {},
   blueprint.operator.tap(logResponse)
 ) as unknown as Graph<BResponse, BResponse>;
 
-const [, server] = webserver.serve(beforeRoutes, routesGraph, beforeSend);
+const server = webserver.serve(beforeRoutes, routesGraph, beforeSend);
 
-const routes = blueprint.serialize.sheet("routes", [routesGraph, v1.routes, v2.routes, home.routes]);
-blueprint.serialize.build([server, routes]);
+const application = blueprint.serialize.sheet("application", [server, beforeRoutes, routesGraph, account.routes, about.routes, home.routes, beforeSend]);
+blueprint.serialize.build([application]);
