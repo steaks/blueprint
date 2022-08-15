@@ -50,6 +50,10 @@ const tap = <A, C>(func: TapParams<A, C>): AsyncOperator<A, A, C, unknown> => {
       .subgraph((func as any).__type === "Graph" ? func as Graph<any, any> : null) as unknown as AsyncOperator<A, A, C, unknown>;
 };
 
+const isGraph = (func: AsyncParams<any,any,any,any>): func is Graph<any, any> => {
+  return (func as Graph<any, any>).__type === "Graph"
+};
+
 const _operator = <A, B, C, R>(func: AsyncParams<A, B, C, R>): AsyncOperator<A, B, C, R> => {
     const name = (func as any).__name || func.name;
     const apply = async (a: A, context: C) =>
@@ -243,6 +247,7 @@ const operator = {
 
 const core = {
     operator,
+    isGraph,
     graph,
     end
 };
