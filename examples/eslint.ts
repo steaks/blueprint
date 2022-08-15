@@ -44,10 +44,10 @@ const handleResults = (a: string) => {
   return "help";
 };
 
-const lintTextG: Graph<string, string> = blueprint.graph1("lintText", {}, blueprint.operator.operator(lintText));
-const lintFilesG: Graph<string, string> = blueprint.graph1("lintFiles", {}, blueprint.operator.operator(lintFiles));
+const lintTextG: Graph<string, string> = blueprint.graph("lintText", {}, blueprint.operator.operator(lintText));
+const lintFilesG: Graph<string, string> = blueprint.graph("lintFiles", {}, blueprint.operator.operator(lintFiles));
 
-const eslint = blueprint.graph5(
+const eslint = blueprint.graph(
   "eslint",
   {},
   blueprint.operator.operator(parseOptions),

@@ -33,7 +33,7 @@ const baz = (p: string) => {
     return Promise.resolve(p + "BAZ");
 };
 
-const foobar = blueprint.graph2(
+const foobar = blueprint.graph(
     "foobar",
     {},
     blueprint.operator.operator(foo),

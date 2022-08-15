@@ -198,150 +198,38 @@ const parallel = <A, B, C, R>(func0: AsyncParams<A, B, C, R>, func1: AsyncParams
         .suboperators([o0, o1]) as AsyncOperator<A, [B, B], C, R>;
 };
 
+function graph<A, B, C>(name: string, context: C, o0: AsyncOperator<A, B, C, B>): Graph<A, B>;
+function graph<A, B, C, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, C>, o1: AsyncOperator<B, C, Context, C>): Graph<A, C>;
+function graph<A, B, C, D, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, D>, o1: AsyncOperator<B, C, Context, D>, o2: AsyncOperator<C, D, Context, D>): Graph<A, D>;
+function graph<A, B, C, D, E, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, E>, o1: AsyncOperator<B, C, Context, E>, o2: AsyncOperator<C, D, Context, E>, o3: AsyncOperator<D, E, Context, E>): Graph<A, E>;
+function graph<A, B, C, D, E, F, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, F>, o1: AsyncOperator<B, C, Context, F>, o2: AsyncOperator<C, D, Context, F>, o3: AsyncOperator<D, E, Context, F>, o4: AsyncOperator<E, F, Context, F>): Graph<A, F>;
+function graph<A, B, C, D, E, F, G, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, G>, o1: AsyncOperator<B, C, Context, G>, o2: AsyncOperator<C, D, Context, G>, o3: AsyncOperator<D, E, Context, G>, o4: AsyncOperator<E, F, Context, G>, o5: AsyncOperator<F, G, Context, G>): Graph<A, G>;
 
-const graph1 = <A, B, C>(name: string, context: C, o0: AsyncOperator<A, B, C, B>): Graph<A, B> => {
-    const apply = async (a: A) => {
-        const b = await o0(a, context);
-        if ((b as End<B>).__type === "END") {
-            return (b as End<B>).value;
-        }
-        return b as B;
-    };
-    apply.__type = "Graph";
-    apply.__name = name;
-    apply.__operators = [o0];
-    return apply;
-};
-
-const graph2 = <A, B, C, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, C>, o1: AsyncOperator<B, C, Context, C>): Graph<A, C> => {
-    const apply = async (a: A) => {
-        const b = await o0(a, context);
-        if ((b as End<C>).__type === "END") {
-            return (b as End<C>).value;
-        }
-        const c = await o1(b as B, context);
-        if ((c as End<C>).__type === "END") {
-            return (c as End<C>).value;
-        }
-        return c as C;
-    };
-    apply.__type = "Graph";
-    apply.__name = name;
-    apply.__operators = [o0, o1];
-    return apply;
-};
-
-const graph3 = <A, B, C, D, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, D>, o1: AsyncOperator<B, C, Context, D>, o2: AsyncOperator<C, D, Context, D>): Graph<A, D> => {
-    const apply = async (a: A) => {
-        const b = await o0(a, context);
-        if ((b as End<D>).__type === "END") {
-            return (b as End<D>).value;
-        }
-        const c = await o1(b as B, context);
-        if ((c as End<D>).__type === "END") {
-            return (c as End<D>).value;
-        }
-        const d = await o2(c as C, context);
-        if ((d as End<D>).__type === "END") {
-            return (d as End<D>).value;
-        }
-        return d as D;
-    };
-    apply.__type = "Graph";
-    apply.__name = name;
-    apply.__operators = [o0, o1, o2];
-    return apply;
-};
-
-const graph4 = <A, B, C, D, E, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, E>, o1: AsyncOperator<B, C, Context, E>, o2: AsyncOperator<C, D, Context, E>, o3: AsyncOperator<D, E, Context, E>): Graph<A, E> => {
-    const apply = async (a: A) => {
-        const b = await o0(a, context);
-        if ((b as End<E>).__type === "END") {
-            return (b as End<E>).value;
-        }
-        const c = await o1(b as B, context);
-        if ((c as End<E>).__type === "END") {
-            return (c as End<E>).value;
-        }
-        const d = await o2(c as C, context);
-        if ((d as End<E>).__type === "END") {
-            return (d as End<E>).value;
-        }
-        const e = await o3(d as D, context);
-        if ((e as End<E>).__type === "END") {
-            return (e as End<E>).value;
-        }
-        return e as E;
-    };
-    apply.__type = "Graph";
-    apply.__name = name;
-    apply.__operators = [o0, o1, o2, o3];
-    return apply;
-};
-
-const graph5 = <A, B, C, D, E, F, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, F>, o1: AsyncOperator<B, C, Context, F>, o2: AsyncOperator<C, D, Context, F>, o3: AsyncOperator<D, E, Context, F>, o4: AsyncOperator<E, F, Context, F>): Graph<A, F> => {
-    const apply = async (a: A) => {
-        const b = await o0(a, context);
-        if ((b as End<F>).__type === "END") {
-            return (b as End<F>).value;
-        }
-        const c = await o1(b as B, context);
-        if ((c as End<F>).__type === "END") {
-            return (c as End<F>).value;
-        }
-        const d = await o2(c as C, context);
-        if ((d as End<F>).__type === "END") {
-            return (d as End<F>).value;
-        }
-        const e = await o3(d as D, context);
-        if ((e as End<F>).__type === "END") {
-            return (e as End<F>).value;
-        }
-        const f = await o4(e as E, context);
-        if ((f as End<F>).__type === "END") {
-            return (f as End<F>).value;
-        }
-        return f as F;
-    };
-    apply.__type = "Graph";
-    apply.__name = name;
-    apply.__operators = [o0, o1, o2, o3, o4];
-    return apply;
-};
-
-const graph6 = <A, B, C, D, E, F, G, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, G>, o1: AsyncOperator<B, C, Context, G>, o2: AsyncOperator<C, D, Context, G>, o3: AsyncOperator<D, E, Context, G>, o4: AsyncOperator<E, F, Context, G>, o5: AsyncOperator<F, G, Context, G>): Graph<A, G> => {
-    const apply = async (a: A) => {
-        const b = await o0(a, context);
-        if ((b as End<G>).__type === "END") {
-            return (b as End<G>).value;
-        }
-        const c = await o1(b as B, context);
-        if ((c as End<G>).__type === "END") {
-            return (c as End<G>).value;
-        }
-        const d = await o2(c as C, context);
-        if ((d as End<G>).__type === "END") {
-            return (d as End<G>).value;
-        }
-        const e = await o3(d as D, context);
-        if ((e as End<G>).__type === "END") {
-            return (e as End<G>).value;
-        }
-        const f = await o4(e as E, context);
-        if ((f as End<G>).__type === "END") {
-            return (f as End<G>).value;
-        }
-        const g = await o5(f as F, context);
-        if ((g as End<G>).__type === "END") {
-            return (g as End<G>).value;
-        }
-        return g as G;
-    };
-    apply.__type = "Graph";
-    apply.__name = name;
-    apply.__operators = [o0, o1, o2, o3, o4, o5];
-    return apply;
-};
+function graph(): Graph<unknown, unknown> {
+  const name = arguments[0];
+  const context = arguments[1];
+  const operators = [] as any[];
+  for (let i = 2; i < arguments.length; i++) {
+    operators.push(arguments[i]);
+  }
+  const apply = async (a: unknown) => {
+    const ret = await operators.reduce(async (value, operator) => {
+      const v = await value;
+      if (v && (v as End<unknown>).__type === "END") {
+        return Promise.resolve(v);
+      }
+      return await operator(v, context);
+    }, Promise.resolve(a));
+    if (ret && (ret as End<unknown>).__type === "END") {
+      return ret.value;
+    }
+    return ret;
+  };
+  apply.__type = "Graph";
+  apply.__name = name;
+  apply.__operators = operators;
+  return apply;
+}
 
 const end = <R>(r: R): End<R> =>
     ({__type: "END", value: r});
@@ -355,12 +243,7 @@ const operator = {
 
 const core = {
     operator,
-    graph1,
-    graph2,
-    graph3,
-    graph4,
-    graph5,
-    graph6,
+    graph,
     end
 };
 export default core;
