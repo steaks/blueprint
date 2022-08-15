@@ -47,10 +47,10 @@ Less is More - Prefer fewer features that achieves most cases over many features
 1. Requirements: Node 16.x.x, NPM 8.x.x, and GNU Make 4.x.
 2. Run installation script `make install`
 
-### View webserver helloworld example
+### View webserver CitiFakeBank example
 
 ```
 cd webserver
-npm run examples/helloworld
-npm run examples/helloworld-blueprint
+npm run examples/citifakebank
+npm run examples/citifakebank-blueprint
 ```

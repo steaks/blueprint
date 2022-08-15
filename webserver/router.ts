@@ -1,5 +1,5 @@
 import blueprint, {AsyncOperator, AsyncParams, Branch, Graph} from "blueprint";
-import {WithQuery} from "./index"; import {WithUser} from "./examples/helloworld/authentication";
+import {WithQuery} from "./index"; import {WithUser} from "./examples/citifakebank/authentication";
 
 export interface Router<A extends WithQuery> {
   readonly path: string;
@@ -19,12 +19,12 @@ export const router = <A extends WithQuery, B extends A>(namespace: string) => {
       if (!logic) {
         logic = blueprint.operator.if(
           (r: B) => r.req.method === "GET" && r.url.path !== null && r.url.path.startsWith(`${namespace}${path}`),
-          blueprint.operator.operator(func).bname(path)
+          blueprint.isGraph(func) ? func : blueprint.operator.operator(func).bname(path)
         );
       } else {
         logic = logic.elseif(
           (r: B) => r.req.method === "GET" && r.url.path !== null && r.url.path.startsWith(`${namespace}${path}`),
-          blueprint.operator.operator(func).bname(path)
+          blueprint.isGraph(func) ? func : blueprint.operator.operator(func).bname(path)
         );
       }
       return api;
@@ -33,12 +33,12 @@ export const router = <A extends WithQuery, B extends A>(namespace: string) => {
       if (!logic) {
         logic = blueprint.operator.if(
           (r: B) => r.req.method === "POST" && r.url.path !== null && r.url.path.startsWith(`${namespace}${path}`),
-          blueprint.operator.operator(func).bname(path)
+          blueprint.isGraph(func) ? func : blueprint.operator.operator(func).bname(path)
         );
       } else {
         logic = logic.elseif(
           (r: B) => r.req.method === "POST" && r.url.path !== null && r.url.path.startsWith(`${namespace}${path}`),
-          blueprint.operator.operator(func).bname(path)
+          blueprint.isGraph(func) ? func : blueprint.operator.operator(func).bname(path)
         );
       }
       return api;
