@@ -41,6 +41,10 @@ Less is More - Prefer fewer features that achieves most cases over many features
 
 [Objectives and Key Metrics](https://docs.google.com/document/d/1TNdooNyGvyNNydvW9fkVBMM3S_ukWkT_R70jLejDSqU/edit)
 
+## User Feedback
+
+[User Feedback](https://docs.google.com/document/d/1zRNCjryqUc2VPq7lAYBrs9-4ny84djHEw_P8bSeM6rY/edit?usp=sharing)
+
 ## Getting Started
 ### Installation
 
