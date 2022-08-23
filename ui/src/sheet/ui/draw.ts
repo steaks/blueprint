@@ -7,7 +7,7 @@ const generateId = () => {
   return `operator_${_id}`;
 };
 
-const operators = {} as Record<string, OperatorJSON>;
+const operators = {} as Record<string, {readonly graph: GraphJSON; readonly operator: OperatorJSON;}>;
 
 const mx = factory({mxBasePath: ''});
 
@@ -80,13 +80,13 @@ const insertParallelOperator = (graph: mxGraph, parent: mxCell, prev: mxCell, o:
   return e;
 };
 
-const insertBranchOperator = (graph: mxGraph, parent: mxCell, prev: mxCell, o: OperatorJSON, id: string, xOffset: number, yOffset: number) => {
+const insertBranchOperator = (graph: mxGraph, parent: mxCell, prev: mxCell, o: OperatorJSON, g: GraphJSON, id: string, xOffset: number, yOffset: number) => {
   const branchXOffset = 130;
   const b = graph.insertVertex(parent, id, o.name, xOffset, yOffset, branchView.width, branchView.height, branchView.style);
   graph.insertEdge(parent, null, '', prev, b, arrowStyle)
   const v = o.suboperators.map((o, k) => {
     const id = generateId();
-    operators[id] = o;
+    operators[id] = {graph: g, operator: o};
     const view = o.subgraph ? graphView : operatorView;
     return graph.insertVertex(parent, id, o.name, xOffset + branchXOffset, yOffset + subOperatorHeight * k, view.width, view.height, view.style);
   });
@@ -140,7 +140,7 @@ const insertOverivew = (graph: mxGraph, parent: mxCell, g: GraphJSON, xOffset: n
   return graph.insertVertex(parent, null, g.name, xOffset, yOffset, width, height, firstLevelGraphView.style);
 };
 
-const graph = async (sheet: SheetJSON, onClick: (operator: OperatorJSON) => void) => {
+const graph = async (sheet: SheetJSON, onClick: (graph: GraphJSON, operator: OperatorJSON) => void) => {
   const container = document.getElementById(sheet.name)!;
 
   const graph = new mx.mxGraph(container);
@@ -160,13 +160,13 @@ const graph = async (sheet: SheetJSON, onClick: (operator: OperatorJSON) => void
       const start = insertStart(graph, parent, xOffset + xPadding, yOffset + yPadding);
       const last = g.operators.reduce((prev, o, j) => {
         const id = generateId();
-        operators[id] = o;
+        operators[id] = {operator: o, graph: g};
         const xOffset = xPadding + startOperatorWidth + calculateOperatorsWidth(g.operators.slice(0, j));
         if (o.type === "ParallelOperator") {
           return insertParallelOperator(graph, parent, prev, o, xOffset, yOffset + yPadding);
         }
         if (o.type === "BranchOperator") {
-          return insertBranchOperator(graph, parent, prev, o, id, xOffset, yOffset + yPadding);
+          return insertBranchOperator(graph, parent, prev, o, g, id, xOffset, yOffset + yPadding);
         }
         if (o.type === "Operator") {
           return insertOperator(graph, parent, prev, id, o, xOffset, yOffset + yPadding);
@@ -180,7 +180,7 @@ const graph = async (sheet: SheetJSON, onClick: (operator: OperatorJSON) => void
       const cell = (e.properties as any).cell as mxCell;
       const operator = operators[cell.id];
       if (operator) {
-        onClick(operator);
+        onClick(operator.graph, operator.operator);
       }
     });
   } finally {

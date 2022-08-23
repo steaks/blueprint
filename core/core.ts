@@ -14,7 +14,7 @@ export interface End<V> {
     value: V
 }
 
-export interface AsyncOperator<A, B, C, R> {
+export interface AsyncOperator<A, B, C extends BaseContext, R> {
     (p: A, context: C): Promise<B | End<R>>;
     readonly __name: string;
     readonly __type: string;
@@ -23,6 +23,8 @@ export interface AsyncOperator<A, B, C, R> {
     readonly _check: string | null;
     readonly _doc: string | null;
     readonly _path: string | null;
+    readonly _log: boolean;
+    readonly _time: boolean;
     readonly glue: (value: boolean) => AsyncOperator<A, B, C, R>;
     readonly allowShortCircuit: (value: boolean) => AsyncOperator<A, B, C, R>;
     readonly bname: (value: string) => AsyncOperator<A, B, C, R>;
@@ -31,9 +33,12 @@ export interface AsyncOperator<A, B, C, R> {
     readonly check: (value: string) => AsyncOperator<A, B, C, R>;
     readonly type: (value: string) => AsyncOperator<A, B, C, R>;
     readonly doc: (value: string) => AsyncOperator<A, B, C, R>
+    readonly log: (value: boolean) => AsyncOperator<A, B, C, R>;
+    readonly time: (value: boolean) => AsyncOperator<A, B, C, R>;
+    readonly plugins: (plugins: string[]) => AsyncOperator<A, B, C, R>;
 }
 
-type Operator<A, B, C, R> = AsyncOperator<A, B, C, R>
+type Operator<A, B, C extends BaseContext, R> = AsyncOperator<A, B, C, R>
 
 export interface Graph<A, B> {
     (a: A): Promise<B>;
@@ -44,7 +49,7 @@ export interface Graph<A, B> {
     readonly doc: (value: string) => Graph<A, B>
 }
 
-const tap = <A, C>(func: TapParams<A, C>): AsyncOperator<A, A, C, unknown> => {
+const tap = <A, C extends BaseContext>(func: TapParams<A, C>): AsyncOperator<A, A, C, unknown> => {
     const apply = (a: A, context: C) => {
         func(a, context);
         return Promise.resolve(a);
@@ -54,14 +59,44 @@ const tap = <A, C>(func: TapParams<A, C>): AsyncOperator<A, A, C, unknown> => {
       .subgraph((func as any).__type === "Graph" ? func as Graph<any, any> : null) as unknown as AsyncOperator<A, A, C, unknown>;
 };
 
-const isGraph = (func: AsyncParams<any,any,any,any>): func is Graph<any, any> => {
-  return (func as Graph<any, any>).__type === "Graph"
-};
+const isGraph = (func: AsyncParams<any,any,any,any>): func is Graph<any, any> =>
+  (func as Graph<any, any>).__type === "Graph";
 
-const _operator = <A, B, C, R>(func: AsyncParams<A, B, C, R>): AsyncOperator<A, B, C, R> => {
+const plugins = {} as Record<string, {readonly before: (a: any, context: any) => void; readonly after: (a: any, context: any) => void;}>;
+
+const _operator = <A, B, C extends BaseContext, R>(func: AsyncParams<A, B, C, R>): AsyncOperator<A, B, C, R> => {
     const name = (func as any).__name || func.name;
-    const apply = async (a: A, context: C) =>
-        await func(a, context)
+    const apply = async (a: A, context: C) => {
+      try {
+        const time = Date.now();
+        if (apply._log) {
+          console.log(context.graph, context.operator, "input", a);
+        }
+        apply._plugins.forEach((p) => {
+          const plugin = plugins[p];
+          if (plugin) {
+            plugin.after(a, context);
+          }
+        });
+        const ret = await func(a, context);
+        if (apply._log) {
+          console.log(context.graph, context.operator, "output", ret);
+        }
+        if (apply._time) {
+          console.log(context.graph, context.operator, "time", Date.now() - time);
+        }
+        apply._plugins.forEach((p) => {
+          const plugin = plugins[p];
+          if (plugin) {
+            plugin.after(a, context);
+          }
+        });
+        return ret;
+      } catch (e) {
+        console.error(e);
+        throw e;
+      }
+    };
     apply.__name = name;
     apply.__type = "Operator";
     apply._glue = false;
@@ -70,6 +105,9 @@ const _operator = <A, B, C, R>(func: AsyncParams<A, B, C, R>): AsyncOperator<A, 
     apply._subgraph = null as Graph<any, any> | null;
     apply._check = null as string | null;
     apply._doc = null as string | null;
+    apply._log = false;
+    apply._time = false;
+    apply._plugins = [] as string[];
     apply.glue = (value: boolean) => {
         apply._glue = value;
         return apply;
@@ -102,6 +140,22 @@ const _operator = <A, B, C, R>(func: AsyncParams<A, B, C, R>): AsyncOperator<A, 
         apply._doc = value;
         return apply;
     };
+    apply.log = (value: boolean) => {
+      apply._log = value;
+      return apply;
+    };
+    apply.time = (value: boolean) => {
+      apply._time = value;
+      return apply;
+    };
+    apply.plugins = (plugins: string[]) => {
+      apply._plugins = plugins;
+      return apply;
+    };
+    apply.plugin = (plugin: string) => {
+      apply._plugins.push(plugin);
+      return apply;
+    }
     if ((func as Graph<any, any>).__type === "Graph") {
         apply._subgraph = func as Graph<any, any>;
     }
@@ -130,18 +184,18 @@ const _operator = <A, B, C, R>(func: AsyncParams<A, B, C, R>): AsyncOperator<A, 
     return apply;
 };
 
-export interface Branch<A, B, C, R> {
+export interface Branch<A, B, C extends BaseContext, R> {
     readonly elseif: (check: (a: A, context: C) => boolean, func: AsyncParams<A, B, C, R>) => Branch<A, B, C, R>,
     readonly else: (func: AsyncParams<A, B, C, R>) => EndBranch<A, B, C, R>,
     readonly end: (name: string) => AsyncOperator<A, B, C, R>
 }
 
-interface EndBranch<A, B, C, R> {
+interface EndBranch<A, B, C extends BaseContext, R> {
     readonly end: (name: string) => AsyncOperator<A, B, C, R>
 }
 
 const FAILED_CHECK = {};
-const _if = <A, B, C, R>(check: (a: A, context: C) => boolean, func: AsyncParams<A, B, C, R>): Branch<A, B, C, R> => {
+const _if = <A, B, C extends BaseContext, R>(check: (a: A, context: C) => boolean, func: AsyncParams<A, B, C, R>): Branch<A, B, C, R> => {
     const funcs: AsyncOperator<A, B, C, R>[] = [];
     const name = (func as any).__name || func.name;
     const apply = _operator(async (a: A, context: C) => {
@@ -207,7 +261,7 @@ const _if = <A, B, C, R>(check: (a: A, context: C) => boolean, func: AsyncParams
     };
 };
 
-const parallel = <A, B, C, R>(func0: AsyncParams<A, B, C, R>, func1: AsyncParams<A, B, C, R>): AsyncOperator<A, [B, B], C, R> => {
+const parallel = <A, B, C extends BaseContext, R>(func0: AsyncParams<A, B, C, R>, func1: AsyncParams<A, B, C, R>): AsyncOperator<A, [B, B], C, R> => {
     const name0 = (func0 as any).__name || func0.name;
     const name1 = (func1 as any).__name || func1.name;
     const apply = async (a: A, context: C): Promise<[B, B] | End<R>> => {
@@ -228,7 +282,7 @@ const parallel = <A, B, C, R>(func0: AsyncParams<A, B, C, R>, func1: AsyncParams
         .suboperators([o0, o1]) as AsyncOperator<A, [B, B], C, R>;
 };
 
-interface BaseContext {
+export interface BaseContext {
   readonly graph: string;
   readonly operator: string;
 }
