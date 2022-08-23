@@ -23,18 +23,17 @@ const server = webserver.serve(beforeRoutes, routes, afterRoutes);
 const application = blueprint.serialize.sheet("application", [
   server,
   beforeRoutes,
-  afterRoutes,
   routes,
   home.routes,
   afterRoutes
-]);
+], "Main infrastructure.");
 const aboutSheet = blueprint.serialize.sheet("about", [
   about.routes,
-]);
+], "About the bank.");
 const accountSheet = blueprint.serialize.sheet("account", [
   account.routes,
   getActivity,
   getBalance,
   afterRoutes
-]);
-blueprint.serialize.build([application, aboutSheet, accountSheet]);
+], "Account management");
+blueprint.serialize.build("CitiFakeBank", [application, aboutSheet, accountSheet]);

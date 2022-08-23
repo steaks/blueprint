@@ -1,0 +1,160 @@
+{
+  "name": "application",
+  "doc": "Main infrastructure.",
+  "graphs": [
+    {
+      "name": "server",
+      "doc": null,
+      "operators": [
+        {
+          "name": "parseUrl",
+          "doc": "foo bar baz",
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/index.ts",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "parseQuery",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/index.ts",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "beforeRoutes",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/index.ts",
+          "suboperators": [],
+          "subgraph": "beforeRoutes"
+        },
+        {
+          "name": "routes",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/index.ts",
+          "suboperators": [],
+          "subgraph": "routes"
+        },
+        {
+          "name": "afterRoutes",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/index.ts",
+          "suboperators": [],
+          "subgraph": "afterRoutes"
+        },
+        {
+          "name": "send",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/index.ts",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "beforeRoutes",
+      "doc": null,
+      "operators": [
+        {
+          "name": "logRequest",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/index.ts",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "routes",
+      "doc": null,
+      "operators": [
+        {
+          "name": "routers",
+          "doc": null,
+          "type": "BranchOperator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/routes.ts",
+          "suboperators": [
+            {
+              "name": "/about",
+              "type": "Operator",
+              "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/routes.ts",
+              "suboperators": [],
+              "subgraph": "/about"
+            },
+            {
+              "name": "/account",
+              "type": "Operator",
+              "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/routes.ts",
+              "suboperators": [],
+              "subgraph": "/account"
+            },
+            {
+              "name": "*",
+              "type": "Operator",
+              "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/routes.ts",
+              "suboperators": [],
+              "subgraph": "*"
+            },
+            {
+              "name": "404",
+              "type": "Operator",
+              "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/routes.ts",
+              "suboperators": [],
+              "subgraph": null
+            }
+          ],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "*",
+      "doc": null,
+      "operators": [
+        {
+          "name": "routes",
+          "doc": null,
+          "type": "BranchOperator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/home.ts",
+          "suboperators": [
+            {
+              "name": "/",
+              "type": "Operator",
+              "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/home.ts",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "404",
+              "type": "Operator",
+              "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/home.ts",
+              "suboperators": [],
+              "subgraph": null
+            }
+          ],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "afterRoutes",
+      "doc": null,
+      "operators": [
+        {
+          "name": "logResponse",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/index.ts",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ]
+    }
+  ]
+}

@@ -2,18 +2,18 @@ import React, {useEffect, useState} from 'react';
 import Sheet from "./sheet/ui/sheet";
 import Home from "./home";
 import {Routes, Route} from "react-router-dom";
-import data from "./sheet/data";
+import data from "./sheet/data"; import {IndexJSON} from "./sheet/types";
 
 const App = () => {
-  const [sheets, setSheets] = useState([] as string[]);
+  const [index, setIndex] = useState(null as IndexJSON | null);
   useEffect(() => {
-    data.fetchIndex().then(setSheets);
+    data.fetchIndex().then(setIndex);
   }, []);
   return (
     <div>
       <Routes>
-        <Route path="/" element={<Home sheets={sheets} />}/>
-        {sheets.map(s => <Route key={s} path={s} element={<Sheet sheet={s} />}/>)}
+        {index && <Route path="/" element={<Home data={index} />}/>}
+        {index && index.sheets.map(s => <Route key={s.name} path={s.name} element={<Sheet sheet={s.name} />}/>)}
       </Routes>
     </div>
   );

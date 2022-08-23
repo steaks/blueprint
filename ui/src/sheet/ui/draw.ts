@@ -1,5 +1,13 @@
-import factory, {mxCell, mxGraph} from "mxgraph";
+import factory, {mxCell,mxEventObject, mxGraph} from "mxgraph";
 import {GraphJSON, OperatorJSON, SheetJSON} from "../types";
+
+let _id = 0;
+const generateId = () => {
+  _id = _id + 1;
+  return `operator_${_id}`;
+};
+
+const operators = {} as Record<string, OperatorJSON>;
 
 const mx = factory({mxBasePath: ''});
 
@@ -51,9 +59,9 @@ const firstLevelGraphView = {
   style: "rounded=0;whiteSpace=wrap;fillColor=#dae8fc;shadow=0;gradientDirection=north;strokeColor=#6c8ebf;align=left;verticalAlign=top;horizontal=1;labelBackgroundColor=none;html=1;fontStyle=1"
 };
 
-const insertOperator = (graph: mxGraph, parent: mxCell, prev: mxCell, o: OperatorJSON, xOffset: number, yOffset: number) => {
+const insertOperator = (graph: mxGraph, parent: mxCell, prev: mxCell, id: string, o: OperatorJSON, xOffset: number, yOffset: number) => {
   const view = o.subgraph ? graphView : operatorView;
-  const v = graph.insertVertex(parent, null, o.name, xOffset, yOffset, view.width, view.height, view.style);
+  const v = graph.insertVertex(parent, id, o.name, xOffset, yOffset, view.width, view.height, view.style);
   graph.insertEdge(parent, null, '', prev, v, arrowStyle);
   const e = graph.insertVertex(parent, null, null, xOffset + dotView.xOffset, yOffset + dotView.yOffset, dotView.width, dotView.height, dotView.style);
   graph.insertEdge(parent, null, '', v, e, lineStyle);
@@ -72,13 +80,15 @@ const insertParallelOperator = (graph: mxGraph, parent: mxCell, prev: mxCell, o:
   return e;
 };
 
-const insertBranchOperator = (graph: mxGraph, parent: mxCell, prev: mxCell, o: OperatorJSON, xOffset: number, yOffset: number) => {
+const insertBranchOperator = (graph: mxGraph, parent: mxCell, prev: mxCell, o: OperatorJSON, id: string, xOffset: number, yOffset: number) => {
   const branchXOffset = 130;
-  const b = graph.insertVertex(parent, null, o.name, xOffset, yOffset, branchView.width, branchView.height, branchView.style);
+  const b = graph.insertVertex(parent, id, o.name, xOffset, yOffset, branchView.width, branchView.height, branchView.style);
   graph.insertEdge(parent, null, '', prev, b, arrowStyle)
   const v = o.suboperators.map((o, k) => {
+    const id = generateId();
+    operators[id] = o;
     const view = o.subgraph ? graphView : operatorView;
-    return graph.insertVertex(parent, null, o.name, xOffset + branchXOffset, yOffset + subOperatorHeight * k, view.width, view.height, view.style);
+    return graph.insertVertex(parent, id, o.name, xOffset + branchXOffset, yOffset + subOperatorHeight * k, view.width, view.height, view.style);
   });
   v.forEach(vv => graph.insertEdge(parent, null, '', b, vv, dashedArrowStyle));
   const e = graph.insertVertex(parent, null, null, xOffset + branchXOffset + dotView.xOffset, yOffset + dotView.yOffset, dotView.width, dotView.height, dotView.style);
@@ -126,12 +136,11 @@ const calculateGraphWidth = (graph: GraphJSON) =>
 
 const insertOverivew = (graph: mxGraph, parent: mxCell, g: GraphJSON, xOffset: number, yOffset: number) => {
   const width = startOperatorWidth + calculateGraphWidth(g) + endOperatorWidth;
-  console.log(width);
   const height = calculateGraphHeight(g);
   return graph.insertVertex(parent, null, g.name, xOffset, yOffset, width, height, firstLevelGraphView.style);
 };
 
-const graph = async (sheet: SheetJSON) => {
+const graph = async (sheet: SheetJSON, onClick: (operator: OperatorJSON) => void) => {
   const container = document.getElementById(sheet.name)!;
 
   const graph = new mx.mxGraph(container);
@@ -150,20 +159,29 @@ const graph = async (sheet: SheetJSON) => {
       insertOverivew(graph, parent, g, xOffset, yOffset)
       const start = insertStart(graph, parent, xOffset + xPadding, yOffset + yPadding);
       const last = g.operators.reduce((prev, o, j) => {
+        const id = generateId();
+        operators[id] = o;
         const xOffset = xPadding + startOperatorWidth + calculateOperatorsWidth(g.operators.slice(0, j));
         if (o.type === "ParallelOperator") {
           return insertParallelOperator(graph, parent, prev, o, xOffset, yOffset + yPadding);
         }
         if (o.type === "BranchOperator") {
-          return insertBranchOperator(graph, parent, prev, o, xOffset, yOffset + yPadding);
+          return insertBranchOperator(graph, parent, prev, o, id, xOffset, yOffset + yPadding);
         }
         if (o.type === "Operator") {
-          return insertOperator(graph, parent, prev, o, xOffset, yOffset + yPadding);
+          return insertOperator(graph, parent, prev, id, o, xOffset, yOffset + yPadding);
         }
         throw new Error(`Unexpected operator ${o.type}`);
       }, start);
       const endXOffset = xPadding + startOperatorWidth + calculateGraphWidth(g);
       insertEnd(graph, parent, last, endXOffset, yOffset + yPadding);
+    });
+    graph.addListener("click", (graph: mxGraph, e: mxEventObject) =>{
+      const cell = (e.properties as any).cell as mxCell;
+      const operator = operators[cell.id];
+      if (operator) {
+        onClick(operator);
+      }
     });
   } finally {
     // Updates the display

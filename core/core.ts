@@ -21,6 +21,8 @@ export interface AsyncOperator<A, B, C, R> {
     readonly _suboperators: AsyncOperator<any, any, any, any>[];
     readonly _subgraph: Graph<any, any> | null;
     readonly _check: string | null;
+    readonly _doc: string | null;
+    readonly _path: string | null;
     readonly glue: (value: boolean) => AsyncOperator<A, B, C, R>;
     readonly allowShortCircuit: (value: boolean) => AsyncOperator<A, B, C, R>;
     readonly bname: (value: string) => AsyncOperator<A, B, C, R>;
@@ -37,7 +39,9 @@ export interface Graph<A, B> {
     (a: A): Promise<B>;
     readonly __type: string;
     readonly __name: string;
+    readonly _doc: string | null;
     readonly __operators: Operator<any, any, any, any>[];
+    readonly doc: (value: string) => Graph<A, B>
 }
 
 const tap = <A, C>(func: TapParams<A, C>): AsyncOperator<A, A, C, unknown> => {
@@ -100,6 +104,28 @@ const _operator = <A, B, C, R>(func: AsyncParams<A, B, C, R>): AsyncOperator<A, 
     };
     if ((func as Graph<any, any>).__type === "Graph") {
         apply._subgraph = func as Graph<any, any>;
+    }
+    const stack = new Error().stack!
+    const arr = stack.split("\n");
+    const trace = arr.slice(1).find((s) =>
+      !s.includes("blueprint/core/core.ts") &&
+      !s.includes("blueprint/webserver/router.ts") &&
+      !s.includes("blueprint/webserver/webserver.ts") &&
+      s.includes("(/")
+    );
+    if (trace) {
+      const start = trace.indexOf("/examples/citifakebank");
+      const sub = trace.substring(start);
+      const end = sub.lastIndexOf(":");
+      if (start && end) {
+        const path = sub.substring(0, end).replace(":", "#L");
+        const fullPath = `https://github.com/steaks/blueprint/tree/main/webserver${path}`;
+        apply._path = fullPath;
+      } else {
+        apply._path = null;
+      }
+    } else {
+        apply._path = null;
     }
     return apply;
 };
@@ -232,6 +258,11 @@ function graph(): Graph<unknown, unknown> {
   apply.__type = "Graph";
   apply.__name = name;
   apply.__operators = operators;
+  apply._doc = null as null | string;
+  apply.doc = (value: string) => {
+    apply._doc = value;
+    return apply
+  };
   return apply;
 }
 
