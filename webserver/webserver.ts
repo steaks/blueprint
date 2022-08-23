@@ -49,7 +49,6 @@ const listen = (receive: Graph<Params, any>) => {
 
 const serve = <A>(before: Graph<WithQuery, A>, routes: Graph<A, BResponse>, after: Graph<BResponse, BResponse>): Graph<Params, any> => {
   const server = blueprint.graph("server",
-    {},
     blueprint.operator.operator(parseUrl),
     blueprint.operator.operator(parseQuery),
     blueprint.operator.operator(before),

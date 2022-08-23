@@ -228,26 +228,32 @@ const parallel = <A, B, C, R>(func0: AsyncParams<A, B, C, R>, func1: AsyncParams
         .suboperators([o0, o1]) as AsyncOperator<A, [B, B], C, R>;
 };
 
-function graph<A, B, C>(name: string, context: C, o0: AsyncOperator<A, B, C, B>): Graph<A, B>;
-function graph<A, B, C, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, C>, o1: AsyncOperator<B, C, Context, C>): Graph<A, C>;
-function graph<A, B, C, D, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, D>, o1: AsyncOperator<B, C, Context, D>, o2: AsyncOperator<C, D, Context, D>): Graph<A, D>;
-function graph<A, B, C, D, E, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, E>, o1: AsyncOperator<B, C, Context, E>, o2: AsyncOperator<C, D, Context, E>, o3: AsyncOperator<D, E, Context, E>): Graph<A, E>;
-function graph<A, B, C, D, E, F, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, F>, o1: AsyncOperator<B, C, Context, F>, o2: AsyncOperator<C, D, Context, F>, o3: AsyncOperator<D, E, Context, F>, o4: AsyncOperator<E, F, Context, F>): Graph<A, F>;
-function graph<A, B, C, D, E, F, G, Context>(name: string, context: Context, o0: AsyncOperator<A, B, Context, G>, o1: AsyncOperator<B, C, Context, G>, o2: AsyncOperator<C, D, Context, G>, o3: AsyncOperator<D, E, Context, G>, o4: AsyncOperator<E, F, Context, G>, o5: AsyncOperator<F, G, Context, G>): Graph<A, G>;
+interface BaseContext {
+  readonly graph: string;
+  readonly operator: string;
+}
+
+function graph<A, B, Context extends BaseContext>(name: string, o0: AsyncOperator<A, B, Context, B>): Graph<A, B>;
+function graph<A, B, C, Context extends BaseContext>(name: string, o0: AsyncOperator<A, B, Context, C>, o1: AsyncOperator<B, C, Context, C>): Graph<A, C>;
+function graph<A, B, C, D, Context extends BaseContext>(name: string, o0: AsyncOperator<A, B, Context, D>, o1: AsyncOperator<B, C, Context, D>, o2: AsyncOperator<C, D, Context, D>): Graph<A, D>;
+function graph<A, B, C, D, E, Context extends BaseContext>(name: string, o0: AsyncOperator<A, B, Context, E>, o1: AsyncOperator<B, C, Context, E>, o2: AsyncOperator<C, D, Context, E>, o3: AsyncOperator<D, E, Context, E>): Graph<A, E>;
+function graph<A, B, C, D, E, F, Context extends BaseContext>(name: string, o0: AsyncOperator<A, B, Context, F>, o1: AsyncOperator<B, C, Context, F>, o2: AsyncOperator<C, D, Context, F>, o3: AsyncOperator<D, E, Context, F>, o4: AsyncOperator<E, F, Context, F>): Graph<A, F>;
+function graph<A, B, C, D, E, F, G, Context extends BaseContext>(name: string, o0: AsyncOperator<A, B, Context, G>, o1: AsyncOperator<B, C, Context, G>, o2: AsyncOperator<C, D, Context, G>, o3: AsyncOperator<D, E, Context, G>, o4: AsyncOperator<E, F, Context, G>, o5: AsyncOperator<F, G, Context, G>): Graph<A, G>;
 
 function graph(): Graph<unknown, unknown> {
   const name = arguments[0];
-  const context = arguments[1];
   const operators = [] as any[];
-  for (let i = 2; i < arguments.length; i++) {
+  for (let i = 1; i < arguments.length; i++) {
     operators.push(arguments[i]);
   }
+  const context = {graph: name} as Record<string, string>;
   const apply = async (a: unknown) => {
     const ret = await operators.reduce(async (value, operator) => {
       const v = await value;
       if (v && (v as End<unknown>).__type === "END") {
         return Promise.resolve(v);
       }
+      context.operator = operator.name;
       return await operator(v, context);
     }, Promise.resolve(a));
     if (ret && (ret as End<unknown>).__type === "END") {

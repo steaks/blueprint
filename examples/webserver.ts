@@ -15,7 +15,6 @@ const compress = () => console.log("COMPRESS")
 
 const before = blueprint.graph(
   "before",
-  {},
   blueprint.operator.tap(headersParser),
   blueprint.operator.tap(queryStringParser),
   blueprint.operator.tap(bodyParser),
@@ -26,7 +25,6 @@ const before = blueprint.graph(
 
 const after = blueprint.graph(
   "after",
-  {},
   blueprint.operator.tap(compress)
 );
 
@@ -48,7 +46,7 @@ const getRoutes = blueprint.operator
   .else(notFound)
   .end("routes");
 
-const gets = blueprint.graph("gets", {}, getRoutes);
+const gets = blueprint.graph("gets", getRoutes);
 
 const postRoutes = blueprint.operator
   .if(foo, blueprint.operator.tap(doFoo).bname("/foo"))
@@ -57,7 +55,7 @@ const postRoutes = blueprint.operator
   .else(notFound)
   .end("routes");
 
-const posts = blueprint.graph("posts", {}, postRoutes);
+const posts = blueprint.graph("posts", postRoutes);
 
 const routes = blueprint.operator
   .if(get, gets)
@@ -67,7 +65,6 @@ const routes = blueprint.operator
 
 const app = blueprint.graph(
   "webserver",
-  {},
   blueprint.operator.tap(before).bname("before"),
   routes,
   blueprint.operator.tap(after).bname("after")

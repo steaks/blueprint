@@ -8,13 +8,11 @@ import routes from "./routes";
 
 const beforeRoutes = blueprint.graph(
   "beforeRoutes",
-  {},
   blueprint.operator.tap(log.logRequest)
 ) as unknown as Graph<WithQuery, WithQuery>;
 
 const afterRoutes = blueprint.graph(
   "afterRoutes",
-  {},
   blueprint.operator.tap(log.logResponse)
 ) as unknown as Graph<BResponse, BResponse>;
 
