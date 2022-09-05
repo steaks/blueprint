@@ -1,17 +1,16 @@
 import {GraphJSON, OperatorJSON} from "../types";
-import {Link} from "react-router-dom";
+import {Link} from "react-router-dom"; import {useEffect, useState} from "react"; import data from "../data";
 
 const Operator = (p: {readonly graph: GraphJSON; readonly operator: OperatorJSON}) => {
-  const logPath = `/logs?graph=${p.graph.name}&operator=${p.operator.name}`;
-  const errorsPath = `/errors?graph=${p.graph.name}&operator=${p.operator.name}`;
   return (
-    <>
-      <h2>{p.operator.name}</h2>
-      <div>{p.operator.doc}</div>
-      <div>{p.operator.path && <Link to={p.operator.path}>code</Link>}</div>
-      <div><Link to={logPath}>logs</Link></div>
-      <div><Link to={errorsPath}>errors</Link></div>
-    </>
+    <div style={{border: "1px solid black", width: "300px", marginTop: "10px", paddingBottom: "10px"}}>
+      <i>Operator details</i>
+      <div style={{marginLeft: "10px"}}>
+        <h2>Name: {p.operator.name}</h2>
+        {p.operator.doc && <div>Description: {p.operator.doc}</div>}
+        <div>Code: {p.operator.path && <a href={p.operator.path}>link to github</a>}</div>
+      </div>
+    </div>
   );
 };
 

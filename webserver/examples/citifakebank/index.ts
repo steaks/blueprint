@@ -18,7 +18,7 @@ const afterRoutes = blueprint.graph(
 
 const server = webserver.serve(beforeRoutes, routes, afterRoutes);
 
-const application = blueprint.serialize.sheet("application", [
+const infrastructure = blueprint.serialize.sheet("infrastructure", [
   server,
   beforeRoutes,
   routes,
@@ -27,11 +27,11 @@ const application = blueprint.serialize.sheet("application", [
 ], "Main infrastructure.");
 const aboutSheet = blueprint.serialize.sheet("about", [
   about.routes,
-], "About the bank.");
+], "Logic for displaying information about the bank's history and employees.");
 const accountSheet = blueprint.serialize.sheet("account", [
   account.routes,
   getActivity,
   getBalance,
   afterRoutes
-], "Account management");
-blueprint.serialize.build("CitiFakeBank", [application, aboutSheet, accountSheet]);
+], "Logic for showing a user's account information - including balance, activity, etc.");
+blueprint.serialize.build("CitiFakeBank", [infrastructure, aboutSheet, accountSheet]);
