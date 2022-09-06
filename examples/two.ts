@@ -35,7 +35,6 @@ const baz = (p: string) => {
 
 const foobar = blueprint.graph(
     "foobar",
-    {},
     blueprint.operator.operator(foo),
     blueprint.operator.parallel(blueprint.operator.operator(bar), blueprint.operator.operator(baz)),
 );

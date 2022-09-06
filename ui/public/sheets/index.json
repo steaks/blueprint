@@ -1,0 +1,17 @@
+{
+  "name": "CitiFakeBank",
+  "sheets": [
+    {
+      "name": "application",
+      "doc": "Main infrastructure."
+    },
+    {
+      "name": "about",
+      "doc": "About the bank."
+    },
+    {
+      "name": "account",
+      "doc": "Account management"
+    }
+  ]
+}

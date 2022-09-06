@@ -1,0 +1,42 @@
+{
+  "name": "about",
+  "doc": "About the bank.",
+  "graphs": [
+    {
+      "name": "/about",
+      "doc": null,
+      "operators": [
+        {
+          "name": "routes",
+          "doc": null,
+          "type": "BranchOperator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/about.ts",
+          "suboperators": [
+            {
+              "name": "/team",
+              "type": "Operator",
+              "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/about.ts",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "/history",
+              "type": "Operator",
+              "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/about.ts",
+              "suboperators": [],
+              "subgraph": null
+            },
+            {
+              "name": "404",
+              "type": "Operator",
+              "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/about.ts",
+              "suboperators": [],
+              "subgraph": null
+            }
+          ],
+          "subgraph": null
+        }
+      ]
+    }
+  ]
+}

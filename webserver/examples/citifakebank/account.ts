@@ -65,14 +65,14 @@ const toBalanceHTML = (p: WithBalance): BResponse => {
   };
 };
 
-export const getActivity = blueprint.graph("/activity", {},
+export const getActivity = blueprint.graph("/activity",
   blueprint.operator.operator(getDeposits),
   blueprint.operator.operator(getWithdraws),
   blueprint.operator.operator(getFees),
   blueprint.operator.operator(toActivityHTML)
 );
 
-export const getBalance = blueprint.graph("/balance", {},
+export const getBalance = blueprint.graph("/balance",
   blueprint.operator.operator(getDeposits),
   blueprint.operator.operator(getWithdraws),
   blueprint.operator.operator(getFees),

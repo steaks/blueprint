@@ -1,0 +1,148 @@
+{
+  "name": "account",
+  "doc": "Account management",
+  "graphs": [
+    {
+      "name": "/account",
+      "doc": null,
+      "operators": [
+        {
+          "name": "authenticate",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/account.ts",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "routes",
+          "doc": null,
+          "type": "BranchOperator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/account.ts",
+          "suboperators": [
+            {
+              "name": "/balance",
+              "type": "Operator",
+              "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/account.ts",
+              "suboperators": [],
+              "subgraph": "/balance"
+            },
+            {
+              "name": "/activity",
+              "type": "Operator",
+              "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/account.ts",
+              "suboperators": [],
+              "subgraph": "/activity"
+            },
+            {
+              "name": "404",
+              "type": "Operator",
+              "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/account.ts",
+              "suboperators": [],
+              "subgraph": null
+            }
+          ],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "/activity",
+      "doc": null,
+      "operators": [
+        {
+          "name": "getDeposits",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/account.ts",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "getWithdraws",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/account.ts",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "getFees",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/account.ts",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "toActivityHTML",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/account.ts",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "/balance",
+      "doc": null,
+      "operators": [
+        {
+          "name": "getDeposits",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/account.ts",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "getWithdraws",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/account.ts",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "getFees",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/account.ts",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "calculate",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/account.ts",
+          "suboperators": [],
+          "subgraph": null
+        },
+        {
+          "name": "toBalanceHTML",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/account.ts",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ]
+    },
+    {
+      "name": "afterRoutes",
+      "doc": null,
+      "operators": [
+        {
+          "name": "logResponse",
+          "doc": null,
+          "type": "Operator",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/    at Object.<anonymous> (/home/stevenwexler/developer/blueprint/webserver/examples/citifakebank/index.ts",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ]
+    }
+  ]
+}

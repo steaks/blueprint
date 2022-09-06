@@ -245,7 +245,6 @@ const cli = {
 
         blueprint.graph(
             "cli",
-            {},
             op.tap(withContext).glue(),
             op.tap((p, context) => {
                 if (Array.isArray(context.args)) {

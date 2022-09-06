@@ -46,8 +46,8 @@ export const router = <A extends WithQuery, B extends A>(namespace: string) => {
     notFound: (p: AsyncParams<B, any, any, any>): Router<A> => {
       const op = logic!.else(blueprint.operator.operator(p).bname("404")).end("routes");
       const routes = before.length > 0
-        ? blueprint.graph(namespace || "*", {}, before[0], op)
-        : blueprint.graph(namespace || "*", {}, op) as Graph<A, any>;
+        ? blueprint.graph(namespace || "*", before[0], op)
+        : blueprint.graph(namespace || "*", op) as Graph<A, any>;
       return {path: namespace, routes};
     }
   };

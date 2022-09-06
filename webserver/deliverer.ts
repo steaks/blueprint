@@ -40,7 +40,6 @@ const sendResponse = (p: BResponse) => {
 const send = (beforeSend: Graph<BResponse, BResponse>): Graph<BResponse, any> => {
   return blueprint.graph(
     "send",
-    {},
     blueprint.operator.operator(beforeSend),
     blueprint.operator.tap(sendResponse)
   );

@@ -53,8 +53,10 @@ Less is More - Prefer fewer features that achieves most cases over many features
 
 ### View webserver CitiFakeBank example
 
+This example launches a fake banking account website at `http://localhost:3000` and a corresponding blueprint UI that illustrates the architecture via a flow diagram at `http://localhost:3001`.
+
 ```
 cd webserver
-npm run examples/citifakebank
-npm run examples/citifakebank-blueprint
+npm run examples/citifakebank           #Opens a fake website in localhost:3000 that is used for demonstrating blueprint.
+npm run examples/citifakebank-blueprint #Opens the blueprint ui in localhost:3001 which displays the code architecture.
 ```

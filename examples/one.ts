@@ -39,7 +39,6 @@ const Test = {
 
 const foobar = blueprint.graph(
   "foobar",
-  {},
   blueprint.operator.operator(Test.foo),
   blueprint.operator.operator(bar),
   blueprint.operator.parallel(foo, bar)
@@ -49,7 +48,6 @@ console.log(foobar.name);
 
 const foobarbaz = blueprint.graph(
   "foobarbaz",
-  {},
   blueprint.operator.operator(foo),
   blueprint.operator.operator(bar),
   blueprint.operator.parallel(foobar, foobar)
@@ -57,7 +55,6 @@ const foobarbaz = blueprint.graph(
 
 const hmm = blueprint.graph(
   "hmm",
-  {},
   blueprint.operator.operator(foo),
   blueprint.operator.operator(bar),
   blueprint.operator
@@ -68,7 +65,6 @@ const hmm = blueprint.graph(
 
 const hmm2 = blueprint.graph(
   "hmm2",
-  {},
   blueprint.operator.operator(foo),
   blueprint.operator.operator(bar),
   blueprint.operator.parallel(foobar, foobar)

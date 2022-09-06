@@ -32,7 +32,6 @@ const baz = (foobar: string) => {
 
 const foobar = blueprint.graph(
   "foobar",
-  {},
   blueprint.operator.operator(foo),
   blueprint.operator.operator(bar)
 );
@@ -47,7 +46,6 @@ const case5 = (a: string) => a;
 
 const foobarbaz = blueprint.graph(
   "foobarbaz",
-  {},
   blueprint.operator.operator(foo),
   blueprint.operator
     .if(a => a === "foo", case1)
