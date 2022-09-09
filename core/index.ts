@@ -1,6 +1,7 @@
-import core, {Graph as _Graph, AsyncParams as _AsyncParams, AsyncOperator as _AsyncOperator, Branch as _Branch, End as _End, BaseContext} from "./core";
+import core, {Graph as _Graph, AsyncParams as _AsyncParams, AsyncOperator as _AsyncOperator, Branch as _Branch, End as _End, BaseContext as _BaseContext} from "./core";
 import serialize, {SheetJSON as _SheetJSON} from "./serialize";
 
+export type BaseContext = _BaseContext;
 export type SheetJSON = _SheetJSON;
 export type AsyncParams<A, B, C extends BaseContext, D> = _AsyncParams<A, B, C, D>;
 export type AsyncOperator<A, B, C extends BaseContext, D> = _AsyncOperator<A, B, C, D>;
