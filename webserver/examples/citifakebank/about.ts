@@ -1,9 +1,8 @@
 import webserver, {WithQuery}from "../../index";
-import {WithUser} from "./authentication";
 
-const about = webserver.router.router<WithQuery, WithUser>("/about")
-  .get("/team", (p: WithUser) => ({...p, data: "<div><h1>Employees</h1><ul><li>Steven</li><li>Becky</li></ul></div>", statusCode: 200}))
-  .get("/history", (p: WithUser) => ({...p, data: "The bank was formed in 2023!", statusCode: 200}))
-  .notFound((p: WithUser) => ({...p, data: "NOT FOUND", statusCode: 404}));
+const about = webserver.router.router("/about")
+  .get("/team", (p: WithQuery) => ({...p, data: "<div><h1>Employees</h1><ul><li>Steven</li><li>Becky</li></ul></div>", statusCode: 200}))
+  .get("/history", (p: WithQuery) => ({...p, data: "The bank was formed in 2023!", statusCode: 200}))
+  .notFound((p: WithQuery) => ({...p, data: "NOT FOUND", statusCode: 404}));
 
 export default about;

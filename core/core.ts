@@ -49,7 +49,7 @@ export interface Graph<A, B> {
     readonly doc: (value: string) => Graph<A, B>
 }
 
-const tap = <A, C extends BaseContext>(func: TapParams<A, C>): AsyncOperator<A, A, C, unknown> => {
+const tap = <A, C extends BaseContext>(func: TapParams<A, C>): AsyncOperator<A, A, C, any> => {
     const apply = (a: A, context: C) => {
         func(a, context);
         return Promise.resolve(a);
