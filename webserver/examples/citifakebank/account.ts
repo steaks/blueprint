@@ -1,65 +1,49 @@
 import webserver, {BResponse, WithQuery} from "../../index";
 import authentication, {WithUser} from "./authentication";
-import activity ,{Deposit,Fee,Withdraw}from "./activity";
-import blueprint from "blueprint";
+import activity, {Deposit,Fee,Withdraw} from "./activity";
+import blueprint, {With1,With2,With3,With4} from "blueprint";
 
-interface WithDeposits {
-  readonly req: WithUser;
-  readonly deposits: Deposit[];
-}
+const getDeposits = async (request: WithUser) =>
+  await activity.deposits(request.user.username);
 
-type WithWithdraws = WithDeposits & {
-  readonly withdraws: Withdraw[];
-}
+const getWithdraws = async (p: unknown, context: With1<WithUser>) =>
+  await activity.withdraws(context[0].user.username);
 
-type WithFees = WithWithdraws & {
-  readonly fees: Fee[];
-}
+const getFees = async (p: unknown, context: With2<WithUser>) =>
+  await activity.fees(context[0].user.username);
 
-type WithBalance = WithFees & {
-  readonly balance: number;
-}
-
-const getDeposits = async (request: WithUser) => {
-  const deposits = await activity.deposits(request.user.username);
-  return {deposits, req: request};
-};
-
-const getWithdraws = async (p: WithDeposits) => {
- const withdraws = await activity.withdraws(p.req.user.username);
- return {...p, withdraws};
-};
-
-const getFees = async (p: WithWithdraws) => {
-  const fees = await activity.fees(p.req.user.username);
-  return {...p, fees};
-};
-
-const toActivityHTML = (p: WithFees): BResponse => {
+const toActivityHTML = (p: unknown, context: With3<WithUser, Deposit[], Withdraw[], Fee[]>): BResponse => {
+  const req = context[0];
+  const deposits = context[1];
+  const withdraws = context[2];
+  const fees = context[3];
   const data = `
-    <div><h2>Deposits</h2>${p.deposits.map(d => `<div>${d.amount}</div>`).join("")}</div>
-    <div><h2>Withdraws</h2>${p.withdraws.map(w => `<div>${w.amount}</div>`).join("")}</div>
-    <div><h2>Fees</h2>${p.fees.map(f => `<div>${f.amount}</div>`).join("")}</div>
+    <div><h2>Deposits</h2>${deposits.map(d => `<div>${d.amount}</div>`).join("")}</div>
+    <div><h2>Withdraws</h2>${withdraws.map(w => `<div>${w.amount}</div>`).join("")}</div>
+    <div><h2>Fees</h2>${fees.map(f => `<div>${f.amount}</div>`).join("")}</div>
   `;
   return {
-    ...p.req,
+    ...req,
     statusCode: 200,
     data
   };
 };
 
-const calculate = (p: WithFees): WithBalance => {
-  const deposits = p.deposits.reduce((sum, a) => sum + a.amount, 0);
-  const withdraws = p.withdraws.reduce((sum, a) => sum + a.amount, 0);
-  const fees = p.fees.reduce((sum, a) => sum + a.amount, 0);
-  const balance = deposits - withdraws - fees;
-  return {...p, balance};
+const calculate = (p: unknown, context: With3<unknown, Deposit[], Withdraw[], Fee[]>): number => {
+  const deposits = context[1];
+  const withdraws = context[2];
+  const fees = context[3];
+  const depositsSum = deposits.reduce((sum, a) => sum + a.amount, 0);
+  const withdrawsSum = withdraws.reduce((sum, a) => sum + a.amount, 0);
+  const feesSum = fees.reduce((sum, a) => sum + a.amount, 0);
+  return depositsSum - withdrawsSum - feesSum;
 };
 
-const toBalanceHTML = (p: WithBalance): BResponse => {
-  const data = `<div><h2>Balance</h2>${p.balance}</div>`;
+const toBalanceHTML = (p: number, context: With4<WithUser>): BResponse => {
+  const req = context[0];
+  const data = `<div><h2>Balance</h2>${p}</div>`;
   return {
-    ...p.req,
+    ...req,
     statusCode: 200,
     data
   };

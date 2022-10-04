@@ -1,6 +1,6 @@
-import webserver, {WithQuery} from "../../index";
-import blueprint, {Graph} from "blueprint";
-import account ,{getActivity,getBalance}from "./account";
+import webserver from "../../index";
+import blueprint from "blueprint";
+import account, {getActivity, getBalance}from "./account";
 import about from "./about";
 import home from "./home";
 import log from "./log";
@@ -22,15 +22,11 @@ const server = webserver.serve(beforeRoutes, routes, afterRoutes);
 
 // Blueprint UI
 
-const app = blueprint.serialize.sheet("app", [
+const infrastructure = blueprint.serialize.sheet("infrastructure", [
   server,
   beforeRoutes,
   routes,
   home.routes,
-  about.routes,
-  account.routes,
-  getActivity,
-  getBalance,
   afterRoutes
 ], "Main infrastructure.");
 
@@ -45,4 +41,4 @@ const accountSheet = blueprint.serialize.sheet("account", [
   afterRoutes
 ], "Logic for showing a user's account information - including balance, activity, etc.");
 
-blueprint.serialize.build("CitiFakeBank", [app]);
+blueprint.serialize.build("CitiFakeBank", [infrastructure, aboutSheet, accountSheet]);
