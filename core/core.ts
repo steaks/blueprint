@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 
-import {getParamNames} from "./util"; type SyncFunc<A, B, C, R> = (p: A, context: C) => B | End<R>;
+import {getParamNames} from "./util";
+type SyncFunc<A, B, C, R> = (p: A, context: C) => B | End<R>;
 type TapFunc<A, C> = (p: A, context: C) => any;
 type AsyncFunc<A, B, C, R> = (p: A, context: C) => Promise<B | End<R>>;
 type ShortcircuitAsyncFunc<A, B, C, R> = (p: A, context: C) => Promise<B | End<R>>;
