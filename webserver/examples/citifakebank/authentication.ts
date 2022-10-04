@@ -14,13 +14,13 @@ export type WithUser = WithQuery & {
   readonly user: User;
 }
 
-const authenticate = (q: WithQuery): WithUser | End<BResponse> => {
-  const foo = q.query.token as string || "";
+const authenticate = (request: WithQuery): WithUser | End<BResponse> => {
+  const foo = request.query.token as string || "";
   const user = sessions[foo];
   if (user) {
-    return {...q, user};
+    return {...request, user};
   } else {
-    return blueprint.end({...q, statusCode: 401, data: "Not Authenticated"});
+    return blueprint.end({...request, statusCode: 401, data: "Not Authenticated"});
   }
 };
 

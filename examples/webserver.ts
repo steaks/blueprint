@@ -20,12 +20,14 @@ const before = blueprint.graph(
   blueprint.operator.tap(bodyParser),
   blueprint.operator.tap(cookieParser),
   blueprint.operator.tap(logger),
-  blueprint.operator.tap(authentication)
+  blueprint.operator.tap(authentication),
+  "request"
 );
 
 const after = blueprint.graph(
   "after",
-  blueprint.operator.tap(compress)
+  blueprint.operator.tap(compress),
+  "response"
 );
 
 const get = (request: Req) => request.method === "GET";
@@ -46,7 +48,7 @@ const getRoutes = blueprint.operator
   .else(notFound)
   .end("routes");
 
-const gets = blueprint.graph("gets", getRoutes);
+const gets = blueprint.graph("gets", getRoutes, "response");
 
 const postRoutes = blueprint.operator
   .if(foo, blueprint.operator.tap(doFoo).bname("/foo"))
@@ -55,7 +57,7 @@ const postRoutes = blueprint.operator
   .else(notFound)
   .end("routes");
 
-const posts = blueprint.graph("posts", postRoutes);
+const posts = blueprint.graph("posts", postRoutes, "response");
 
 const routes = blueprint.operator
   .if(get, gets)
@@ -67,7 +69,8 @@ const app = blueprint.graph(
   "webserver",
   blueprint.operator.tap(before).bname("before"),
   routes,
-  blueprint.operator.tap(after).bname("after")
+  blueprint.operator.tap(after).bname("after"),
+  "response"
 );
 
 const webserver = blueprint.serialize.sheet("webserver", [app, before, after, gets, posts]);

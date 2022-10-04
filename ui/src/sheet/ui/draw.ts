@@ -14,8 +14,20 @@ const mx = factory({mxBasePath: ''});
 const graphView = {
   height: 40,
   width: 100,
-  style: "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;"
+  style: "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;"
 
+};
+
+const startView = {
+  height: 40,
+  width: 100,
+  style: "rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#000000"
+};
+
+const endView = {
+  height: 40,
+  width: 100,
+  style: "rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#000000"
 };
 
 const operatorView = {
@@ -56,7 +68,7 @@ const firstLevelGraphView = {
   width: (operators: OperatorJSON[]) => {
     return operators.reduce((s, o) => s + calculateOperatorWidth(o), 200);
   },
-  style: "rounded=0;whiteSpace=wrap;fillColor=#dae8fc;shadow=0;gradientDirection=north;strokeColor=#6c8ebf;align=left;verticalAlign=top;horizontal=1;labelBackgroundColor=none;html=1;fontStyle=1"
+  style: "rounded=0;whiteSpace=wrap;fillColor=#ffffff;shadow=0;gradientDirection=north;strokeColor=#ffffff;align=left;verticalAlign=top;horizontal=1;labelBackgroundColor=none;html=1;fontStyle=1"
 };
 
 const insertOperator = (graph: mxGraph, parent: mxCell, prev: mxCell, id: string, o: OperatorJSON, xOffset: number, yOffset: number) => {
@@ -96,14 +108,14 @@ const insertBranchOperator = (graph: mxGraph, parent: mxCell, prev: mxCell, o: O
   return e;
 };
 
-const insertStart = (graph: mxGraph, parent: mxCell, xOffset: number, yOffset: number) => {
-  const v = graph.insertVertex(parent, null, "start", xOffset, yOffset, operatorView.width, operatorView.height, operatorView.style);
+const insertStart = (graph: mxGraph, parent: mxCell, input: string, xOffset: number, yOffset: number) => {
+  const v = graph.insertVertex(parent, null, input, xOffset, yOffset, startView.width, startView.height, startView.style);
   const e = graph.insertVertex(parent, null, null, xOffset + 120, yOffset + 20, dotView.width, dotView.height, dotView.style);
   graph.insertEdge(parent, null, '', v, e, lineStyle);
   return e;
 };
-const insertEnd = (graph: mxGraph, parent: mxCell, prev: mxCell, xOffset: number, yOffset: number) => {
-  const v = graph.insertVertex(parent, null, "end", xOffset, yOffset, operatorView.width, operatorView.height, operatorView.style);
+const insertEnd = (graph: mxGraph, parent: mxCell, prev: mxCell, output: string, xOffset: number, yOffset: number) => {
+  const v = graph.insertVertex(parent, null, output, xOffset, yOffset, endView.width, endView.height, endView.style);
   graph.insertEdge(parent, null, '', prev, v, arrowStyle);
   return v;
 };
@@ -157,7 +169,7 @@ const graph = async (sheet: SheetJSON, onClick: (graph: GraphJSON, operator: Ope
       const yOffset = yPadding + calculateGraphsHeight(graphs.slice(0, i)) + yPadding * i;
       const xOffset = 0;
       insertOverivew(graph, parent, g, xOffset, yOffset)
-      const start = insertStart(graph, parent, xOffset + xPadding, yOffset + yPadding);
+      const start = insertStart(graph, parent, g.input, xOffset + xPadding, yOffset + yPadding);
       const last = g.operators.reduce((prev, o, j) => {
         const id = generateId();
         operators[id] = {operator: o, graph: g};
@@ -174,7 +186,7 @@ const graph = async (sheet: SheetJSON, onClick: (graph: GraphJSON, operator: Ope
         throw new Error(`Unexpected operator ${o.type}`);
       }, start);
       const endXOffset = xPadding + startOperatorWidth + calculateGraphWidth(g);
-      insertEnd(graph, parent, last, endXOffset, yOffset + yPadding);
+      insertEnd(graph, parent, last, g.output, endXOffset, yOffset + yPadding);
     });
     graph.addListener("click", (graph: mxGraph, e: mxEventObject) =>{
       const cell = (e.properties as any).cell as mxCell;

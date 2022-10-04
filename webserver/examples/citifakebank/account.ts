@@ -20,9 +20,9 @@ type WithBalance = WithFees & {
   readonly balance: number;
 }
 
-const getDeposits = async (req: WithUser) => {
-  const deposits = await activity.deposits(req.user.username);
-  return {deposits, req};
+const getDeposits = async (request: WithUser) => {
+  const deposits = await activity.deposits(request.user.username);
+  return {deposits, req: request};
 };
 
 const getWithdraws = async (p: WithDeposits) => {
@@ -69,7 +69,8 @@ export const getActivity = blueprint.graph("/activity",
   blueprint.operator.operator(getDeposits),
   blueprint.operator.operator(getWithdraws),
   blueprint.operator.operator(getFees),
-  blueprint.operator.operator(toActivityHTML)
+  blueprint.operator.operator(toActivityHTML),
+  "activity"
 );
 
 export const getBalance = blueprint.graph("/balance",
@@ -77,7 +78,8 @@ export const getBalance = blueprint.graph("/balance",
   blueprint.operator.operator(getWithdraws),
   blueprint.operator.operator(getFees),
   blueprint.operator.operator(calculate),
-  blueprint.operator.operator(toBalanceHTML)
+  blueprint.operator.operator(toBalanceHTML),
+  "balance"
 );
 
 const account = webserver.router.router<WithQuery, WithUser>("/account")

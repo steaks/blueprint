@@ -8,9 +8,9 @@ import {ParsedQs} from "qs";
 import parseurl from "parseurl";
 import send from "./send";
 
-const parseUrl = (p: Params): WithUrl => {
-  const url = parseurl(p.req) as Url;
-  return {...p, url};
+const parseUrl = (request: Params): WithUrl => {
+  const url = parseurl(request.req) as Url;
+  return {...request, url};
 };
 
 const parseQuery = (p: WithUrl): WithQuery => {
@@ -54,7 +54,8 @@ const serve = <A>(before: Graph<WithQuery, A>, routes: Graph<A, BResponse>, afte
     blueprint.operator.operator(before),
     blueprint.operator.operator(routes),
     blueprint.operator.operator(after),
-    blueprint.operator.tap(send)
+    blueprint.operator.tap(send),
+    "response"
   );
   listen(server);
 

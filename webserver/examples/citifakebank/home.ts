@@ -1,8 +1,8 @@
 import webserver, {WithQuery} from "../../index";
 
-const homeRoute = (p: WithQuery) => {
+const homeRoute = (request: WithQuery) => {
   return ({
-    ...p,
+    ...request,
       data: `
         <h1>CitiFakeBank</h1>
         <div>This is a fake banking webserver designed to illustrate the value of blueprint.</div>

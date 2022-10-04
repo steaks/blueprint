@@ -18,7 +18,7 @@ export const router = <A extends WithQuery, B extends A>(namespace: string) => {
     get: (path: string, func: AsyncParams<B, any, any, any>) => {
       if (!logic) {
         logic = blueprint.operator.if(
-          (r: B) => r.req.method === "GET" && r.url.path !== null && r.url.path.startsWith(`${namespace}${path}`),
+          (request: B) => request.req.method === "GET" && request.url.path !== null && request.url.path.startsWith(`${namespace}${path}`),
           blueprint.isGraph(func) ? func : blueprint.operator.operator(func).bname(path)
         );
       } else {
@@ -32,7 +32,7 @@ export const router = <A extends WithQuery, B extends A>(namespace: string) => {
     post: (path: string, func: AsyncParams<B, any, any, any>) => {
       if (!logic) {
         logic = blueprint.operator.if(
-          (r: B) => r.req.method === "POST" && r.url.path !== null && r.url.path.startsWith(`${namespace}${path}`),
+          (request: B) => request.req.method === "POST" && request.url.path !== null && request.url.path.startsWith(`${namespace}${path}`),
           blueprint.isGraph(func) ? func : blueprint.operator.operator(func).bname(path)
         );
       } else {
@@ -44,10 +44,10 @@ export const router = <A extends WithQuery, B extends A>(namespace: string) => {
       return api;
     },
     notFound: (p: AsyncParams<B, any, any, any>): Router<A> => {
-      const op = logic!.else(blueprint.operator.operator(p).bname("404")).end("routes");
+      const op = logic!.else(blueprint.operator.operator(p).bname("notFound")).end("routes");
       const routes = before.length > 0
-        ? blueprint.graph(namespace || "*", before[0], op)
-        : blueprint.graph(namespace || "*", op) as Graph<A, any>;
+        ? blueprint.graph(namespace || "*", before[0], op, "response")
+        : blueprint.graph(namespace || "*", op, "response") as Graph<A, any>;
       return {path: namespace, routes};
     }
   };
@@ -56,14 +56,14 @@ export const router = <A extends WithQuery, B extends A>(namespace: string) => {
 };
 
 export const routers = <A extends WithQuery>(r: Router<A>[]) => {
-  let logic = blueprint.operator.if((p: WithQuery) => p.url.path !== null && p.url.path.startsWith(r[0].path), r[0].routes);
+  let logic = blueprint.operator.if((request: WithQuery) => request.url.path !== null && request.url.path.startsWith(r[0].path), r[0].routes);
   logic = r.slice(1).reduce((logic, rr) =>
     logic.elseif((p: WithQuery) => p.url.path !== null && p.url.path.startsWith(rr.path), rr.routes),
     logic
   );
   return {
     notFound: (p: AsyncParams<A, any, any, any>): AsyncOperator<A, any, any, any> =>
-      logic.else(blueprint.operator.operator(p).bname("404")).end("routers")
+      logic.else(blueprint.operator.operator(p).bname("notFound")).end("routers")
   }
 };
 

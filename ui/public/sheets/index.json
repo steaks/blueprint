@@ -2,16 +2,16 @@
   "name": "CitiFakeBank",
   "sheets": [
     {
-      "name": "application",
+      "name": "infrastructure",
       "doc": "Main infrastructure."
     },
     {
       "name": "about",
-      "doc": "About the bank."
+      "doc": "Logic for displaying information about the bank's history and employees."
     },
     {
       "name": "account",
-      "doc": "Account management"
+      "doc": "Logic for showing a user's account information - including balance, activity, etc."
     }
   ]
 }

@@ -9,6 +9,8 @@ export interface OperatorJSON {
 
 export interface GraphJSON {
   readonly name: string;
+  readonly input: string;
+  readonly output: string;
   readonly doc?: string;
   readonly operators: OperatorJSON[];
 }

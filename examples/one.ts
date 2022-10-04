@@ -41,7 +41,8 @@ const foobar = blueprint.graph(
   "foobar",
   blueprint.operator.operator(Test.foo),
   blueprint.operator.operator(bar),
-  blueprint.operator.parallel(foo, bar)
+  blueprint.operator.parallel(foo, bar),
+  "foobar"
 );
 
 console.log(foobar.name);
@@ -50,7 +51,8 @@ const foobarbaz = blueprint.graph(
   "foobarbaz",
   blueprint.operator.operator(foo),
   blueprint.operator.operator(bar),
-  blueprint.operator.parallel(foobar, foobar)
+  blueprint.operator.parallel(foobar, foobar),
+  "foobar"
 );
 
 const hmm = blueprint.graph(
@@ -60,14 +62,16 @@ const hmm = blueprint.graph(
   blueprint.operator
     .if(a => true, foobar)
     .else(foobar)
-    .end("ifA")
+    .end("ifA"),
+    "foobar"
 );
 
 const hmm2 = blueprint.graph(
   "hmm2",
   blueprint.operator.operator(foo),
   blueprint.operator.operator(bar),
-  blueprint.operator.parallel(foobar, foobar)
+  blueprint.operator.parallel(foobar, foobar),
+  "foobar"
 );
 
 

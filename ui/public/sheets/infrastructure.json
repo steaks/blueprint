@@ -1,16 +1,18 @@
 {
-  "name": "application",
+  "name": "infrastructure",
   "doc": "Main infrastructure.",
   "graphs": [
     {
       "name": "server",
+      "input": "request",
+      "output": "response",
       "doc": null,
       "operators": [
         {
           "name": "parseUrl",
           "doc": null,
           "type": "Operator",
-          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/index.ts#L19",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/index.ts#L21",
           "suboperators": [],
           "subgraph": null
         },
@@ -18,7 +20,7 @@
           "name": "parseQuery",
           "doc": null,
           "type": "Operator",
-          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/index.ts#L19",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/index.ts#L21",
           "suboperators": [],
           "subgraph": null
         },
@@ -26,7 +28,7 @@
           "name": "beforeRoutes",
           "doc": null,
           "type": "Operator",
-          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/index.ts#L19",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/index.ts#L21",
           "suboperators": [],
           "subgraph": "beforeRoutes"
         },
@@ -34,7 +36,7 @@
           "name": "routes",
           "doc": null,
           "type": "Operator",
-          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/index.ts#L19",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/index.ts#L21",
           "suboperators": [],
           "subgraph": "routes"
         },
@@ -42,7 +44,7 @@
           "name": "afterRoutes",
           "doc": null,
           "type": "Operator",
-          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/index.ts#L19",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/index.ts#L21",
           "suboperators": [],
           "subgraph": "afterRoutes"
         },
@@ -50,7 +52,7 @@
           "name": "send",
           "doc": null,
           "type": "Operator",
-          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/index.ts#L19",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/index.ts#L21",
           "suboperators": [],
           "subgraph": null
         }
@@ -58,6 +60,8 @@
     },
     {
       "name": "beforeRoutes",
+      "input": "request",
+      "output": "request",
       "doc": null,
       "operators": [
         {
@@ -72,6 +76,8 @@
     },
     {
       "name": "routes",
+      "input": "request",
+      "output": "response",
       "doc": null,
       "operators": [
         {
@@ -102,7 +108,7 @@
               "subgraph": "*"
             },
             {
-              "name": "404",
+              "name": "notFound",
               "type": "Operator",
               "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/routes.ts#L8",
               "suboperators": [],
@@ -115,25 +121,27 @@
     },
     {
       "name": "*",
+      "input": "request",
+      "output": "response",
       "doc": null,
       "operators": [
         {
           "name": "routes",
           "doc": null,
           "type": "BranchOperator",
-          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/home.ts#L17",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/home.ts#L21",
           "suboperators": [
             {
               "name": "/",
               "type": "Operator",
-              "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/home.ts#L4",
+              "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/home.ts#L20",
               "suboperators": [],
               "subgraph": null
             },
             {
-              "name": "404",
+              "name": "notFound",
               "type": "Operator",
-              "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/home.ts#L17",
+              "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/home.ts#L21",
               "suboperators": [],
               "subgraph": null
             }
@@ -144,13 +152,15 @@
     },
     {
       "name": "afterRoutes",
+      "input": "request",
+      "output": "response",
       "doc": null,
       "operators": [
         {
           "name": "logResponse",
           "doc": null,
           "type": "Operator",
-          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/index.ts#L16",
+          "path": "https://github.com/steaks/blueprint/tree/main/webserver/examples/citifakebank/index.ts#L17",
           "suboperators": [],
           "subgraph": null
         }

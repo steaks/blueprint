@@ -1,11 +1,11 @@
 import {BResponse, WithQuery} from "../../webserver";
 
-const logRequest = (p: WithQuery) => {
-  console.log("Request:", p.url);
+const logRequest = (request: WithQuery) => {
+  console.log("Request:", request.url);
 };
 
-const logResponse = (p: BResponse) => {
-  console.log("Response:", p.data);
+const logResponse = (request: BResponse) => {
+  console.log("Response:", request.data);
 };
 
 export default {
