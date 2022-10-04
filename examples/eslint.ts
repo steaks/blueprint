@@ -44,8 +44,8 @@ const handleResults = (a: string) => {
   return "help";
 };
 
-const lintTextG: Graph<string, string> = blueprint.graph("lintText", blueprint.operator.operator(lintText));
-const lintFilesG: Graph<string, string> = blueprint.graph("lintFiles", blueprint.operator.operator(lintFiles));
+const lintTextG: Graph<string, string> = blueprint.graph("lintText", blueprint.operator.operator(lintText), "text");
+const lintFilesG: Graph<string, string> = blueprint.graph("lintFiles", blueprint.operator.operator(lintFiles), "files");
 
 const eslint = blueprint.graph(
   "eslint",
@@ -62,7 +62,8 @@ const eslint = blueprint.graph(
     .else(lintFilesG)
     .end("textOrFiles"),
   blueprint.operator.operator(fix),
-  blueprint.operator.operator(handleErrors)
+  blueprint.operator.operator(handleErrors),
+  "linted"
 )
 
 

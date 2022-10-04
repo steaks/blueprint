@@ -36,7 +36,7 @@ const sheet = (name: string, graphs: Graph<any, any>[], doc?: string): SheetJSON
             })),
             subgraph: o._subgraph ? o._subgraph.__name : null,
         }));
-        return {name: g.__name, doc: g._doc, operators};
+        return {name: g.__name, input: g._input, output: g._output, doc: g._doc, operators};
     });
     return {name, doc, graphs: graphsJSON};
 };

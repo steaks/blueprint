@@ -33,7 +33,8 @@ const baz = (foobar: string) => {
 const foobar = blueprint.graph(
   "foobar",
   blueprint.operator.operator(foo),
-  blueprint.operator.operator(bar)
+  blueprint.operator.operator(bar),
+  "bar"
 );
 
 
@@ -55,7 +56,7 @@ const foobarbaz = blueprint.graph(
     .else(case5)
     .end("testA"),
   blueprint.operator.parallel(blueprint.operator.operator(baz), blueprint.operator.operator(baz)),
-  // blueprint.operator.async(baz),
+  "foobarbaz"
 );
 
 const mySheet = blueprint.serialize.sheet("branch", [

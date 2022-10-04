@@ -8,23 +8,29 @@ import routes from "./routes";
 
 const beforeRoutes = blueprint.graph(
   "beforeRoutes",
-  blueprint.operator.tap(log.logRequest)
+  blueprint.operator.tap(log.logRequest),
+  "request"
 );
 
 const afterRoutes = blueprint.graph(
   "afterRoutes",
-  blueprint.operator.tap(log.logResponse)
+  blueprint.operator.tap(log.logResponse),
+  "response"
 );
 
 const server = webserver.serve(beforeRoutes, routes, afterRoutes);
 
 // Blueprint UI
 
-const infrastructure = blueprint.serialize.sheet("infrastructure", [
+const app = blueprint.serialize.sheet("app", [
   server,
   beforeRoutes,
   routes,
   home.routes,
+  about.routes,
+  account.routes,
+  getActivity,
+  getBalance,
   afterRoutes
 ], "Main infrastructure.");
 
@@ -39,4 +45,4 @@ const accountSheet = blueprint.serialize.sheet("account", [
   afterRoutes
 ], "Logic for showing a user's account information - including balance, activity, etc.");
 
-blueprint.serialize.build("CitiFakeBank", [infrastructure, aboutSheet, accountSheet]);
+blueprint.serialize.build("CitiFakeBank", [app]);
