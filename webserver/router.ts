@@ -1,5 +1,5 @@
 import blueprint, {AsyncOperator, AsyncParams, Branch, Graph} from "blueprint";
-import {WithQuery} from "./index"; import {WithUser} from "./examples/citifakebank/authentication";
+import {BResponse, WithQuery} from "./index";
 
 export interface Router<A extends WithQuery> {
   readonly path: string;
@@ -15,7 +15,7 @@ export const router = <A extends WithQuery, B extends A>(namespace: string) => {
       before.push(blueprint.operator.operator(func));
       return api;
     },
-    get: (path: string, func: AsyncParams<B, any, any, any>) => {
+    get: (path: string, func: AsyncParams<B, any, any, BResponse>) => {
       if (!logic) {
         logic = blueprint.operator.if(
           (request: B) => request.req.method === "GET" && request.url.path !== null && request.url.path.startsWith(`${namespace}${path}`),
@@ -29,7 +29,7 @@ export const router = <A extends WithQuery, B extends A>(namespace: string) => {
       }
       return api;
     },
-    post: (path: string, func: AsyncParams<B, any, any, any>) => {
+    post: (path: string, func: AsyncParams<B, any, any, BResponse>) => {
       if (!logic) {
         logic = blueprint.operator.if(
           (request: B) => request.req.method === "POST" && request.url.path !== null && request.url.path.startsWith(`${namespace}${path}`),
@@ -43,7 +43,7 @@ export const router = <A extends WithQuery, B extends A>(namespace: string) => {
       }
       return api;
     },
-    notFound: (p: AsyncParams<B, any, any, any>): Router<A> => {
+    notFound: (p: AsyncParams<B, any, any, BResponse>): Router<A> => {
       const op = logic!.else(blueprint.operator.operator(p).bname("notFound")).end("routes");
       const routes = before.length > 0
         ? blueprint.graph(namespace || "*", before[0], op, "response")
@@ -62,7 +62,7 @@ export const routers = <A extends WithQuery>(r: Router<A>[]) => {
     logic
   );
   return {
-    notFound: (p: AsyncParams<A, any, any, any>): AsyncOperator<A, any, any, any> =>
+    notFound: (p: AsyncParams<A, any, any, BResponse>): AsyncOperator<A, any, any, any> =>
       logic.else(blueprint.operator.operator(p).bname("notFound")).end("routers")
   }
 };

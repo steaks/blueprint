@@ -1,7 +1,7 @@
 import * as http from "http";
 import {IncomingMessage,OutgoingHttpHeaders, ServerResponse} from "http";
 import {Url} from "url";
-import blueprint, {Graph,SheetJSON} from "blueprint";
+import blueprint, {Graph} from "blueprint";
 import * as qs from "qs";
 import {ParsedQs} from "qs";
 // @ts-ignore

@@ -54,6 +54,14 @@ export interface Graph<A, B> {
     readonly doc: (value: string) => Graph<A, B>
 }
 
+const log = (context: BaseContext, message: string, ...optionalParams: any[]) => {
+  console.log(context.graph, context.operator, message, ...optionalParams);
+};
+
+const error = (context: BaseContext, message?: any, ...optionalParams: any[]) => {
+  console.error(context.graph, context.operator, message, ...optionalParams);
+};
+
 const tap = <A, C extends BaseContext>(func: TapParams<A, C>): AsyncOperator<A, A, C, any> => {
     const input = getParamNames(func)[0];
     const apply = (a: A, context: C) => {
@@ -78,7 +86,7 @@ const _operator = <A, B, C extends BaseContext, R>(func: AsyncParams<A, B, C, R>
       try {
         const time = Date.now();
         if (apply._log) {
-          console.log(context.graph, context.operator, "input", a);
+          log(context, "input", a);
         }
         apply._plugins.forEach((p) => {
           const plugin = plugins[p];
@@ -88,10 +96,10 @@ const _operator = <A, B, C extends BaseContext, R>(func: AsyncParams<A, B, C, R>
         });
         const ret = await func(a, context);
         if (apply._log) {
-          console.log(context.graph, context.operator, "output", ret);
+          log(context, "output", ret);
         }
         if (apply._time) {
-          console.log(context.graph, context.operator, "time", Date.now() - time);
+          log(context, "time", Date.now() - time);
         }
         apply._plugins.forEach((p) => {
           const plugin = plugins[p];
@@ -101,7 +109,7 @@ const _operator = <A, B, C extends BaseContext, R>(func: AsyncParams<A, B, C, R>
         });
         return ret;
       } catch (e) {
-        console.error(e);
+        error(context, e);
         throw e;
       }
     };
@@ -308,12 +316,90 @@ export interface BaseContext {
   readonly operator: string;
 }
 
-function graph<A, B, Context extends BaseContext>(name: string, o0: AsyncOperator<A, B, Context, B>, output: string): Graph<A, B>;
-function graph<A, B, C, Context extends BaseContext>(name: string, o0: AsyncOperator<A, B, Context, C>, o1: AsyncOperator<B, C, Context, C>, output: string): Graph<A, C>;
-function graph<A, B, C, D, Context extends BaseContext>(name: string, o0: AsyncOperator<A, B, Context, D>, o1: AsyncOperator<B, C, Context, D>, o2: AsyncOperator<C, D, Context, D>, output: string): Graph<A, D>;
-function graph<A, B, C, D, E, Context extends BaseContext>(name: string, o0: AsyncOperator<A, B, Context, E>, o1: AsyncOperator<B, C, Context, E>, o2: AsyncOperator<C, D, Context, E>, o3: AsyncOperator<D, E, Context, E>, output: string): Graph<A, E>;
-function graph<A, B, C, D, E, F, Context extends BaseContext>(name: string, o0: AsyncOperator<A, B, Context, F>, o1: AsyncOperator<B, C, Context, F>, o2: AsyncOperator<C, D, Context, F>, o3: AsyncOperator<D, E, Context, F>, o4: AsyncOperator<E, F, Context, F>, output: string): Graph<A, F>;
-function graph<A, B, C, D, E, F, G, Context extends BaseContext>(name: string, o0: AsyncOperator<A, B, Context, G>, o1: AsyncOperator<B, C, Context, G>, o2: AsyncOperator<C, D, Context, G>, o3: AsyncOperator<D, E, Context, G>, o4: AsyncOperator<E, F, Context, G>, o5: AsyncOperator<F, G, Context, G>, output: string): Graph<A, G>;
+export interface With0<A> extends BaseContext {
+  readonly 0: A
+}
+
+export interface With1<A, B = unknown> extends BaseContext {
+  readonly 0: A
+  readonly 1: B
+}
+
+export interface With2<A, B = unknown, C = unknown> extends BaseContext {
+  readonly 0: A
+  readonly 1: B
+  readonly 2: C
+}
+
+export interface With3<A, B = unknown, C = unknown, D = unknown> extends BaseContext {
+  readonly 0: A
+  readonly 1: B
+  readonly 2: C
+  readonly 3: D
+}
+
+export interface With4<A, B = unknown, C = unknown, D = unknown, E = unknown> extends BaseContext {
+  readonly 0: A
+  readonly 1: B
+  readonly 2: C
+  readonly 3: D
+  readonly 4: E
+}
+
+export interface With5<A, B = unknown, C = unknown, D = unknown, E = unknown, F = unknown> {
+  readonly 0: A
+  readonly 1: B
+  readonly 2: C
+  readonly 3: D
+  readonly 4: E
+  readonly 5: E
+}
+
+function graph<A, B, Context extends BaseContext>(
+  name: string,
+  o0: AsyncOperator<A, B, Context & With0<A>, B>,
+  output: string
+): Graph<A, B>;
+function graph<A, B, C, Context extends BaseContext>(
+  name: string,
+  o0: AsyncOperator<A, B, Context & With0<A>, C>,
+  o1: AsyncOperator<B, C, Context & With1<A, B>, C>,
+  output: string
+): Graph<A, C>;
+function graph<A, B, C, D, Context extends BaseContext>(
+  name: string,
+  o0: AsyncOperator<A, B, Context & With0<A>, D>,
+  o1: AsyncOperator<B, C, Context & With1<A, B>, D>,
+  o2: AsyncOperator<C, D, Context & With2<A, B, C>, D>,
+  output: string
+): Graph<A, D>;
+function graph<A, B, C, D, E, Context extends BaseContext>(
+  name: string,
+  o0: AsyncOperator<A, B, Context & With0<A>, E>,
+  o1: AsyncOperator<B, C, Context & With1<A, B>, E>,
+  o2: AsyncOperator<C, D, Context & With2<A, B, C>, E>,
+  o3: AsyncOperator<D, E, Context & With3<A, B, C, D>, E>,
+  output: string
+  ): Graph<A, E>;
+function graph<A, B, C, D, E, F, Context extends BaseContext>(
+  name: string,
+  o0: AsyncOperator<A, B, Context & With0<A>, F>,
+  o1: AsyncOperator<B, C, Context & With1<A, B>, F>,
+  o2: AsyncOperator<C, D, Context & With2<A, B, C>, F>,
+  o3: AsyncOperator<D, E, Context & With3<A, B, C, D>, F>,
+  o4: AsyncOperator<E, F, Context & With4<A, B, C, D, E>, F>,
+  output: string
+): Graph<A, F>;
+function graph<A, B, C, D, E, F, G, Context extends BaseContext>(
+  name: string,
+  o0: AsyncOperator<A, B, Context & With0<A>, G>,
+  o1: AsyncOperator<B, C, Context & With1<A, B>, G>,
+  o2: AsyncOperator<C, D, Context & With2<A, B, C>, G>,
+  o3: AsyncOperator<D, E, Context & With3<A, B, C, D>, G>,
+  o4: AsyncOperator<E, F, Context & With4<A, B, C, D, E>, G>,
+  o5: AsyncOperator<F, G, Context & With5<A, B, C, D, E, F>, G>,
+  output: string
+): Graph<A, G>;
 
 function graph(): Graph<unknown, unknown> {
   const name = arguments[0];
@@ -323,15 +409,18 @@ function graph(): Graph<unknown, unknown> {
   }
   const input = operators[0]._input;
   const output = arguments[arguments.length - 1] as string;
-  const context = {graph: name} as Record<string, string>;
+  const context = {graph: name} as Record<string, any>;
   const apply = async (a: unknown) => {
-    const ret = await operators.reduce(async (value, operator) => {
+    context["0"] = a;
+    const ret = await operators.reduce(async (value, operator, i) => {
       const v = await value;
       if (v && (v as End<unknown>).__type === "END") {
         return Promise.resolve(v);
       }
       context.operator = operator.name;
-      return await operator(v, context);
+      const result = await operator(v, context);
+      context[i+1] = result;
+      return result;
     }, Promise.resolve(a));
     if (ret && (ret as End<unknown>).__type === "END") {
       return ret.value;
@@ -365,6 +454,8 @@ const core = {
     operator,
     isGraph,
     graph,
+    log,
+    error,
     end
 };
 export default core;
