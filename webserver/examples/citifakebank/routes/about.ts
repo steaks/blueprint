@@ -1,4 +1,4 @@
-import webserver, {WithQuery}from "../../index";
+import webserver, {WithQuery}from "../../../index";
 
 const about = webserver.router.router("/about")
   .get("/team", (request: WithQuery) => ({...request, data: "<div><h1>Employees</h1><ul><li>Steven</li><li>Becky</li></ul></div>", statusCode: 200}))

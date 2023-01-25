@@ -1,4 +1,4 @@
-import webserver, {WithQuery} from "../../index";
+import webserver, {WithQuery} from "../../../index";
 
 const homeRoute = (request: WithQuery) => {
   return ({

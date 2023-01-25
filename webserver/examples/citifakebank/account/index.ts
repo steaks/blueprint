@@ -1,7 +1,7 @@
-import webserver, {BResponse, WithQuery} from "../../index";
-import authentication, {WithUser} from "./authentication";
-import activity, {Deposit,Fee,Withdraw} from "./activity";
+import {BResponse} from "../../../webserver";
+import {WithUser} from "../middleware/authentication";
 import blueprint, {With1,With2,With3,With4} from "blueprint";
+import activity, {Deposit, Fee, Withdraw} from "./activity";
 
 const getDeposits = async (request: WithUser) =>
   await activity.deposits(request.user.username);
@@ -66,10 +66,7 @@ export const getBalance = blueprint.graph("/balance",
   "balance"
 );
 
-const account = webserver.router.router<WithQuery, WithUser>("/account")
-  .before(authentication.authenticate)
-  .get("/balance", getBalance)
-  .get("/activity", getActivity)
-  .notFound((p: WithQuery) => ({...p, data: "NOT FOUND", statusCode: 404}));
-
-export default account;
+export const sheet = blueprint.serialize.sheet("Account", [
+  getActivity,
+  getBalance
+], "Logic for showing a user's account information - including balance, activity, etc.");

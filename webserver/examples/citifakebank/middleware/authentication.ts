@@ -1,4 +1,4 @@
-import {BResponse, WithQuery} from "../../webserver";
+import {BResponse, WithQuery} from "../../../webserver";
 import blueprint, {End} from "blueprint";
 
 interface User {
