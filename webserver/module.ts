@@ -63,10 +63,7 @@ export const modules = <A extends BRequest>(r: Module<A>[]) => {
   const input = blueprint.input<A>();
   let b = blueprint.branch<A, BResponse>("modules", input)
   r.forEach(rr => {
-    b = b.case(request => {
-      console.log(request);
-      return request.url.path !== null && request.url.path.startsWith(rr.path);
-    }, rr.routes)
+    b = b.case(request => request.url.path !== null && request.url.path.startsWith(rr.path), rr.routes)
   });
   return {
     notFound: (func: Func1<A, BResponse>) =>
