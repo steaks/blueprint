@@ -4,10 +4,10 @@
   "description": "Examples of code using blueprint",
   "main": "index.ts",
   "scripts": {
-    "build": "npx ts-node .",
+    "build": "npx tsc --project tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "examples/citifakebank": "cd examples/citifakebank && npx ts-node .",
-    "examples/citifakebank-blueprint": "npx blueprint examples/citifakebank/.blueprint"
+    "examples/citifakebank": "node build/examples/citifakebank/index.js ",
+    "examples/citifakebank-blueprint": "npx blueprint build/examples/citifakebank/.blueprint"
   },
   "author": "",
   "license": "ISC",

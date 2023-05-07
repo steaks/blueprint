@@ -1,5 +1,6 @@
-import {BResponse} from "./webserver";
-import blueprint, {Graph} from "blueprint";
+import {BRequest, BResponse} from "./webserver";
+import blueprint from "blueprint";
+import {Graph} from "blueprint/types";
 
 const sendResponse = (p: BResponse) => {
   p.res.statusCode = p.statusCode;
@@ -38,11 +39,12 @@ const sendResponse = (p: BResponse) => {
 };
 
 const send = (beforeSend: Graph<BResponse, BResponse>): Graph<BResponse, any> => {
+  const input = blueprint.input<BResponse>();
   return blueprint.graph(
     "send",
-    blueprint.operator.operator(beforeSend),
-    blueprint.operator.tap(sendResponse),
-    "response"
+    input,
+    blueprint.operator(beforeSend, input),
+    blueprint.operator(sendResponse, input),
   );
 };
 

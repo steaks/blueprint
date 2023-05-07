@@ -1,5 +1,4 @@
-import {BResponse, WithQuery} from "../../../webserver";
-import blueprint, {End} from "blueprint";
+import {BRequest} from "../../../webserver";
 
 interface User {
   readonly username: string;
@@ -10,17 +9,17 @@ const sessions: Record<string, User> = {
   "stevenstoken": {username: "steven", password: "foobar"}
 };
 
-export type WithUser = WithQuery & {
+export type WithUser = BRequest & {
   readonly user: User;
 }
 
-const authenticate = (request: WithQuery): WithUser | End<BResponse> => {
-  const foo = request.query.token as string || "";
-  const user = sessions[foo];
+const authenticate = (request: BRequest): WithUser => {
+  const token = request.query.token as string || "";
+  const user = sessions[token];
   if (user) {
     return {...request, user};
   } else {
-    return blueprint.end({...request, statusCode: 401, data: "Not Authenticated"});
+    throw new Error("Not authorized"); //blueprint.end({...request, statusCode: 401, data: "Not Authenticated"});
   }
 };
 

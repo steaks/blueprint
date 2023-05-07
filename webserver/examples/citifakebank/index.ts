@@ -1,8 +1,10 @@
-import blueprint from "blueprint";
-import {sheet as routesSheet} from "./routes";
-import {sheet as serverSheet} from "./server";
-import {sheet as middlewareSheet} from "./middleware";
-import {sheet as accountSheet} from "./account";
-import {sheet as logSheet} from "./log";
+import webserver from "../../index";
+import home from "./modules/home";
+import about from "./modules/about";
+import account from "./modules/account";
 
-blueprint.serialize.build("CitiFakeBank", [serverSheet, middlewareSheet, routesSheet, accountSheet, logSheet]);
+webserver.serve([
+    about,
+    account,
+    home,
+]);

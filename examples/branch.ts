@@ -30,38 +30,28 @@ const baz = (foobar: string) => {
   return Promise.resolve(foobar + "BAZ");
 };
 
-const foobar = blueprint.graph(
-  "foobar",
-  blueprint.operator.operator(foo),
-  blueprint.operator.operator(bar),
-  "bar"
-);
-
-
 const case1 = (a: string) => a;
 const case2 = (a: string) => a;
 const case3 = (a: string) => a;
 const case4 = (a: string) => a;
 const case5 = (a: string) => a;
 
+const foobarbaz = () => {
+  const input = blueprint.input<string>();
+  const branch = blueprint
+    .branch("branch", input)
+    .case(a => a === "foo", case1)
+    .case(a => a === "foo", case2)
+    .case(a => a === "foo", case3)
+    .case(a => a === "foo", case4)
+    .default(case5)
 
-const foobarbaz = blueprint.graph(
-  "foobarbaz",
-  blueprint.operator.operator(foo),
-  blueprint.operator
-    .if(a => a === "foo", case1)
-    .elseif(a => a === "foo", case2)
-    .elseif(a => a === "foo", case3)
-    .elseif(a => a === "foo", case4)
-    .else(case5)
-    .end("testA"),
-  blueprint.operator.parallel(blueprint.operator.operator(baz), blueprint.operator.operator(baz)),
-  "foobarbaz"
-);
+  return blueprint.graph("foobarbaz", input, branch)
+};
+
 
 const mySheet = blueprint.serialize.sheet("branch", [
-  foobar,
-  foobarbaz
+  foobarbaz()
 ]);
 
 export default mySheet;
