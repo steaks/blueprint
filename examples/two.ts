@@ -1,21 +1,3 @@
-/*
-Vision:
-- System that creates a visual representation of the architecture
-- As a user:
-    - Looking at the visualization, I can see:
-        - Pieces of work
-        - Dependencies between those pieces
-        - Inputs and outputs
-    - I can define the pieces of work at whatever granularity I wish
-    - I can drill down into a piece of work and see the pieces that comprise it (i.e. zoom in, zoom out to change level of detail)
-- As a user, I cannot:
-    - Use the system to schedule work
-    - Enact any code changes via the UI
-
-Farther future, out of scope:
-- UI-first development
-*/
-
 import blueprint from "blueprint";
 
 const foo = (p: string) => {
@@ -33,15 +15,15 @@ const baz = (p: string) => {
     return Promise.resolve(p + "BAZ");
 };
 
-const foobar = blueprint.graph(
-    "foobar",
-    blueprint.operator.operator(foo),
-    blueprint.operator.parallel(blueprint.operator.operator(bar), blueprint.operator.operator(baz)),
-    "foobar"
-);
+const foobar = () => {
+    const input = blueprint.input<string>();
+    const fooO = blueprint.operator(foo, input);
+    const barbazO = blueprint.parallel([bar, baz], fooO)
+    return blueprint.graph("foobar", input, fooO, barbazO);
+};
 
 const mySheet = blueprint.serialize.sheet("two", [
-    foobar
+    foobar()
 ]);
 
 export default mySheet;

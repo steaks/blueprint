@@ -1,9 +1,10 @@
-import router from "./router";
+import router from "./module";
 import serve from "./webserver";
 
-export {WithQuery, BResponse} from "./webserver";
+export {BRequest, BResponse} from "./webserver";
 
 export default {
   serve,
-  router
+  routes: router.routes,
+  modules: router.modules
 };

@@ -10,7 +10,6 @@ const Sheet = (p: {readonly name: string; readonly doc?: string;}) => {
   return (
     <div style={{marginTop: "10px"}}>
       <Link to={`/${p.name}`}>{p.name}</Link>
-      <div><span>{p.doc}</span></div>
     </div>
   );
 };

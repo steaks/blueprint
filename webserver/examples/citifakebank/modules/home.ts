@@ -1,6 +1,7 @@
-import webserver, {WithQuery} from "../../../index";
+import webserver, {BRequest, BResponse} from "../../../index";
+import {notFound} from "./common";
 
-const homeRoute = (request: WithQuery) => {
+const homeRoute = (request: BRequest): BResponse => {
   return ({
     ...request,
       data: `
@@ -16,8 +17,8 @@ const homeRoute = (request: WithQuery) => {
   });
 }
 
-const home = webserver.router.router("")
+const home = webserver.routes("")
   .get("/", homeRoute)
-  .notFound((p: WithQuery) => ({...p, data: "NOT FOUND", statusCode: 404}));
+  .notFound(notFound);
 
 export default home;
