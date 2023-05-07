@@ -1,9 +1,13 @@
 import blueprint from "../index";
 
+const simple = (i: string) => {
+  return `${i}_one`
+};
+
 test("simple", async () => {
-  const input = blueprint.input<string>()
-  const simple = blueprint.operator(i => `${i}_one`, input);
-  const g = blueprint.graph("simple", input, simple);
+  const input = blueprint.input<string>();
+  const simpleO = blueprint.operator(simple, input);
+  const g = blueprint.graph("simple", input, simpleO);
   const sheet = blueprint.serialize.sheet("simple", [g])
   expect(sheet).toStrictEqual({
     "graphs": [
@@ -12,21 +16,13 @@ test("simple", async () => {
         "name": "simple",
         "operators": [
           {
-            "name": "input",
-            "path": "https://github.com/steaks/blueprint/tree/main/webserver    at Object.<anonymous>.__awaiter (/home/steven/developer/blueprint/core/tests/serialize.test.ts#L4",
-            "subgraph": null,
-            "suboperators": [],
-            "type": "Input"
-          },
-          {
-            "name": "",
-            "path": "https://github.com/steaks/blueprint/tree/main/webserver    at Object.<anonymous>.__awaiter (/home/steven/developer/blueprint/core/tests/serialize.test.ts#L4",
+            "name": "simple",
             "subgraph": null,
             "suboperators": [],
             "type": "Operator"
           }
         ],
-        "output": ""
+        "output": "simple"
       }
     ],
     "name": "simple"
