@@ -5,7 +5,8 @@ Framework for building flow diagrams of your code architecture
 ### Installation
 
 1. Requirements: Node 16.x.x, NPM 8.x.x, and GNU Make 4.x.
-2. Run installation script `make install`
+2. Install dependencies `make install`
+3. Build all projects `make build`
 
 ### View webserver CitiFakeBank example
 
