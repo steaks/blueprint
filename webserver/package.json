@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npx tsc --project tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "examples/citifakebank": "node build/examples/citifakebank/index.js ",
+    "examples/citifakebank": "cd build/examples/citifakebank && node index.js ",
     "examples/citifakebank-blueprint": "npx blueprint build/examples/citifakebank/.blueprint"
   },
   "author": "",
