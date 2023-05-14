@@ -44,11 +44,6 @@ const dotView = {
   style: "whiteSpace=wrap;html=1;aspect=fixed;strokeColor=none;fillColor=#000000;"
 };
 
-const subgraphView = {
-  height: 40,
-  width: 100,
-  style: "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00"
-};
 const branchView = {
   height: 40,
   width: 80,
@@ -201,6 +196,5 @@ const graph = async (sheet: SheetJSON, onClick: (graph: GraphJSON, operator: Ope
   }
 };
 
-export default {
-  graph
-};
+const api = {graph};
+export default api;

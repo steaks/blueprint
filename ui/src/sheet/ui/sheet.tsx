@@ -2,7 +2,7 @@ import React, {useCallback, useEffect,useId,useState} from "react";
 import data from "../data";
 import draw from "./draw";
 import {Link} from "react-router-dom";
-import {randomUUID} from "crypto"; import {GraphJSON, OperatorJSON} from "../types"; import Operator from "./operator";
+import {GraphJSON, OperatorJSON} from "../types"; import Operator from "./operator";
 
 interface Props {
   readonly sheet: string;
@@ -21,6 +21,7 @@ const Sheet = (p: Props) => {
       renderedSheets.add(id);
       data.fetchSheet(p.sheet).then(g => draw.graph(g, onClick));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
     <>
