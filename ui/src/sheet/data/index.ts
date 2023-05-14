@@ -10,7 +10,9 @@ const fetchIndex = async () => {
   return await sheetResponse.json() as IndexJSON;
 };
 
-export default {
+const api = {
   fetchSheet,
   fetchIndex
 };
+
+export default api;
