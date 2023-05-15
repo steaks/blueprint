@@ -14,6 +14,7 @@ jobs:
           node-version: 16
       - id: auth
         name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v1'
         with:
           workload_identity_provider: 'projects/135708369468/locations/global/workloadIdentityPools/github-actions-pool-2/providers/github-actions-provider-2'
           service_account: 'github-actions@blueprint-8675309.iam.gserviceaccount.com'
