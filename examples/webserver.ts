@@ -1,4 +1,4 @@
-import blueprint from "blueprint";
+import blueprint from "blueprint-core";
 
 interface Req {
   readonly method: string;

@@ -21,6 +21,9 @@ jobs:
         with:
           workload_identity_provider: 'projects/135708369468/locations/global/workloadIdentityPools/github-actions-pool-2/providers/github-actions-provider-2'
           service_account: 'github-actions@blueprint-8675309.iam.gserviceaccount.com'
+      - run: make docker-authenticate
       - run: make install
       - run: make build
       - run: make test
+      - run: make deploy-citifakebank
+      - run: make deploy-citifakebank-blueprint

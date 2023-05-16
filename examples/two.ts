@@ -1,4 +1,4 @@
-import blueprint from "blueprint";
+import blueprint from "blueprint-core";
 
 const foo = (p: string) => {
     console.log(p + "FOO");

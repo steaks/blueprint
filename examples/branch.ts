@@ -16,7 +16,7 @@ Farther future, out of scope:
 - UI-first development
 */
 
-import blueprint from "blueprint";
+import blueprint from "blueprint-core";
 
 const foo = () => {
   return "FOO";
