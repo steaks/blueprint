@@ -1,7 +1,7 @@
 name: Deploy
 run-name: Deploy
 on:
-  pull_request:
+  push:
     branches: [main]
 jobs:
   deploy:
