@@ -2,6 +2,7 @@
 gcloud iam service-accounts create github-actions --description="Github Actions Service Account" --display-name="Github Actions"
 gcloud projects add-iam-policy-binding blueprint-8675309 --member="serviceAccount:github-actions@blueprint-8675309.iam.gserviceaccount.com" --role="roles/artifactregistry.writer"
 gcloud projects add-iam-policy-binding blueprint-8675309 --member="serviceAccount:github-actions@blueprint-8675309.iam.gserviceaccount.com" --role="roles/run.admin"
+gcloud projects add-iam-policy-binding blueprint-8675309 --member="serviceAccount:github-actions@blueprint-8675309.iam.gserviceaccount.com" --role="roles/iam.serviceAccountUser"
 gcloud services enable iamcredentials.googleapis.com
 
 # Workload identity
@@ -10,7 +11,7 @@ gcloud iam workload-identity-pools providers create-oidc "github-actions-provide
   --location="global" \
   --workload-identity-pool="github-actions-pool-2" \
   --display-name="Github Actions provider" \
-  --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository" \
+  --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository_owner=assertion.repository_owner" \
   --issuer-uri="https://token.actions.githubusercontent.com"
 gcloud iam service-accounts add-iam-policy-binding "github-actions@blueprint-8675309.iam.gserviceaccount.com" \
   --role="roles/iam.workloadIdentityUser" \
