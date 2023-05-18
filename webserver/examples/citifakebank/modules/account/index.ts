@@ -1,6 +1,6 @@
 import webserver, {BRequest, BResponse} from "../../../../index";
 import authentication, {WithUser} from "../../middleware/authentication";
-import blueprint from "blueprint";
+import blueprint from "blueprint-core";
 import activity, {Deposit, Fee, Withdraw} from "./activity";
 import {notFound} from "../common";
 

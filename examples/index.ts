@@ -1,4 +1,4 @@
-import blueprint from "blueprint";
+import blueprint from "blueprint-core";
 import one from "./one";
 import two from "./two";
 import branch from "./branch";

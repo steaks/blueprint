@@ -1,6 +1,6 @@
 import {BRequest, BResponse} from "./webserver";
-import blueprint from "blueprint";
-import {Graph} from "blueprint/types";
+import blueprint from "blueprint-core";
+import {Graph} from "blueprint-core/types";
 
 const sendResponse = (p: BResponse) => {
   p.res.statusCode = p.statusCode;

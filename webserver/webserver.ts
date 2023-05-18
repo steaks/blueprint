@@ -1,7 +1,7 @@
 import * as http from "http";
 import {IncomingMessage,OutgoingHttpHeaders, ServerResponse} from "http";
 import {Url} from "url";
-import blueprint from "blueprint";
+import blueprint from "blueprint-core";
 import * as qs from "qs";
 import {ParsedQs} from "qs";
 // @ts-ignore
@@ -9,7 +9,7 @@ import parseurl from "parseurl";
 import send from "./send";
 import {Module} from "./module";
 import webserver from "./index";
-import { Graph } from "blueprint/types";
+import { Graph } from "blueprint-core/types";
 
 const parseUrl = (request: Params): WithUrl => {
   const url = parseurl(request.req) as Url;

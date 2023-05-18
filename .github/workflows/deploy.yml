@@ -1,10 +1,10 @@
-name: Test
-run-name: Testing
+name: Deploy
+run-name: Deploy
 on:
-  pull_request:
+  push:
     branches: [main]
 jobs:
-  test:
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -25,3 +25,5 @@ jobs:
       - run: make install
       - run: make build
       - run: make test
+      - run: make deploy-citifakebank
+      - run: make deploy-citifakebank-blueprint

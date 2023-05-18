@@ -1,5 +1,5 @@
-import blueprint from "blueprint";
-import {Func1, Graph, Operator} from "blueprint/types";
+import blueprint from "blueprint-core";
+import {Func1, Graph, Operator} from "blueprint-core/types";
 import {BResponse, BRequest} from "./index";
 
 export interface Module<A extends BRequest> {
