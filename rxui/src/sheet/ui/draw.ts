@@ -40,16 +40,6 @@ const lineStyle = "edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;e
 const arrowStyle = "edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;entryX=0;entryY=0.5;";
 const dashedArrowStyle = "edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;entryX=0;entryY=0.5;dashed=1;";
 
-const firstLevelGraphView = {
-  height: (operators: OperatorJSON[]) => {
-    return operators.reduce((s, o) => s + calculateOperatorHeight(o), 0);
-  },
-  width: (operators: OperatorJSON[]) => {
-    return operators.reduce((s, o) => s + calculateOperatorWidth(o), 200);
-  },
-  style: "rounded=0;whiteSpace=wrap;fillColor=#99ccff;shadow=0;gradientDirection=north;strokeColor=#ffffff;align=left;verticalAlign=top;horizontal=1;labelBackgroundColor=none;html=1;fontStyle=1"
-};
-
 const labelGraphView = {
   height: (operators: OperatorJSON[]) => {
     return operators.reduce((s, o) => s + calculateOperatorHeight(o), 0);
@@ -90,9 +80,6 @@ const triggerHeight = 50;
 const calculateOperatorHeight = (operator: OperatorJSON) =>
   Math.max(operator.suboperators.length * subOperatorHeight, subOperatorHeight);
 
-const calculateTriggersHeight = (graph: GraphJSON): number =>
-  graph.triggers ? graph.triggers.length * triggerHeight : 0;
-
 const calculateGraphHeight = (graph: GraphJSON) => {
   // return yPadding + Math.max(...heights, triggersHeight) + yPadding;
   return yPadding + 30;
@@ -103,11 +90,6 @@ const calculateGraphsHeight = (graphs: GraphJSON[]) =>
 
 const calculateOperatorWidth = (operator: OperatorJSON) =>
   operator.type === "BranchOperator" ? 290 : 150;
-
-const calculateGraphWidth = (graph: GraphJSON) => {
-  return graph.operators.reduce((sum, o) => sum + calculateOperatorWidth(o), 0);
-};
-
 
 const graph = async (sheet: SheetJSON, onClick: (graph: GraphJSON, operator: OperatorJSON) => void) => {
   const container = document.getElementById(sheet.name)!;
