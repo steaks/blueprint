@@ -1,0 +1,75 @@
+{
+  "name": "activity",
+  "graphs": [
+    {
+      "name": "deposits",
+      "input": "None",
+      "output": "deposits",
+      "operators": [
+        {
+          "name": "deposits",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ],
+      "triggers": [
+        {
+          "name": "username"
+        },
+        {
+          "name": "newDeposits"
+        }
+      ],
+      "inputs": []
+    },
+    {
+      "name": "withdraws",
+      "input": "None",
+      "output": "withdraws",
+      "operators": [
+        {
+          "name": "withdraws",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ],
+      "triggers": [
+        {
+          "name": "username"
+        }
+      ],
+      "inputs": []
+    },
+    {
+      "name": "fees",
+      "input": "None",
+      "output": "fees",
+      "operators": [
+        {
+          "name": "fees",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ],
+      "triggers": [
+        {
+          "name": "username"
+        }
+      ],
+      "inputs": []
+    }
+  ],
+  "states": [
+    {
+      "name": "username"
+    }
+  ],
+  "events": [
+    {
+      "name": "newDeposits"
+    }
+  ]
+}

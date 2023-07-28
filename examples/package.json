@@ -4,6 +4,7 @@
   "description": "Examples of code using blueprint",
   "main": "index.ts",
   "scripts": {
+    "run": "node build/index.js",
     "build": "npx tsc --project tsconfig.json",
     "blueprint": "npx blueprint",
     "test": "echo \"Error: no test specified\" && exit 1"
