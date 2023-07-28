@@ -1,4 +1,4 @@
-import {state, event, hook, app} from "../rxblueprint-react-client";
+import {state, event, app} from "../rxblueprint-react-client";
 //state
 export const useDepositAmount = state<number>("atm", "depositAmount");
 

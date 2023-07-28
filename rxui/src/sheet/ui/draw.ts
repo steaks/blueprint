@@ -1,23 +1,8 @@
 import factory, {mxCell, mxEventObject, mxGraph} from "mxgraph";
-import {GraphJSON, OperatorJSON, SheetJSON, TriggerJSON} from "../types";
+import {GraphJSON, OperatorJSON, SheetJSON} from "../types";
 import _ from "lodash";
 
-let _id = 0;
-const generateId = () => {
-  _id = _id + 1;
-  return `operator_${_id}`;
-};
-
-const operators = {} as Record<string, {readonly graph: GraphJSON; readonly operator: OperatorJSON;}>;
-
 const mx = factory({mxBasePath: ''});
-
-const graphView = {
-  height: 40,
-  width: 100,
-  style: "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;"
-
-};
 
 const startView = {
   height: 40,
@@ -43,24 +28,6 @@ const hookView = {
   style: "rounded=1;whiteSpace=wrap;html=1;fillColor=#99ccff;strokeColor=#000000"
 };
 
-const triggerView = {
-  height: 40,
-  width: 100,
-  style: "rounded=1;whiteSpace=wrap;html=1;fillColor=#81a5de;strokeColor=#000000"
-};
-
-const endView = {
-  height: 40,
-  width: 100,
-  style: "rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#000000"
-};
-
-const operatorView = {
-  height: 40,
-  width: 100,
-  style: "rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000"
-};
-
 const dotView = {
   height: 0,
   width: 0,
@@ -69,23 +36,7 @@ const dotView = {
   style: "whiteSpace=wrap;html=1;aspect=fixed;strokeColor=none;fillColor=#000000;"
 };
 
-const bigDotView = {
-  height: 10,
-  width: 10,
-  xOffset: 120,
-  yOffset: 15,
-  style: "whiteSpace=wrap;html=1;aspect=fixed;strokeColor=none;fillColor=#000000;"
-};
-
-const branchView = {
-  height: 40,
-  width: 80,
-  style: "shape=rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000"
-};
-
 const lineStyle = "edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;endArrow=none;entryX=0;entryY=0.5;";
-const endLineStyle = "edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;endArrow=none;entryY=1;";
-const endDashedLineStyle = "edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;endArrow=none;entryY=1;dashed=1;";
 const arrowStyle = "edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;entryX=0;entryY=0.5;";
 const dashedArrowStyle = "edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;entryX=0;entryY=0.5;dashed=1;";
 
@@ -107,59 +58,6 @@ const labelGraphView = {
     return operators.reduce((s, o) => s + calculateOperatorWidth(o), 200);
   },
   style: "rounded=0;whiteSpace=wrap;fillColor=#ffffff;shadow=0;gradientDirection=north;strokeColor=#ffffff;align=left;verticalAlign=top;horizontal=1;labelBackgroundColor=none;html=1;fontStyle=1"
-};
-
-const insertOperator = (graph: mxGraph, parent: mxCell, prev: mxCell, id: string, o: OperatorJSON, xOffset: number, yOffset: number) => {
-  const view = o.subgraph ? graphView : operatorView;
-  const v = graph.insertVertex(parent, id, o.name, xOffset, yOffset, view.width, view.height, view.style);
-  graph.insertEdge(parent, null, '', prev, v, arrowStyle);
-  const e = graph.insertVertex(parent, null, null, xOffset + dotView.xOffset, yOffset + dotView.yOffset, dotView.width, dotView.height, dotView.style);
-  graph.insertEdge(parent, null, '', v, e, lineStyle);
-  return e;
-};
-
-
-const insertParallelOperator = (graph: mxGraph, parent: mxCell, prev: mxCell, o: OperatorJSON, xOffset: number, yOffset: number) => {
-  const v = o.suboperators.map((o, k) => {
-    const view = o.subgraph ? graphView : operatorView;
-    return graph.insertVertex(parent, null, o.name, xOffset, yOffset + subOperatorHeight * k, view.width, view.height, view.style);
-  });
-  v.forEach(vv => graph.insertEdge(parent, null, '', prev, vv, arrowStyle));
-  const e = graph.insertVertex(parent, null, null, xOffset + dotView.xOffset, yOffset + dotView.yOffset, dotView.width, dotView.height, dotView.style);
-  v.forEach(vv => graph.insertEdge(parent, null, '', vv, e, endLineStyle));
-  return e;
-};
-
-const insertBranchOperator = (graph: mxGraph, parent: mxCell, prev: mxCell, o: OperatorJSON, g: GraphJSON, id: string, xOffset: number, yOffset: number) => {
-  const branchXOffset = 130;
-  const b = graph.insertVertex(parent, id, o.name, xOffset, yOffset, branchView.width, branchView.height, branchView.style);
-  graph.insertEdge(parent, null, '', prev, b, arrowStyle)
-  const v = o.suboperators.map((o, k) => {
-    const id = generateId();
-    operators[id] = {graph: g, operator: o};
-    const view = o.subgraph ? graphView : operatorView;
-    return graph.insertVertex(parent, id, o.name, xOffset + branchXOffset, yOffset + subOperatorHeight * k, view.width, view.height, view.style);
-  });
-  v.forEach(vv => graph.insertEdge(parent, null, '', b, vv, dashedArrowStyle));
-  const e = graph.insertVertex(parent, null, null, xOffset + branchXOffset + dotView.xOffset, yOffset + dotView.yOffset, dotView.width, dotView.height, dotView.style);
-  v.forEach(vv => graph.insertEdge(parent, null, '', vv, e, endDashedLineStyle));
-  return e;
-};
-
-const insertTriggers = (graph: mxGraph, parent: mxCell, triggers: TriggerJSON[], xOffset: number, yOffset: number) => {
-  const v = triggers.map((t, k) => {
-    return graph.insertVertex(parent, null, t.name, xOffset, yOffset + triggerHeight * k, triggerView.width, triggerView.height, triggerView.style);
-  });
-  const e = graph.insertVertex(parent, null, null, xOffset + dotView.xOffset, yOffset + dotView.yOffset, dotView.width, dotView.height, dotView.style);
-  v.forEach(vv => graph.insertEdge(parent, null, '', vv, e, endLineStyle));
-  return e;
-}
-
-const insertInput = (graph: mxGraph, parent: mxCell, input: string, xOffset: number, yOffset: number) => {
-  // const v = graph.insertVertex(parent, null, input, xOffset, yOffset, startView.width, startView.height, startView.style);
-  const e = graph.insertVertex(parent, null, null, xOffset, yOffset + bigDotView.yOffset, bigDotView.width, bigDotView.height, bigDotView.style);
-  // graph.insertEdge(parent, null, '', v, e, lineStyle);
-  return e;
 };
 
 const insertEvent = (graph: mxGraph, parent: mxCell, event: string, xOffset: number, yOffset: number) => {
@@ -184,23 +82,10 @@ const insertHook = (graph: mxGraph, parent: mxCell, hook: string, xOffset: numbe
   return e;
 };
 
-const insertStart = (graph: mxGraph, parent: mxCell, g: GraphJSON, xOffset: number, yOffset: number) => {
-  return insertInput(graph, parent, g.name, xOffset, yOffset);
-};
-const insertEnd = (graph: mxGraph, parent: mxCell, prev: mxCell, output: string, xOffset: number, yOffset: number) => {
-  const v = graph.insertVertex(parent, null, null, xOffset, yOffset + bigDotView.yOffset, bigDotView.width, bigDotView.height, bigDotView.style);
-  graph.insertEdge(parent, null, '', prev, v, arrowStyle);
-  return v;
-};
-
 const graphsXOffset = 300;
 const yPadding = 20;
-const xPadding = 20;
-const startOperatorWidth = 100;
-const endOperatorWidth = 150;
 const subOperatorHeight = 50;
 const triggerHeight = 50;
-const triggerWidth = 50;
 
 const calculateOperatorHeight = (operator: OperatorJSON) =>
   Math.max(operator.suboperators.length * subOperatorHeight, subOperatorHeight);
@@ -209,8 +94,6 @@ const calculateTriggersHeight = (graph: GraphJSON): number =>
   graph.triggers ? graph.triggers.length * triggerHeight : 0;
 
 const calculateGraphHeight = (graph: GraphJSON) => {
-  const heights = graph.operators.map(calculateOperatorHeight)
-  const triggersHeight = calculateTriggersHeight(graph);
   // return yPadding + Math.max(...heights, triggersHeight) + yPadding;
   return yPadding + 30;
 };
@@ -221,17 +104,8 @@ const calculateGraphsHeight = (graphs: GraphJSON[]) =>
 const calculateOperatorWidth = (operator: OperatorJSON) =>
   operator.type === "BranchOperator" ? 290 : 150;
 
-const calculateOperatorsWidth = (operators: OperatorJSON[]) =>
-  operators.reduce((sum, o) => sum + calculateOperatorWidth(o), 0);
-
 const calculateGraphWidth = (graph: GraphJSON) => {
   return graph.operators.reduce((sum, o) => sum + calculateOperatorWidth(o), 0);
-};
-
-const insertOverivew = (graph: mxGraph, parent: mxCell, g: GraphJSON, xOffset: number, yOffset: number) => {
-  const width = startOperatorWidth + calculateGraphWidth(g) + endOperatorWidth;
-  const height = calculateGraphHeight(g);
-  return graph.insertVertex(parent, null, g.name, xOffset, yOffset, width, height, firstLevelGraphView.style);
 };
 
 
