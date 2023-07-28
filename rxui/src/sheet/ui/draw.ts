@@ -75,7 +75,6 @@ const insertHook = (graph: mxGraph, parent: mxCell, hook: string, xOffset: numbe
 const graphsXOffset = 300;
 const yPadding = 20;
 const subOperatorHeight = 50;
-const triggerHeight = 50;
 
 const calculateOperatorHeight = (operator: OperatorJSON) =>
   Math.max(operator.suboperators.length * subOperatorHeight, subOperatorHeight);
