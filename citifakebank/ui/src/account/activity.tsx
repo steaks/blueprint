@@ -1,7 +1,7 @@
 import React from "react";
 import {Activity, useDeposits, useFees, useWithdraws} from "../apps/activity";
 
-export default () => {
+const UI = () => {
   const [deposits] = useDeposits();
   const [withdraws] = useWithdraws();
   const [fees] = useFees();
@@ -15,3 +15,5 @@ export default () => {
     </Activity>
   );
 };
+
+export default UI;

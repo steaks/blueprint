@@ -1,7 +1,7 @@
 import React from "react";
 import {History, useHistory} from "../apps/history";
 
-export default () => {
+const UI = () => {
   const [history] = useHistory();
 
 
@@ -12,3 +12,5 @@ export default () => {
     </History>
   );
 };
+
+export default UI;

@@ -1,7 +1,7 @@
 import React from "react";
 import {Atm, useDepositAmount, useSendDeposit} from "../apps/atm";
 
-export default () => {
+const UI = () => {
   const [depositAmount, setDepositAmount] = useDepositAmount();
   const [sendDeposit] = useSendDeposit();
 
@@ -16,3 +16,5 @@ export default () => {
     </div>
   );
 };
+
+export default UI;

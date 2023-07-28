@@ -1,7 +1,7 @@
 import React from "react";
 import {Balance, useBalance} from "../apps/balance";
 
-export default () => {
+const UI = () => {
   const [balance] = useBalance();
 
 
@@ -13,3 +13,5 @@ export default () => {
     </div>
   );
 };
+
+export default UI;

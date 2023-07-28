@@ -13,7 +13,7 @@ import {
   useUpdatedEmployee
 } from "../apps/team";
 
-export default () => {
+const UI = () => {
   const [search, setSearch] = useSearch();
   const [employees] = useEmployees();
   const [count] = useCount();
@@ -57,3 +57,5 @@ export default () => {
     </Team>
   );
 };
+
+export default UI;
