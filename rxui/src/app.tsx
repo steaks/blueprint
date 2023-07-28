@@ -2,8 +2,7 @@ import React, {useEffect, useState} from 'react';
 import Sheet from "./sheet/ui/sheet";
 import Home from "./home/home";
 import {Routes, Route} from "react-router-dom";
-import data from "./sheet/data";
-import {IndexJSON} from "./sheet/types";
+import data from "./sheet/data"; import {IndexJSON} from "./sheet/types";
 
 const App = () => {
   const [index, setIndex] = useState(null as IndexJSON | null);

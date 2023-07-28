@@ -1,0 +1,30 @@
+{
+  "name": "history",
+  "graphs": [
+    {
+      "name": "history",
+      "input": "None",
+      "output": "history",
+      "operators": [
+        {
+          "name": "history",
+          "type": "Operator",
+          "suboperators": [],
+          "subgraph": null
+        }
+      ],
+      "triggers": [
+        {
+          "name": "initialized"
+        }
+      ],
+      "inputs": []
+    }
+  ],
+  "states": [],
+  "events": [
+    {
+      "name": "initialized"
+    }
+  ]
+}
