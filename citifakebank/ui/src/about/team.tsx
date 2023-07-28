@@ -7,7 +7,10 @@ import {
   useExistingEmployee,
   useNewEmployee,
   useRemove,
-  useSearch, useSelectedEmployee, useUpdate, useUpdatedEmployee
+  useSearch,
+  useSelectedEmployee,
+  useUpdate,
+  useUpdatedEmployee
 } from "../apps/team";
 
 export default () => {
