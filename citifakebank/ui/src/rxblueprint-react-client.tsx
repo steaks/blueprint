@@ -50,7 +50,7 @@ interface Props {
 
 const subscriptions = new Set();
 export const app = (name: string) => (props: Props) => {
-  const [initialized, setInitialized] = useState(false);
+  const [, setInitialized] = useState(false);
   useEffect(() => {
     if (!subscriptions.has(name)) {
       subscriptions.add(name);
