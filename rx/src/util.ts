@@ -1,4 +1,4 @@
-import {Graph, Operator} from "./types";
+import {Graph, Operator} from "../types";
 
 export const emptySubGraph = () => {
   return  null as Graph<any, any> | null

@@ -1,5 +1,5 @@
 {
-  "name": "blueprint-core",
+  "name": "@blueprint/core",
   "version": "0.1.0-alpha.1",
   "main": "./build/index.js",
   "types": "./build/types.d.ts",

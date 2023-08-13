@@ -1,6 +1,5 @@
-import rxblueprint from "../rx-blueprint/rxblueprint";
+import {app, state, hook, event, operator, trigger} from "@blueprint/rx";
 import {db} from "../postgres";
-const {app, state, hook, event, operator, trigger} = rxblueprint;
 
 const employees = async (search: string): Promise<string[]> =>
   await db.map<string>(`SELECT name FROM employees WHERE name LIKE '%${search}%'`, {search}, row => row.name);

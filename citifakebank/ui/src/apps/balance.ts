@@ -1,4 +1,4 @@
-import {hook, app} from "../rxblueprint-react-client";
+import {hook, app} from "@blueprint/rxreact";
 
 //state
 

@@ -1,5 +1,5 @@
 {
-  "name": "blueprint-examples",
+  "name": "@blueprint/examples",
   "version": "0.1.0-alpha.1",
   "description": "Examples of code using blueprint",
   "main": "index.ts",

@@ -1,4 +1,4 @@
-import {state, event, hook, app} from "../rxblueprint-react-client";
+import {state, event, hook, app} from "@blueprint/rxreact";
 
 //state
 export const useSearch =  state<string>("team", "search");

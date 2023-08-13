@@ -1,9 +1,9 @@
-import rxblueprint from "./rx-blueprint/rxblueprint";
+import {serve} from "@blueprint/rx";
 import history from "./apps/history";
-import balance from "./apps/account/balance";
-import activity from "./apps/account/activity";
+import balance from "./apps/balance";
+import activity from "./apps/activity";
 import session from "./session";
-import atm from "./apps/account/atm";
+import atm from "./apps/atm";
 import team from "./apps/team";
 
-rxblueprint.serve({team, history, balance, activity, atm}, session, 8080);
+serve({team, history, balance, activity, atm}, session);
