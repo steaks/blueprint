@@ -1,7 +1,6 @@
-import rxblueprint from "@blueprint/rx";
+import {app, state, hook, operator, trigger} from "@blueprint/rx";
 import session from "../session";
 import activitydb from "./common";
-const {app, state, hook, operator, trigger, event} = rxblueprint;
 const deposit = (amount: number, username: string) => {
   Promise.resolve(activitydb.deposit(Number(amount), username));
 };

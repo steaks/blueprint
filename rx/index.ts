@@ -1,13 +1,4 @@
-import {operator, hook, state, event, app, trigger, serve} from "./src/rxblueprint";
-import serialize from "./src/rxserialize";
+export {operator, hook, state, event, app, trigger, serve} from "./src/rxblueprint";
+import _serialize from "./src/rxserialize";
 
-export default {
-  operator,
-  hook,
-  state,
-  event,
-  app,
-  trigger,
-  serve,
-  serialize
-};
+export const serialize = _serialize;

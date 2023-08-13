@@ -1,5 +1,4 @@
-import blueprint from "@blueprint/rxreact";
-const {hook, app} = blueprint;
+import {hook, app} from "@blueprint/rxreact";
 
 interface Deposit {
   readonly amount: number;

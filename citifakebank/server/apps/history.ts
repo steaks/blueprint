@@ -1,5 +1,4 @@
-import rxblueprint from "@blueprint/rx";
-const {app, hook, operator} = rxblueprint;
+import {app, hook, operator} from "@blueprint/rx";
 
 const history = async () =>
   Promise.resolve("The bank was formed in 2023.");

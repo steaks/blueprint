@@ -1,5 +1,4 @@
-import blueprint from "@blueprint/rxreact";
-const {state, app, hook} = blueprint;
+import {state, app, hook} from "@blueprint/rxreact";
 //state
 export const useDepositAmount = state<number>("atm", "depositAmount");
 export const useWithdrawAmount = state<number>("atm", "withdrawAmount");
