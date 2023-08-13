@@ -1,4 +1,4 @@
-import rxblueprint from "../rx-blueprint/rxblueprint";
+import rxblueprint from "@blueprint/rx";
 import {db} from "../postgres";
 const {app, state, hook, event, operator, trigger} = rxblueprint;
 

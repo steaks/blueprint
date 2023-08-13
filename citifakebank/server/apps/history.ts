@@ -1,4 +1,4 @@
-import rxblueprint from "../rx-blueprint/rxblueprint";
+import rxblueprint from "@blueprint/rx";
 const {app, hook, operator} = rxblueprint;
 
 const history = async () =>

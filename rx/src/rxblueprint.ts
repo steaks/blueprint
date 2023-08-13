@@ -1,16 +1,30 @@
 import {
-  BehaviorSubject,
+  BehaviorSubject, catchError,
   combineLatest,
   filter,
   map,
   merge,
-  Observable,
+  Observable, of,
   Subject,
   switchMap,
   tap,
   withLatestFrom
 } from "rxjs";
-import {Context, Func0, Func1, Func2, Func3, Graph, Operator, SheetJSON} from "./types";
+import {
+  Context,
+  Func0,
+  Func1,
+  Func2,
+  Func3,
+  Graph,
+  Operator,
+  RxOperator,
+  SheetJSON,
+  State,
+  Event,
+  Hook,
+  HookOptions, Session, SessionContext, AppContext, AppBlueprint, App, RxBlueprintServer, Cors, ServerOptions
+} from "../types";
 import {randomUUID} from "crypto";
 import http, {IncomingMessage, ServerResponse} from "http";
 import * as qs from "qs";
@@ -23,27 +37,6 @@ import {Server, Socket} from "socket.io";
 import rxserialize from "./rxserialize";
 import util from "./util";
 
-export interface Event {
-  readonly __type: "Event";
-  readonly __name: string;
-  readonly create: (app: AppContext | SessionContext) => void;
-}
-
-export interface State<V> {
-  readonly __type: "State";
-  readonly __name: string;
-  readonly create: (app: AppContext | SessionContext) => void;
-}
-
-export interface RxOperator<V> {
-  (app: AppContext, session: SessionContext, context: Context): Promise<V>;
-  readonly __name: string;
-  readonly __type: string;
-  readonly _suboperators: Operator<any>[];
-  readonly _subgraph: Graph<any, any> | null;
-  readonly _stateInputs: State<unknown>[];
-}
-
 interface RxContext {
   readonly graph: string;
   readonly data: Record<string, any>;
@@ -52,7 +45,7 @@ interface RxContext {
 
 const isEvent = (v: any): v is Event =>
   (v as any).__type === "Event";
-const event = (name: string): Event =>
+export const event = (name: string): Event =>
   ({__type: "Event", __name: name, create: (app: AppContext | SessionContext) => {
       app.__events[name] = new Subject<string>();
     }});
@@ -61,7 +54,7 @@ const isState = (v: any): v is State<any> =>
   (v as any).__type === "State";
 
 const nonce = {};
-const state = <V>(name: string, initialValue?: V): State<V> => {
+export const state = <V>(name: string, initialValue?: V): State<V> => {
   return {
     __type: "State",
     __name: name,
@@ -71,33 +64,15 @@ const state = <V>(name: string, initialValue?: V): State<V> => {
   };
 };
 
-interface HookOptions {
-  readonly runWhen?: "statechangeandtriggers" | "onlytriggers";
-  readonly triggers?: (State<unknown> | Event)[];
-  readonly manualTrigger?: boolean;
-}
 
-export interface Hook<V> {
-  __type: string;
-  __name: string;
-  _operators: RxOperator<any>[];
-  _input: string;
-  _output: string;
-  _trigger: Event | null;
-  _triggers: (Event | State<any>)[];
-  _inputs: State<any>[];
-  create: (context: AppContext, session: SessionContext) => void;
-}
-
-
-function hook<A>(o0: RxOperator<A>): Hook<A>;
-function hook<A>(options: HookOptions, o0: RxOperator<A>): Hook<A>;
-function hook<A>(name: string, options: HookOptions, o0: RxOperator<A>): Hook<A>;
-function hook<A, B>(name: string, options: HookOptions, o0: RxOperator<A>, o1: RxOperator<B>): Hook<B>;
-function hook<A, B, C>(name: string, options: HookOptions, o0: RxOperator<A>, o1: RxOperator<B>, o2: RxOperator<C>): Hook<C>;
-function hook<A, B, C, D>(name: string, options: HookOptions, o0: RxOperator<A>, o1: RxOperator<B>, o2: RxOperator<C>, o3: RxOperator<D>): Hook<D>;
-function hook<A, B, C, D, E>(name: string, options: HookOptions, o0: RxOperator<A>, o1: RxOperator<B>, o2: RxOperator<C>, o3: RxOperator<D>, o4: RxOperator<E>): Hook<E>;
-function hook(): Hook<any> {
+export function hook<A>(o0: RxOperator<A>): Hook<A>;
+export function hook<A>(options: HookOptions, o0: RxOperator<A>): Hook<A>;
+export function hook<A>(name: string, options: HookOptions, o0: RxOperator<A>): Hook<A>;
+export function hook<A, B>(name: string, options: HookOptions, o0: RxOperator<A>, o1: RxOperator<B>): Hook<B>;
+export function hook<A, B, C>(name: string, options: HookOptions, o0: RxOperator<A>, o1: RxOperator<B>, o2: RxOperator<C>): Hook<C>;
+export function hook<A, B, C, D>(name: string, options: HookOptions, o0: RxOperator<A>, o1: RxOperator<B>, o2: RxOperator<C>, o3: RxOperator<D>): Hook<D>;
+export function hook<A, B, C, D, E>(name: string, options: HookOptions, o0: RxOperator<A>, o1: RxOperator<B>, o2: RxOperator<C>, o3: RxOperator<D>, o4: RxOperator<E>): Hook<E>;
+export function hook(): Hook<any> {
   let name: string;
   let options: HookOptions;
   let operators: RxOperator<any>[];
@@ -127,6 +102,9 @@ function hook(): Hook<any> {
   const triggerNames = new Set(_allTriggers.map(t => t.__name));
   const _allInputs = operators.flatMap(o => o._stateInputs).filter(i => !triggerNames.has(i.__name));
   const create = (app: AppContext, session: SessionContext): void => {
+    if (!session) {
+      console.log("HERE");
+    }
     if (trigger) {
       trigger.create(app);
     }
@@ -162,6 +140,10 @@ function hook(): Hook<any> {
         operations[3] ? operations[3] : tap(_.identity),
         operations[4] ? operations[4] : tap(_.identity),
         operations[5] ? operations[5] : tap(_.identity),
+        catchError(e => {
+          console.error(e);
+          return of({__type: "Error"});
+        })
       );
     } else {
       app.__hooks[name] = merge(...triggers).pipe(
@@ -171,6 +153,9 @@ function hook(): Hook<any> {
         operations[3] ? operations[3] : tap(_.identity),
         operations[4] ? operations[4] : tap(_.identity),
         operations[5] ? operations[5] : tap(_.identity),
+        catchError(e => {
+          return of({__type: "Error"});
+        }),
       );
     }
   };
@@ -215,46 +200,6 @@ export function operator(): RxOperator<unknown> {
   return theOperator;
 }
 
-export interface AppContext {
-  readonly __id: string;
-  readonly __socketId: string;
-  readonly __name: string;
-  readonly __state: Record<string, BehaviorSubject<any>>;
-  readonly __events: Record<string, Subject<any>>;
-  readonly __hooks: Record<string, Observable<any>>;
-  readonly __session: AppContext;
-}
-
-export interface SessionContext {
-  readonly __id: string;
-  readonly __socketId: string;
-  readonly __name: string;
-  readonly __state: Record<string, BehaviorSubject<any>>;
-  readonly __events: Record<string, Subject<any>>;
-  readonly __hooks: Record<string, Observable<any>>;
-}
-
-const inputsChange = new Subject<string>();
-
-export interface AppBlueprint {
-  readonly name: string;
-  readonly state: State<any>[];
-  readonly events: Event[];
-  readonly hooks: Hook<any>[];
-}
-
-export interface Session {
-  readonly state: Record<string, State<any>>;
-  readonly events: Record<string, Event>;
-  readonly hooks: Record<string, Hook<any>>;
-}
-
-export interface App {
-  readonly __app: AppBlueprint;
-  readonly __sheet: SheetJSON;
-  readonly create: (server: RxBlueprintServer, socketId: string) => void;
-}
-
 const createSession = (session: Session, socketId: string): SessionContext => {
   const context = {__id: randomUUID(), __socketId: socketId, __name: "session", __state: {}, __events: {}, __hooks: {}} as SessionContext;
   _.forEach(session.state, s => {
@@ -269,7 +214,7 @@ const createSession = (session: Session, socketId: string): SessionContext => {
   return context;
 };
 
-const app = (func: () => AppBlueprint): App => {
+export const app = (func: () => AppBlueprint): App => {
   const theApp = func();
   theApp.events.push(event("initialized"));
   const create = (server: RxBlueprintServer, socketId: string) => {
@@ -312,6 +257,11 @@ const app = (func: () => AppBlueprint): App => {
         next: v => {
           console.log(`${socketId}/${theApp.name}/${h.__name}`, v);
           socket.emit(`${theApp.name}/${h.__name}`, v);
+        },
+        error: e => {
+          console.log("ERROR");
+          console.error(e);
+          console.log("OMFG");
         }
       });
     });
@@ -324,7 +274,7 @@ const app = (func: () => AppBlueprint): App => {
   };
 };
 
-const trigger = (e: Event | Hook<any>): RxOperator<null> => {
+export const trigger = (e: Event | Hook<any>): RxOperator<null> => {
   const theOperator = async (app: AppContext, session: SessionContext, c: Context): Promise<null> => {
     if (isEvent(e)) {
       (app.__events[e.__name] || session.__events[e.__name]).next("");
@@ -341,22 +291,16 @@ const trigger = (e: Event | Hook<any>): RxOperator<null> => {
   return theOperator;
 };
 
-interface RxBlueprintServer {
-  readonly sockets: Record<string, Socket>;
-  readonly routes: {
-    post: Record<string, Function>;
-  };
-  readonly sessions: Record<string, SessionContext>;
-}
-
-const serve = <T>(apps: Record<string, App>, session: Session, port: number) => {
+export const serve = <T>(apps: Record<string, App>, session: Session, options?: ServerOptions) => {
+  const defaultOrigin = "http://localhost:3000";
+  const defaultPort = 8080;
   const rxBlueprintServer = {
     routes: {post: {}},
     sockets: {},
     sessions: {}
   } as RxBlueprintServer;
   const a = express();
-  a.use(cors());
+  a.use(cors({origin: options?.cors?.origin || defaultOrigin, methods: ["GET", "POST"]}));
   a.post("/subscribe", (req, res) => {
     const url = parseurl(req) as Url;
     const query = qs.parse(url.query as string);
@@ -370,16 +314,22 @@ const serve = <T>(apps: Record<string, App>, session: Session, port: number) => 
     if (req.method === "POST") {
       const url = parseurl(req) as Url;
       const route = rxBlueprintServer.routes.post[url.pathname!];
-      route(req);
-      res.write("Success")
-      res.end();
+      if (!route) {
+        console.error(`${url.pathname!} was not found`);
+        res.statusCode = 404;
+        res.end();
+      } else {
+        route(req);
+        res.write("Success")
+        res.end();
+      }
     }
   });
   const server = http.createServer(a);
 
   const io = new Server(server, {
     cors: {
-      origin: "http://localhost:3000",
+      origin: options?.cors?.origin || defaultOrigin,
       methods: ["GET", "POST"]
     }
   });
@@ -391,16 +341,9 @@ const serve = <T>(apps: Record<string, App>, session: Session, port: number) => 
 
   rxserialize.build("App", _.map(apps, a => a.__sheet));
 
-  server.listen(port);
+  server.listen(options?.port || defaultPort);
 };
 
 export default {
-  event,
-  state,
-  app,
-  hook,
-  operator,
-  trigger,
-  inputsChange,
   serve
 };

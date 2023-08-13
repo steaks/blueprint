@@ -45,6 +45,10 @@ const activitydb = {
   deposit: (amount: number, username: string): Promise<null> => {
     deposits.push({amount, username});
     return Promise.resolve(null);
+  },
+  withdraw: (amount: number, username: string): Promise<null> => {
+    withdraws.push({amount, username});
+    return Promise.resolve(null);
   }
 };
 

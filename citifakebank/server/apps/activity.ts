@@ -1,6 +1,6 @@
-import rxblueprint from "../../rx-blueprint/rxblueprint";
+import rxblueprint from "@blueprint/rx";
 import activitydb from "./common";
-import session from "../../session";
+import session from "../session";
 const {app, hook, operator} = rxblueprint;
 
 const deposits = async (username: string) =>
@@ -20,6 +20,7 @@ const activity$$ = app(() => {
   );
 
   const withdraws$ = hook(
+    {triggers: [session.events.newWithdrawals]},
     operator(withdraws, session.state.username),
   );
 
@@ -29,8 +30,8 @@ const activity$$ = app(() => {
 
   return {
     name: "activity",
-    state: [session.state.username],
-    events: [session.events.newDeposits],
+    state: [],
+    events: [],
     hooks: [deposits$, withdraws$, fees$]
   };
 });

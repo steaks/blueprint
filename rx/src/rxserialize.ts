@@ -1,6 +1,5 @@
 import * as fs from "fs";
-import {AppBlueprint} from "./rxblueprint";
-import {SheetJSON} from "./types";
+import {SheetJSON, AppBlueprint} from "../types";
 
 const sheet = (app: AppBlueprint): SheetJSON => {
   const hookTriggers = new Set(app.hooks.flatMap(h => h._operators.filter(o => o.__name.startsWith("Trigger_"))).map(t => t.__name.replace("Trigger_", "")));

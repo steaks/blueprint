@@ -1,7 +1,7 @@
-import rxblueprint from "../../rx-blueprint/rxblueprint";
+import rxblueprint from "@blueprint/rx";
 import activitydb, {Deposit, Fee, Withdraw} from "./common";
 import _ from "lodash";
-import session from "../../session";
+import session from "../session";
 const {app, operator, hook} = rxblueprint;
 
 const deposits = async (username: string) =>
@@ -14,7 +14,7 @@ const fees = async (username: string) =>
   await activitydb.fees(username);
 
 const calculate = async (deposits: Deposit[], withdraws: Withdraw[], fees: Fee[]) =>
-  Promise.resolve(_.sumBy(deposits, d => d.amount) + _.sumBy(withdraws, w => w.amount) - _.sumBy(fees, f => f.amount));
+  Promise.resolve(_.sumBy(deposits, d => d.amount) - _.sumBy(withdraws, w => w.amount) - _.sumBy(fees, f => f.amount));
 
 const balance$$ = app(() => {
   const deposits$ = operator(deposits, session.state.username);
@@ -24,7 +24,7 @@ const balance$$ = app(() => {
 
   const balance$ = hook(
     "balance",
-    {triggers: [session.events.newDeposits]},
+    {triggers: [session.events.newDeposits, session.events.newWithdrawals]},
     deposits$,
     withdraws$,
     fees$,
@@ -33,8 +33,8 @@ const balance$$ = app(() => {
 
   return {
     name: "balance",
-    state: [session.state.username],
-    events: [session.events.newDeposits],
+    state: [],
+    events: [],
     hooks: [balance$]
   };
 });

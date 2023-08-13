@@ -7,6 +7,12 @@ build:
 test:
 	bash test.sh
 
+clean:
+	bash clean.sh
+
+npmpublish:
+	bash publish.sh
+
 docker-authenticate:
 	gcloud auth configure-docker us-central1-docker.pkg.dev
 
