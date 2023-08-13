@@ -13,6 +13,9 @@ clean:
 npmpublish:
 	bash publish.sh
 
+npm-artifact-registry-authenticate:
+	npx google-artifactregistry-auth --repo-config=[./.npmrc] --credential-config=[~/.npmrc]
+
 docker-authenticate:
 	gcloud auth configure-docker us-central1-docker.pkg.dev
 
