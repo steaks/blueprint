@@ -4,7 +4,7 @@ import {
   filter,
   map,
   merge,
-  Observable, of,
+  of,
   Subject,
   switchMap,
   tap,
@@ -17,13 +17,20 @@ import {
   Func2,
   Func3,
   Graph,
-  Operator,
   RxOperator,
-  SheetJSON,
   State,
   Event,
   Hook,
-  HookOptions, Session, SessionContext, AppContext, AppBlueprint, App, RxBlueprintServer, Cors, ServerOptions
+  HookOptions,
+  Session,
+  SessionContext,
+  AppContext,
+  AppBlueprint,
+  App,
+  RxBlueprintServer,
+  Cors,
+  ServerOptions,
+  StateRefParam, StateRef
 } from "../types";
 import {randomUUID} from "crypto";
 import http, {IncomingMessage, ServerResponse} from "http";
@@ -31,11 +38,12 @@ import * as qs from "qs";
 import parseurl from "parseurl";
 import {Url} from "url";
 import _ from "lodash";
-import express from "express";
+import express, {Request} from "express";
 import cors from "cors";
-import {Server, Socket} from "socket.io";
+import {Server} from "socket.io";
 import rxserialize from "./rxserialize";
 import util from "./util";
+import bodyParser from "body-parser";
 
 interface RxContext {
   readonly graph: string;
@@ -46,12 +54,20 @@ interface RxContext {
 const isEvent = (v: any): v is Event =>
   (v as any).__type === "Event";
 export const event = (name: string): Event =>
-  ({__type: "Event", __name: name, create: (app: AppContext | SessionContext) => {
+  ({
+    __type: "Event", __name: name, create: (app: AppContext | SessionContext) => {
       app.__events[name] = new Subject<string>();
-    }});
+    }
+  });
 
 const isState = (v: any): v is State<any> =>
   (v as any).__type === "State";
+
+const isOperator = (v: any): v is RxOperator<any> =>
+  (v as any).__type === "Operator";
+
+const isStateRefParam = (v: any): v is StateRefParam<any> =>
+  (v as any).__type === "StateRefParam";
 
 const nonce = {};
 export const state = <V>(name: string, initialValue?: V): State<V> => {
@@ -59,7 +75,7 @@ export const state = <V>(name: string, initialValue?: V): State<V> => {
     __type: "State",
     __name: name,
     create: (app: AppContext | SessionContext) => {
-      app.__state[name] = initialValue ? new BehaviorSubject(initialValue) : new BehaviorSubject(nonce as unknown as V);
+      app.__state[name] = initialValue !== undefined ? new BehaviorSubject(initialValue) : new BehaviorSubject(nonce as unknown as V);
     }
   };
 };
@@ -154,6 +170,7 @@ export function hook(): Hook<any> {
         operations[4] ? operations[4] : tap(_.identity),
         operations[5] ? operations[5] : tap(_.identity),
         catchError(e => {
+          console.error(e);
           return of({__type: "Error"});
         }),
       );
@@ -172,9 +189,13 @@ export function hook(): Hook<any> {
   };
 }
 
+export const ref = <V>(state: State<V>): StateRefParam<V> => {
+  return {__type: "StateRefParam", ref: state};
+};
+
 export function operator<R>(func: Func0<R>): RxOperator<R>;
-export function operator<A0, R>(func: Func1<A0, R>, arg0: RxOperator<A0> | State<A0>): RxOperator<R>;
-export function operator<A0, A1, R>(func: Func2<A0, A1, R>, arg0: RxOperator<A0> | State<A0>, arg1: RxOperator<A1> | State<A1>): RxOperator<R>;
+export function operator<A0, R>(func: Func1<A0, R>, arg0: RxOperator<A0> | State<A0> | StateRefParam<A0>): RxOperator<R>;
+export function operator<A0, A1, R>(func: Func2<A0, A1, R>, arg0: RxOperator<A0> | State<A0> | StateRefParam<A0>, arg1: RxOperator<A1> | State<A1> | StateRefParam<A1>): RxOperator<R>;
 export function operator<A0, A1, A2, R>(func: Func3<A0, A1, A2, R>, arg0: RxOperator<A0> | State<A0>, arg1: RxOperator<A1> | State<A1>, arg2: RxOperator<A2> | State<A2>): RxOperator<R>;
 export function operator(): RxOperator<unknown> {
   const func = arguments[0];
@@ -185,6 +206,9 @@ export function operator(): RxOperator<unknown> {
     const a = args.map(a => {
       if (isState(a)) {
         return (app.__state[a.__name] || session.__state[a.__name]).getValue();
+      } else if (isStateRefParam(a)) {
+        const behaviorSubject = (app.__state[a.ref.__name] || session.__state[a.ref.__name]);
+        return {__type: "StateRef", _next: (v: any) => behaviorSubject.next(v), _getValue: () => behaviorSubject.getValue()};
       }
       return c.data[a.__name];
     });
@@ -201,7 +225,14 @@ export function operator(): RxOperator<unknown> {
 }
 
 const createSession = (session: Session, socketId: string): SessionContext => {
-  const context = {__id: randomUUID(), __socketId: socketId, __name: "session", __state: {}, __events: {}, __hooks: {}} as SessionContext;
+  const context = {
+    __id: randomUUID(),
+    __socketId: socketId,
+    __name: "session",
+    __state: {},
+    __events: {},
+    __hooks: {}
+  } as SessionContext;
   _.forEach(session.state, s => {
     s.create(context);
   });
@@ -218,19 +249,35 @@ export const app = (func: () => AppBlueprint): App => {
   const theApp = func();
   theApp.events.push(event("initialized"));
   const create = (server: RxBlueprintServer, socketId: string) => {
-    const context = {__id: randomUUID(), __socketId: socketId, __name: theApp.name, __state: {}, __events: {}, __hooks: {}} as AppContext;
+    const context = {
+      __id: randomUUID(),
+      __socketId: socketId,
+      __name: theApp.name,
+      __state: {},
+      __events: {},
+      __hooks: {}
+    } as AppContext;
     const socket = server.sockets[socketId];
     const session = server.sessions[socketId];
     theApp.state.forEach(s => {
       s.create(context);
       const route = `/${socketId}/${theApp.name}/${s.__name}`;
-      const func = (req: IncomingMessage) => {
-        const url = parseurl(req) as Url;
-        const query = qs.parse(url.query as string);
-        const value = query.body;
+      const func = (req: Request) => {
+        const value = req.body;
         context.__state[s.__name].next(value);
       };
       server.routes.post[route] = func;
+      context.__state[s.__name].subscribe({
+        next: v => {
+          if (v !== nonce) {
+            console.log(`${socketId}/${theApp.name}/${s.__name}`, v);
+            socket.emit(`${theApp.name}/${s.__name}`, v);
+          }
+        },
+        error: e => {
+          console.error(e);
+        }
+      });
     });
     theApp.events.forEach(e => {
       e.create(context);
@@ -255,13 +302,13 @@ export const app = (func: () => AppBlueprint): App => {
 
       context.__hooks[h.__name].subscribe({
         next: v => {
-          console.log(`${socketId}/${theApp.name}/${h.__name}`, v);
-          socket.emit(`${theApp.name}/${h.__name}`, v);
+          if (v !== nonce) {
+            console.log(`${socketId}/${theApp.name}/${h.__name}`, v);
+            socket.emit(`${theApp.name}/${h.__name}`, v);
+          }
         },
         error: e => {
-          console.log("ERROR");
           console.error(e);
-          console.log("OMFG");
         }
       });
     });
@@ -291,6 +338,40 @@ export const trigger = (e: Event | Hook<any>): RxOperator<null> => {
   return theOperator;
 };
 
+export const get = <V>(state: StateRef<V>): V =>
+  state._getValue();
+
+const setState = <V>(state: StateRef<V>, value: V): void => {
+  state._next(value);
+};
+const setOperator = <A0>(state: State<A0>, a: RxOperator<A0> | State<A0> | A0): RxOperator<null> => {
+  const theOperator = async (app: AppContext, session: SessionContext, c: Context): Promise<null> => {
+    let arg: A0;
+    if (isState(a)) {
+      arg = (app.__state[a.__name] || session.__state[a.__name]).getValue();
+    } else if (isOperator(a)) {
+      arg = c.data[a.__name];
+    } else {
+      arg = a;
+    }
+    (app.__state[state.__name] || session.__state[state.__name]).next(arg);
+    return Promise.resolve(null);
+  };
+  theOperator.__name = `Setter_${state.__name}`;
+  theOperator.__type = "Operator";
+  theOperator._suboperators = util.emptySubOperators();
+  theOperator._subgraph = null as Graph<any, any> | null;
+  theOperator._stateInputs = [] as State<unknown>[];
+  return theOperator;
+};
+
+export function set<V>(state: StateRef<V>, value: V): void;
+export function set<V>(state: State<V>, a: RxOperator<V> | State<V> | V): RxOperator<null>
+
+export function set(): any {
+  return isState(arguments[0]) ? setOperator(arguments[0], arguments[1]) : setState(arguments[0], arguments[1]);
+}
+
 export const serve = <T>(apps: Record<string, App>, session: Session, options?: ServerOptions) => {
   const defaultOrigin = "http://localhost:3000";
   const defaultPort = 8080;
@@ -301,6 +382,7 @@ export const serve = <T>(apps: Record<string, App>, session: Session, options?: 
   } as RxBlueprintServer;
   const a = express();
   a.use(cors({origin: options?.cors?.origin || defaultOrigin, methods: ["GET", "POST"]}));
+  a.use(bodyParser.json({type: "application/json"}))
   a.post("/subscribe", (req, res) => {
     const url = parseurl(req) as Url;
     const query = qs.parse(url.query as string);
