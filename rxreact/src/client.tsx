@@ -36,7 +36,11 @@ export const state = <V, >(app: string, stateName: string): () => [V | undefined
     const [state, setState] = useState<V>();
     const set = useCallback((value: V) => {
       setState(value);
-      fetch(`${config.uri}/${socket!.id}/${app}/${stateName}?body=${value}`, {method: "POST"});
+      fetch(`${config.uri}/${socket!.id}/${app}/${stateName}`, {
+        method: "POST",
+        body: JSON.stringify(value),
+        headers: {"content-type": "application/json"}
+      })
     }, []);
     const onMessage = useCallback((message: V) => {
       setState(message);

@@ -13,6 +13,17 @@ export interface Event {
   readonly create: (app: AppContext | SessionContext) => void;
 }
 
+export interface StateRefParam<V> {
+  readonly __type: "StateRefParam";
+  readonly ref: State<V> | Event | Hook<V>;
+}
+
+export interface StateRef<V> {
+  readonly __type: "StateRef";
+  readonly _next: (v: V) => void;
+  readonly _getValue: () => V;
+}
+
 export interface State<V> {
   readonly __type: "State";
   readonly __name: string;
