@@ -1,4 +1,4 @@
-import {hook, event, state, app} from "@blueprint/rxreact";
+import {hook, event, state, app} from "../rxreact";
 
 //state
 export const useIsOpen = state<boolean>("shop", "isOpen");
