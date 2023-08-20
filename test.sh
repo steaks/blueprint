@@ -7,3 +7,5 @@ cd core && npm run test && cd ..
 # TODO ADD TESTS cd rxreact && npm run test && cd ..
 # TODO ADD TESTS cd citifakebank/server && npm run test && cd ../..
 # TODO ADD TESTS cd citifakebank/ui && npm run test && cd ../..
+# TODO ADD TESTS cd helloworld/server && npm run test && cd ../..
+# TODO ADD TESTS cd helloworld/ui && npm run test && cd ../..

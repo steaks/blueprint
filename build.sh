@@ -7,3 +7,5 @@ cd rxui && npm run build && cd ..
 cd rxreact && npm run build && cd ..
 cd citifakebank/server && npm run build && cd ../..
 cd citifakebank/ui && npm run build && cd ../..
+cd helloworld/server && npm run build && cd ../..
+cd helloworld/ui && npm run build && cd ../..
