@@ -26,6 +26,6 @@
   },
   "include": [
     "src",
-    "../shared/src"
+    "../common/src"
   ]
 }

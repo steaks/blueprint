@@ -1,17 +1,4 @@
-export interface Deposit {
-  readonly amount: number;
-  readonly username: string;
-}
-
-export interface Withdraw {
-  readonly amount: number;
-  readonly username: string;
-}
-
-export interface Fee {
-  readonly amount: number;
-  readonly username: string;
-}
+import {Deposit, Fee, Withdraw} from "../../../shared/src/common";
 
 const deposits = [
   {amount: 100.00, username: "steven"},

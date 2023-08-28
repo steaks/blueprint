@@ -16,6 +16,7 @@ import {
   Func1,
   Func2,
   Func3,
+  Func4,
   Graph,
   RxOperator,
   State,
@@ -28,7 +29,6 @@ import {
   AppBlueprint,
   App,
   RxBlueprintServer,
-  Cors,
   ServerOptions,
   StateRefParam, StateRef
 } from "../types";
@@ -197,6 +197,7 @@ export function operator<R>(func: Func0<R>): RxOperator<R>;
 export function operator<A0, R>(func: Func1<A0, R>, arg0: RxOperator<A0> | State<A0> | StateRefParam<A0>): RxOperator<R>;
 export function operator<A0, A1, R>(func: Func2<A0, A1, R>, arg0: RxOperator<A0> | State<A0> | StateRefParam<A0>, arg1: RxOperator<A1> | State<A1> | StateRefParam<A1>): RxOperator<R>;
 export function operator<A0, A1, A2, R>(func: Func3<A0, A1, A2, R>, arg0: RxOperator<A0> | State<A0>, arg1: RxOperator<A1> | State<A1>, arg2: RxOperator<A2> | State<A2>): RxOperator<R>;
+export function operator<A0, A1, A2, A3, R>(func: Func4<A0, A1, A2, A3, R>, arg0: RxOperator<A0> | State<A0>, arg1: RxOperator<A1> | State<A1>, arg2: RxOperator<A2> | State<A2>, arg3: RxOperator<A3> | State<A3>): RxOperator<R>;
 export function operator(): RxOperator<unknown> {
   const func = arguments[0];
   const args = util.createArgs(arguments, 1);
@@ -382,7 +383,7 @@ export const serve = <T>(apps: Record<string, App>, session: Session, options?: 
   } as RxBlueprintServer;
   const a = express();
   a.use(cors({origin: options?.cors?.origin || defaultOrigin, methods: ["GET", "POST"]}));
-  a.use(bodyParser.json({type: "application/json"}))
+  a.use(bodyParser.json({type: "application/json", strict: false}))
   a.post("/subscribe", (req, res) => {
     const url = parseurl(req) as Url;
     const query = qs.parse(url.query as string);
