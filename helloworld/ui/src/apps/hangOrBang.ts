@@ -1,9 +1,12 @@
 import {hook, event, state, app} from "../rxreact";
 
+type UUIDV4 = string;
 export interface Match {
+  readonly id: UUIDV4;
   readonly name: string;
   readonly age: number;
-  readonly type?: string;
+  readonly hang: boolean;
+  readonly bang: boolean;
 }
 
 //state
@@ -14,7 +17,7 @@ export const usePotentialMatches = state<Match[]>("hangOrBang", "potentialMatche
 export const useMyEvent = event("hangOrBang", "myEvent");
 
 //hooks
-export const useMyHook = hook<string>("hangOrBang", "myHook");
+export const useGetPotentialMatches = hook<void>("hangOrBang", "getPotentialMatches");
 
 //App
 export const HangOrBang = app("hangOrBang")

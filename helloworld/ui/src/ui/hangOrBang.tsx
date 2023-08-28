@@ -1,27 +1,31 @@
 import React from "react";
-import {HangOrBang, Match, useAllMatches, usePotentialMatches, useMyHook} from "../apps/hangOrBang";
+import {HangOrBang, Match, useAllMatches, usePotentialMatches, useGetPotentialMatches} from "../apps/hangOrBang";
+
+const Foo = () => (
+  <HangOrBang>
+    <HangOrBangUI />
+  </HangOrBang>
+);
 
 const HangOrBangUI = () => {
   // const [addMatch] = useAddMatch();
   const [allMatches, setAllMatches] = useAllMatches();
   const [potentialMatches, setPotentialMatches] = usePotentialMatches();
-  const [myHook] = useMyHook();
+  const [, triggerGetPotentialMatches] = useGetPotentialMatches();
 
-  const MatchUI = ({match}: {readonly match: Match}) => {
-    return (
-      <div>
-        <div>Name: {match.name}</div>
-        <div>Age: {match.age}</div>
-      </div>
-    );
-  };
+  if (!potentialMatches || !allMatches) {
+    return <></>;
+  }
 
-  const PotentialMatchUI = ({match, matches}: {readonly match: Match, readonly matches: Match[]}) => {
-    // const newMatches = [...matches, {...match, type: "hang"}];
-    // console.log("new matches: ", newMatches);
-    const addMatch = (match: Match, type: string) => {
-      const newMatches = [...matches, {...match, type: "hang"}];
-      console.log("IN NEW MATCHES: ", newMatches);
+  const PotentialMatchUI = ({match}: {readonly match: Match}) => {
+    const removePotentialMatch = (match: Match) => {
+      const newPMatches = potentialMatches.filter(m => m.id !== match.id);
+      setPotentialMatches(newPMatches);
+    };
+
+    const addMatch = (match: Match, hang: boolean, bang: boolean) => {
+      const newMatches = [...allMatches, {...match, hang, bang}];
+      removePotentialMatch(match);
       setAllMatches(newMatches);
     };
 
@@ -29,34 +33,57 @@ const HangOrBangUI = () => {
       <div>
         <div>Name: {match.name}</div>
         <div>Age: {match.age}</div>
-        <button onClick={() => addMatch(match, "hang")}>Add</button>
+        <button onClick={() => addMatch(match, true, false)}>Hang</button>
+        <button onClick={() => addMatch(match, false, true)}>Bang</button>
+        <button onClick={() => addMatch(match, true, true)}>Hang AND Bang!</button>
+        <button onClick={() => removePotentialMatch(match)}>No hang no bang :(</button>
       </div>
     );
   };
 
-  console.log("ALL MATCHES: ", allMatches);
-  return (
-    <HangOrBang>
-      <h2>Your Matches</h2>
+  const MatchUI = ({match}: {readonly match: Match}) => {
+    const removeMatch = (match: Match) => {
+      const newMatches = allMatches.filter(m => m.id !== match.id);
+      setAllMatches(newMatches);
+    };
+
+    return (
       <div>
-        {allMatches ? allMatches.map(m => <MatchUI match={m} />) : <></>}
+        <div>Name: {match.name}</div>
+        <div>Age: {match.age}</div>
+        <button onClick={() => removeMatch(match)}>Remove</button>
+      </div>
+    );
+  };
+
+  const hangs = allMatches.filter(m => m.hang && !m.bang);
+  const bangs = allMatches.filter(m => !m.hang && m.bang);
+  const hangAndBangs = allMatches.filter(m => m.hang && m.bang);
+
+  return (
+    <div>
+      <h2>Your Matches</h2>
+      <h3>Hangs</h3>
+      <div>
+        {hangs.map(m => <MatchUI match={m} />)}
+      </div>
+      <h3>Bangs</h3>
+      <div>
+        {bangs.map(m => <MatchUI match={m} />)}
+      </div>
+      <h3>Hang and Bangs</h3>
+      <div>
+        {hangAndBangs.map(m => <MatchUI match={m} />)}
       </div>
       <br />
       <h2>Potential Matches</h2>
       <div>
-        {potentialMatches && allMatches ? potentialMatches.map(m => <PotentialMatchUI match={m} matches={allMatches} />) : <></>}
+        {potentialMatches.map(m => <PotentialMatchUI match={m} />)}
       </div>
-      {/*<div>*/}
-      {/*  <button onClick={fireMyEvent}>Fire My Event (FYI no one is listening)</button>*/}
-      {/*</div>*/}
       <br />
-      {/*<div>*/}
-        {/*<input defaultValue={myState} onChange={e => setMyState(e.currentTarget.value)}/>*/}
-      {/*</div>*/}
-      <br />
-      {/*<div>My Hook Value: {myHook}</div>*/}
-    </HangOrBang>
+      {potentialMatches.length === 0 && <button onClick={() => triggerGetPotentialMatches()}>See More Matches</button>}
+    </div>
   );
 };
 
-export default HangOrBangUI;
+export default Foo;

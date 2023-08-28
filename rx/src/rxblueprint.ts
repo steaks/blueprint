@@ -272,7 +272,9 @@ export const app = (func: () => AppBlueprint): App => {
         next: v => {
           if (v !== nonce) {
             console.log(`${socketId}/${theApp.name}/${s.__name}`, v);
-            socket.emit(`${theApp.name}/${s.__name}`, v);
+            setTimeout(() => {
+              socket.emit(`${theApp.name}/${s.__name}`, v);
+            }, 300);
           }
         },
         error: e => {
