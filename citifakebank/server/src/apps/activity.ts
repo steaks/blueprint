@@ -1,6 +1,6 @@
 import {app, hook, operator} from "@blueprint/rx";
 import activitydb from "./common";
-import session from "../../session";
+import session from "../session";
 
 const deposits = async (username: string) =>
   await activitydb.deposits(username);

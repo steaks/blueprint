@@ -1,6 +1,6 @@
 import {
   BehaviorSubject, catchError,
-  combineLatest,
+  combineLatest, delay,
   filter,
   map,
   merge,
@@ -268,7 +268,9 @@ export const app = (func: () => AppBlueprint): App => {
         context.__state[s.__name].next(value);
       };
       server.routes.post[route] = func;
-      context.__state[s.__name].subscribe({
+      //TODO - fix race conditions properly
+      const withDelay$ = context.__state[s.__name].pipe(delay(300));
+      withDelay$.subscribe({
         next: v => {
           if (v !== nonce) {
             console.log(`${socketId}/${theApp.name}/${s.__name}`, v);
@@ -301,7 +303,9 @@ export const app = (func: () => AppBlueprint): App => {
       };
       server.routes.post[route] = func;
 
-      context.__hooks[h.__name].subscribe({
+      //TODO - fix race conditions properly
+      const withDelay$ = context.__hooks[h.__name].pipe(delay(300));
+      withDelay$.subscribe({
         next: v => {
           if (v !== nonce) {
             console.log(`${socketId}/${theApp.name}/${h.__name}`, v);
@@ -394,6 +398,7 @@ export const serve = <T>(apps: Record<string, App>, session: Session, options?: 
     res.end();
   });
   a.post("*", (req, res) => {
+    console.log("HERE");
     if (req.method === "POST") {
       const url = parseurl(req) as Url;
       const route = rxBlueprintServer.routes.post[url.pathname!];

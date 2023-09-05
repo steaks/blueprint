@@ -102,7 +102,6 @@
   },
   "include": [
     "src",
-    "index.ts",
     "../shared/src"
   ]
 }
