@@ -15,14 +15,14 @@ const atm$$ = app(() => {
 
   const deposit$ = hook(
     "deposit",
-    {runWhen: "onlytriggers", manualTrigger: true},
+    {},
     operator(deposit, depositAmount$, session.state.username),
     trigger(session.events.newDeposits)
   );
 
   const withdraw$ = hook(
     "withdraw",
-    {runWhen: "onlytriggers", manualTrigger: true},
+    {},
     operator(withdraw, withdrawAmount$, session.state.username),
     trigger(session.events.newWithdrawals)
   );

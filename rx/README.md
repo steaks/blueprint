@@ -15,13 +15,13 @@ This tutorial will show you how to build a simple website. It'll cover 80% of Rx
 ## Architecture and core components
 In Rx Blueprint you build "apps" using events, state, operators, and hooks. Then you serve your apps and connect to React using rx-react. You do not need to worry about webserver routing or networking between frontend and server. Just build events, state, and business logic. Blueprint will handle the rest!
 
-*Events -* Signals that can kick off hooks.
+*Events -* Signals that can kick off hooks. Use events to signal that a button has been clicked or a table has been updated in the database.
 
-*State -* System to keep track of variables. State changes can trigger hooks. State values can be injected into functions through operators.
+*State -* System to keep track of variables. State changes can trigger hooks. State values can be injected into functions through operators. Use states to track inputs from a user (e.g. text inputs, switch button state).
 
 *Operators -* Thin layer that connects vanilla javascript functions with Rx Blueprint.
 
-*Hooks -* Business logic that may be triggered by events or state changes.
+*Hooks -* Business logic that may be triggered by events or state changes. Use hooks to query your database and insert into your database.
 
 ## User Profile Page
 
@@ -74,13 +74,13 @@ Next, we create hooks to implement our business logic. The first hook will query
 ```
 const user$ = hook(
   "user",
-  {manualTrigger: true},
+  {},
   operator(queryUser)
 );
 
 const onSave$ = hook(
   "onSave",
-  {runWhen: "onlytriggers", triggers: [save$]},
+  {triggers: [save$]},
   operator(updateUser, email$, firstName$, lastName$),
   trigger(user$)
 );
@@ -117,13 +117,13 @@ const userProfile$$ = app(() => {
 
   const user$ = hook(
     "user",
-    {manualTrigger: true},
+    {},
     operator(queryUser)
   );
 
   const onSave$ = hook(
     "onSave",
-    {runWhen: "onlytriggers", triggers: [save$]},
+    {triggers: [save$]},
     operator(updateUser, email$, firstName$, lastName$),
     trigger(user$)
   );

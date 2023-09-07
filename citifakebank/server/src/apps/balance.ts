@@ -13,29 +13,33 @@ const withdraws = async (username: string) =>
 const fees = async (username: string) =>
   await activitydb.fees(username);
 
-const calculate = async (deposits: Deposit[], withdraws: Withdraw[], fees: Fee[]) =>
+const balance = async (deposits: Deposit[], withdraws: Withdraw[], fees: Fee[]) =>
   Promise.resolve(_.sumBy(deposits, d => d.amount) - _.sumBy(withdraws, w => w.amount) - _.sumBy(fees, f => f.amount));
 
 const balance$$ = app(() => {
-  const deposits$ = operator(deposits, session.state.username);
-  const withdraws$ = operator(withdraws, session.state.username);
-  const fees$ = operator(fees, session.state.username);
-  const calculate$ = operator(calculate, deposits$, withdraws$, fees$);
+  const deposits$ = hook(
+    {triggers: [session.events.newDeposits]},
+    operator(deposits, session.state.username)
+  );
+
+  const withdraws$ = hook(
+    {triggers: [session.events.newWithdrawals]},
+    operator(withdraws, session.state.username)
+  );
+
+  const fees$ = hook(
+    operator(fees, session.state.username)
+  );
 
   const balance$ = hook(
-    "balance",
-    {triggers: [session.events.newDeposits, session.events.newWithdrawals]},
-    deposits$,
-    withdraws$,
-    fees$,
-    calculate$
+    operator(balance, deposits$, withdraws$, fees$)
   );
 
   return {
     name: "balance",
     state: [],
     events: [],
-    hooks: [balance$]
+    hooks: [deposits$, withdraws$, fees$, balance$]
   };
 });
 
