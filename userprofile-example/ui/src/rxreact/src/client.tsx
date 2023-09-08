@@ -15,7 +15,7 @@ export const Blueprint = (p: BlueprintConfig) => {
   useEffect(() => {
     if (!socket) {
       console.log("INITIALIZING");
-      config.uri = p.uri || defaultUri;
+      config.uri = uri;
       socket = io(config.uri);
       socket.on("connect", () => {
         setInitialized(true);
