@@ -10,11 +10,12 @@ const config = {
 
 export const Blueprint = (p: BlueprintConfig) => {
   const defaultUri = "http://localhost:8080";
+  const uri = p.uri || defaultUri;
   const [initialized, setInitialized] = useState(false);
   useEffect(() => {
     if (!socket) {
       console.log("INITIALIZING");
-      config.uri = p.uri || defaultUri;
+      config.uri = uri;
       socket = io(config.uri);
       socket.on("connect", () => {
         setInitialized(true);
@@ -23,7 +24,7 @@ export const Blueprint = (p: BlueprintConfig) => {
     } else {
       setInitialized(true);
     }
-  }, []);
+  }, [uri]);
 
   if (initialized) {
     return <>{p.children}</>
@@ -51,7 +52,7 @@ export const state = <V, >(app: string, stateName: string): () => [V | undefined
       return () => {
         socket!.off(`${app}/${stateName}`, onMessage);
       }
-    }, []);
+    }, [onMessage]);
     return [state, set];
   };
 };
@@ -82,7 +83,7 @@ export const hook = <V, >(app: string, hook: string): () => [V | undefined, () =
         console.log(`UNMOUNTING HOOK: ${app} - ${hook}`);
         socket!.off(`${app}/${hook}`, onMessage);
       };
-    }, []);
+    }, [onMessage]);
 
     return [state, trigger];
   };

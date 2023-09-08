@@ -7,3 +7,5 @@ cd rxui && npm install && cd ..
 cd rxreact && npm install && cd ..
 cd citifakebank/server && npm install && cd ../..
 cd citifakebank/ui && npm install && cd ../..
+cd userprofile-example/server && npm install && cd ../..
+cd userprofile-example/ui && npm install && cd ../..

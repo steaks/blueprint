@@ -8,7 +8,7 @@ const db = {
 };
 
 const queryUser = (): Promise<User> =>
-  Promise.resolve({email: db.email, firstName: db.firstName, lastName: db.lastName})
+  Promise.resolve({email: db.email, firstName: db.firstName, lastName: db.lastName});
 
 const updateUser = (email: string, firstName: string, lastName: string): Promise<string> => {
   db.email = email;
@@ -26,13 +26,13 @@ const userProfile$$ = app(() => {
 
   const user$ = hook(
     "user",
-    {manualTrigger: true},
+    {},
     operator(queryUser)
   );
 
   const onSave$ = hook(
     "onSave",
-    {runWhen: "onlytriggers", triggers: [save$]},
+    {triggers: [save$]},
     operator(updateUser, email$, firstName$, lastName$),
     trigger(user$)
   );

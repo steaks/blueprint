@@ -45,21 +45,21 @@ const team$$ = app(() => {
 
     const add$ = hook(
       "add",
-      {runWhen: "onlytriggers", manualTrigger: true},
+      {},
       operator(addEmployee, newEmployee$),
       trigger(employeesChanged$)
     );
 
     const remove$ = hook(
       "remove",
-      {runWhen: "onlytriggers", manualTrigger: true},
+      {},
       operator(removeEmployee, existingEmployee$),
       trigger(employeesChanged$)
     );
 
     const update$ = hook(
       "update",
-      {runWhen: "onlytriggers", manualTrigger: true},
+      {},
       operator(updateEmployee, selectedEmployee$, updatedEmployee$),
       trigger(employeesChanged$)
     );

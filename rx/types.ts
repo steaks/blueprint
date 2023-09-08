@@ -13,14 +13,25 @@ export interface Event {
   readonly create: (app: AppContext | SessionContext) => void;
 }
 
-export interface StateRefParam<V> {
-  readonly __type: "StateRefParam";
+export interface RefParam<V> {
+  readonly __type: "StateRefParam" | "EventRefParam" | "HookRefParam";
   readonly ref: State<V> | Event | Hook<V>;
 }
 
 export interface StateRef<V> {
   readonly __type: "StateRef";
   readonly _next: (v: V) => void;
+  readonly _getValue: () => V;
+}
+
+export interface EventRef {
+  readonly __type: "EventRef";
+  readonly _next: () => void;
+}
+
+export interface HookRef<V> {
+  readonly __type: "HookRef";
+  readonly _next: () => void;
   readonly _getValue: () => V;
 }
 
@@ -37,12 +48,15 @@ export interface RxOperator<V> {
   readonly _suboperators: Operator<any>[];
   readonly _subgraph: Graph<any, any> | null;
   readonly _stateInputs: State<unknown>[];
+  readonly _hookInputs: Hook<unknown>[];
+}
+
+export interface TriggerOperator<V> extends RxOperator<V> {
+  readonly __type: "TriggerOperator";
 }
 
 export interface HookOptions {
-  readonly runWhen?: "statechangeandtriggers" | "onlytriggers";
-  readonly triggers?: (State<unknown> | Event)[];
-  readonly manualTrigger?: boolean;
+  readonly triggers?: (State<unknown> | Event | "self" | "stateChanges")[];
 }
 
 export interface Hook<V> {
@@ -51,6 +65,7 @@ export interface Hook<V> {
   _operators: RxOperator<any>[];
   _input: string;
   _output: string;
+  _outputState: State<V>;
   _trigger: Event | null;
   _triggers: (Event | State<any>)[];
   _inputs: State<any>[];
