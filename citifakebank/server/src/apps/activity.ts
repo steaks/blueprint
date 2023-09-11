@@ -14,12 +14,12 @@ const fees = async (username: string) =>
 
 const activity$$ = app(() => {
   const deposits$ = hook(
-    {triggers: [session.events.newDeposits]},
+    {triggers: ["stateChanges", session.events.newDeposits]},
     operator(deposits, session.state.username),
   );
 
   const withdraws$ = hook(
-    {triggers: [session.events.newWithdrawals]},
+    {triggers: ["stateChanges", session.events.newWithdrawals]},
     operator(withdraws, session.state.username),
   );
 

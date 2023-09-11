@@ -7,8 +7,7 @@ import {Deposit, Fee, Withdraw} from "../../../shared/src/common";
 const deposits = async (username: string) =>
   await activitydb.deposits(username);
 
-const withdraws = async (username: string) =>
-  await activitydb.withdraws(username);
+const withdraws = async (username: string) => await activitydb.withdraws(username);
 
 const fees = async (username: string) =>
   await activitydb.fees(username);
@@ -18,12 +17,12 @@ const balance = async (deposits: Deposit[], withdraws: Withdraw[], fees: Fee[]) 
 
 const balance$$ = app(() => {
   const deposits$ = hook(
-    {triggers: [session.events.newDeposits]},
+    {triggers: ["stateChanges", session.events.newDeposits]},
     operator(deposits, session.state.username)
   );
 
   const withdraws$ = hook(
-    {triggers: [session.events.newWithdrawals]},
+    {triggers: ["stateChanges", session.events.newWithdrawals]},
     operator(withdraws, session.state.username)
   );
 
