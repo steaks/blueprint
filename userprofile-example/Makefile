@@ -1,3 +1,9 @@
+install:
+	bash ./scripts/install.sh
+
+build:
+	bash ./scripts/build.sh
+
 .ONESHELL:
 run-ui:
 	cd ui
@@ -12,6 +18,3 @@ run-server:
 run-blueprint:
 	cd server
 	npm run blueprint
-
-build:
-	bash ./scripts/build.sh

@@ -1,43 +1,45 @@
 # Rx Blueprint
 
 
-Rx Blueprint allows you to build reactive applications with less code than single-page application architectures. The architecture creates a single event and state system to be used across frontend and server code. Server and frontend code may hook into the event and state systems to build business logic that reacts to events and state changes. A more cohesive system allows you to:
+Rx Blueprint allows you to build reactive applications with less code than single-page application architectures. The architecture creates a single event and state system to be used across frontend and server code. Server and frontend code may hook into the events and state changes to build business logic. This more cohesive system allows you to:
 
-1. Avoid tricky state management challenges
-2. Avoid networking challenges
-3. Avoid http routing boilerplate
-4. Build a more cohesive codebase
+1. Simplify state management 
+2. Simplify component interactions
+3. Simplify networking + caching
+4. Remove http routing boilerplate
 
 # Getting Started
 
 This tutorial will show you how to build a simple website. It'll cover 80% of Rx Blueprint concepts.
 
 ## Architecture and core components
-In Rx Blueprint you build "apps" using events, state, operators, and hooks. Then you serve your apps and connect to React using rx-react. You do not need to worry about webserver routing or networking between frontend and server. Just build events, state, and business logic. Blueprint will handle the rest!
+In Rx Blueprint you build "apps" using events, state, operators, and hooks. Then you serve your apps and connect your apps to Reach using rx-react. You do not need to worry about webserver routing or networking between frontend and server. Just build events, state, and business logic. Blueprint handles the rest!
 
 *Events -* Signals that can kick off hooks. Use events to signal that a button has been clicked or a table has been updated in the database.
 
-*State -* System to keep track of variables. State changes can trigger hooks. State values can be injected into functions through operators. Use states to track inputs from a user (e.g. text inputs, switch button state).
+*State -* System to keep track of variables. State changes can trigger hooks. State values can be leveraged in hooks. Use states to track inputs from a user (e.g. text inputs, switch button state).
 
-*Operators -* Thin layer that connects vanilla javascript functions with Rx Blueprint.
+*Hooks -* Business logic that may be triggered by events or state changes. Use hooks to query your database, insert into your database, run calculations, etc. A hook may also kick off events and make state changes.
 
-*Hooks -* Business logic that may be triggered by events or state changes. Use hooks to query your database and insert into your database.
+*Operators -* Thin layer that connects vanilla javascript functions with Hooks.
 
-## User Profile Page
+## Example - User Profile Page
 
 We will create a user profile page to demonstrate these concepts in action. The page will display a user's email, first name, and last name, and it will allow edits to each of these. We will do the following to build the user page:
 
 1. Build the server-side app
 2. Serve the app
-3. Share common types
+3. Share common types between server and frontend
 4. Connect the app to React
 5. Build the React UI
+6. Understand the Blueprint UI
+7. Run the server, frontend, and blueprint ui
 
-For the full example see [TODO INSERT LINK](https://github.com/steaks/blueprint)
+For the full example see [userprofile-example](https://github.com/steaks/blueprint/tree/main/userprofile-example).
 
 ### Build the server-side app
 
-First, we'll build a mock database. This is not part of the blueprint app, but we need it to simulate a more realistic app.
+First, we'll build a mock database. This is not part of the blueprint app, but we need to simulate a db to build a realistic app.
 
 ```
 const db = {
@@ -74,7 +76,7 @@ Next, we create hooks to implement our business logic. The first hook will query
 ```
 const user$ = hook(
   "user",
-  {},
+  {}, //using default options
   operator(queryUser)
 );
 
@@ -117,7 +119,7 @@ const userProfile$$ = app(() => {
 
   const user$ = hook(
     "user",
-    {},
+    {}, //use default options
     operator(queryUser)
   );
 
@@ -152,7 +154,7 @@ serve({userProfile}, session);
 
 ### Share common types
 
-The server and frontend will use the User type. We put shared types in the shared directory.
+The server and frontend will use the User type. We put shared types in the `shared` directory.
 
 ```
 export interface User {
@@ -168,7 +170,7 @@ Use rx-react to connect your app's state, events, and hooks, and create a compon
 
 ```
 import {app, state, event, hook} from "../rxreact"
-import {User} from "../../../common/src/apps/userProfile";
+import {User} from "../../../shared/src/apps/userProfile";
 
 export const useEmail = state<string>("userProfile", "email");
 export const useFirstName = state<string>("userProfile", "firstName");
@@ -221,3 +223,20 @@ const UserProfileUI = () => {
 
 export default UserProfileUI;
 ```
+
+### Understand the Blueprint UI
+
+Along with your application you will get a blueprint ui for free. The blueprint UI is a flow-diagram that shows the architecture of your apps.
+
+### Run the server, frontend and blueprint ui
+
+```
+1. cd userprofile-example
+2. make install
+3. make build
+4. make run-server # Run in separate terminal.
+5. make run-ui # Run in separate terminal. Open browser to http://localhost:3000
+6. make run-blueprint # Run in separate terminal. Open browser to http://localhost:3001
+```
+
+Explore the userprofile-example [codebase](https://github.com/steaks/blueprint/tree/main/userprofile-example)
