@@ -231,9 +231,9 @@ Along with your application you will get a blueprint ui for free. The blueprint 
 ### Run the server, frontend and blueprint ui
 
 ```
-1. cd userprofile-example
-2. make install
-3. make build
+1. make install # in root directory of repo
+2. make build # in root directory of repo
+3. cd userprofile-example
 4. make run-server # Run in separate terminal.
 5. make run-ui # Run in separate terminal. Open browser to http://localhost:3000
 6. make run-blueprint # Run in separate terminal. Open browser to http://localhost:3001
