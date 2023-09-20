@@ -12,6 +12,7 @@ run-ui:
 .ONESHELL:
 run-server:
 	cd server
+	npm run build
 	npm run serve
 
 .ONESHELL:
