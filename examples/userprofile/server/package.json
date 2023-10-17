@@ -7,7 +7,7 @@
     "build": "npx tsc --project tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "cd build && node server/src/index.js ",
-    "blueprint": "npx blueprint build/.blueprint"
+    "blueprint": "cd build && node server/src/diagram.js && cd .. && npx blueprint build/.blueprint"
   },
   "author": "",
   "license": "ISC",

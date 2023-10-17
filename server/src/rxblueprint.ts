@@ -501,6 +501,6 @@ export const serve = <T>(apps: Record<string, App>, session: Session, options?: 
   server.listen(options?.port || defaultPort);
 };
 
-export default {
-  serve
+export const diagram = (apps: Record<string, App>, session: Session) => {
+  rxserialize.build("App", _.map(apps, a => a.__sheet));
 };
