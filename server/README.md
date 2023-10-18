@@ -1,24 +1,14 @@
-# blueprint
-Framework for building flow diagrams of your code architecture
+# Rx Blueprint
 
-## Installation
 
-1. Requirements: Node 16.x.x, NPM 8.x.x, and GNU Make 4.x.
-2. Install dependencies `make install`
-3. Build all projects `make build`
+Rx Blueprint allows you to build reactive applications with less code than single-page application architectures. The architecture creates a single event and state system to be used across frontend and server code. Server and frontend code may hook into the events and state changes to build business logic. This more cohesive system allows you to:
 
-## Demo User Profile
+1. Simplify state management 
+2. Simplify component interactions
+3. Simplify networking + caching
+4. Remove http routing boilerplate
 
-This example launches a user profile page `http://localhost:3000`, a server at `http://localhost:8080` and a blueprint of the code architecture at `http://localhost:3001`.
-
-```
-cd examples/userprofile
-make run-server #in separate terminal
-make run-ui #in separate terminal
-make run-blueprint #in separate terminal
-```
-
-## Build your first app
+# Getting Started
 
 This tutorial will show you how to build a simple website. It'll cover 80% of Rx Blueprint concepts.
 
@@ -69,7 +59,7 @@ const updateUser = (email: string, firstName: string, lastName: string): Promise
 };
 ```
 
-Next, we'll set up state. We need to keep track of edits to the email, first name, and last name, so we create a state variable for each of those.
+Next, we'll set up state. We need to keep track of edits to the email, first name, and last name, so we create a state variable for each of those. 
 ```
 const email$ = state<string>("email");
 const firstName$ = state<string>("firstName");
@@ -77,7 +67,7 @@ const lastName$ = state<string>("lastName");
 ```
 
 
-Then we create an event, "save", which will be fired when a user clicks the save button.
+Then we create an event, "save", which will be fired when a user clicks the save button. 
 ```
 const save$ = event("save");
 ```
@@ -195,7 +185,7 @@ export const UserProfile = app("userProfile");
 
 ### Build the React UI
 
-Build a React UI using the `UserProfile` component and hooks you created when connecting the Rx Blueprint app to React.
+Build a React UI using the `UserProfile` component and hooks you created when connecting the Rx Blueprint app to React. 
 
 ```
 import React from "react";
@@ -243,7 +233,7 @@ Along with your application you will get a blueprint ui for free. The blueprint 
 ```
 1. make install # in root directory of repo
 2. make build # in root directory of repo
-3. cd examples/userprofile
+3. cd userprofile
 4. make run-server # Run in separate terminal.
 5. make run-ui # Run in separate terminal. Open browser to http://localhost:3000
 6. make run-blueprint # Run in separate terminal. Open browser to http://localhost:3001

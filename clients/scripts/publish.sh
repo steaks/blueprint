@@ -1,0 +1,1 @@
+cd react && npm publish && cd ..

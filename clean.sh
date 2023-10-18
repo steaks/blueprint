@@ -1,9 +1,0 @@
-cd core && rm -rf node_modules && rm -rf build && rm -rf types && cd ..
-cd ui && rm -rf node_modules && rm -rf build && rm -rf types && cd ..
-cd webserver && rm -rf node_modules && rm -rf build && rm -rf types && cd ..
-cd examples && rm -rf node_modules && rm -rf build && rm -rf types && cd ..
-cd rx && rm -rf node_modules && rm -rf build && rm -rf types && cd ..
-cd rxui && rm -rf node_modules && rm -rf build && rm -rf types && cd ..
-cd rxreact && rm -rf node_modules && rm -rf build && rm -rf types && cd ..
-cd citifakebank/server && rm -rf node_modules && rm -rf build && rm -rf types && cd ../..
-cd citifakebank/ui && rm -rf node_modules && rm -rf build && rm -rf types && cd ../..
