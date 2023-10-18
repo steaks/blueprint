@@ -6,4 +6,4 @@ COPY . .
 RUN make install
 RUN make build
 EXPOSE 3000
-CMD cd examples/userprofile; make run-ui;
+CMD cd examples/userprofile; make run-ui-prod;

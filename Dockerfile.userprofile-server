@@ -6,4 +6,4 @@ COPY . .
 RUN make install
 RUN make build 
 EXPOSE 8080
-CMD cd examples/userprofile; make run-server;
+CMD cd examples/userprofile; make run-server-prod;

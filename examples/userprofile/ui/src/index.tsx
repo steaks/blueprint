@@ -4,12 +4,15 @@ import UserProfile from './ui/userProfile';
 import {Blueprint} from "./rxreact";
 
 const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
+  document.getElementById("root") as HTMLElement
 );
+
+
+console.log(process.env);
 
 root.render(
   <React.StrictMode>
-    <Blueprint>
+    <Blueprint uri={process.env.REACT_APP_URI}>
       <UserProfile />
     </Blueprint>
   </React.StrictMode>

@@ -25,3 +25,15 @@ run-server:
 run-blueprint:
 	cd server
 	npm run blueprint
+
+.ONESHELL:
+run-server-prod:
+	cd server
+	npm run build:prod
+	npm run serve
+
+.ONESHELL:
+run-ui-prod:
+	cd ui
+	npm run build:prod
+	npm run serve
