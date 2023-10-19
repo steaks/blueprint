@@ -3,24 +3,36 @@ import io, {Socket} from "socket.io-client";
 import {BlueprintConfig, Props} from "../types";
 
 let socket: Socket<any, any> | null = null;
+let _socket: Promise<Socket<any, any>> | null = null;
+
+const connect = async () => {
+  if (!_socket) {
+    _socket = new Promise(resolve => {
+      const s = io(config.uri);
+      s.on("connect", () => {
+        console.log("CONNECTED");
+        console.log("ID:" + s.id);
+        socket = s;
+        resolve(s);
+      });
+    });
+  }
+  return _socket;
+};
 
 const config = {
   uri: "http://localhost:8080"
 };
 
 export const Blueprint = (p: BlueprintConfig) => {
-  const defaultUri = "http://localhost:8080";
+  const defaultUri = "http://localhost:8081";
   const uri = p.uri || defaultUri;
   const [initialized, setInitialized] = useState(false);
   useEffect(() => {
+    config.uri = uri;
+    console.log("MOUNTING BLUEPRINT");
     if (!socket) {
-      console.log("INITIALIZING");
-      config.uri = uri;
-      socket = io(config.uri);
-      socket.on("connect", () => {
-        setInitialized(true);
-        console.log("ID:" + socket!.id);
-      });
+      connect().then(() => setInitialized(true));
     } else {
       setInitialized(true);
     }
@@ -48,11 +60,13 @@ export const state = <V, >(app: string, stateName: string): () => [V | undefined
     }, []);
 
     useEffect(() => {
+      console.log(`MOUNTING STATE: ${app} - ${stateName}`);
       socket!.on(`${app}/${stateName}`, onMessage);
       return () => {
+        console.log(`UNMOUNTING STATE: ${app} - ${stateName}`);
         socket!.off(`${app}/${stateName}`, onMessage);
       }
-    }, [onMessage]);
+    }, []);
     return [state, set];
   };
 };
@@ -83,29 +97,29 @@ export const hook = <V, >(app: string, hook: string): () => [V | undefined, () =
         console.log(`UNMOUNTING HOOK: ${app} - ${hook}`);
         socket!.off(`${app}/${hook}`, onMessage);
       };
-    }, [onMessage]);
+    }, []);
 
     return [state, trigger];
   };
 };
 
-const subscriptions = new Set();
+const subscriptions = {} as Record<string, Promise<Response>>;
+
+const subscribe = (name: string) => {
+  if (!subscriptions[name]) {
+    const p = fetch(`${config.uri}/subscribe?app=${name}&socketId=${socket!.id}`, {method: "POST"});
+    subscriptions[name] = p;
+  }
+  return subscriptions[name];
+};
+
 export const app = (name: string) => (props: Props) => {
-  const [, setInitialized] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   useEffect(() => {
-    if (!subscriptions.has(name)) {
-      console.log(`SUBSCRIBING ${name}`);
-      subscriptions.add(name);
-      if (!socket!.id) {
-        setTimeout(async () => {
-          await fetch(`${config.uri}/subscribe?app=${name}&socketId=${socket!.id}`, {method: "POST"});
-          subscriptions.add(name);
-          setInitialized(true);
-        }, 100);
-      }
-    }
+    console.log(`SUBSCRIBING ${name}`);
+    subscribe(name).then(() => setInitialized(true));
   }, []);
-  if (subscriptions.has(name)) {
+  if (initialized) {
     return <>{props.children}</>
   }
 
