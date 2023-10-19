@@ -66,7 +66,7 @@ export const state = <V, >(app: string, stateName: string): () => [V | undefined
         console.log(`UNMOUNTING STATE: ${app} - ${stateName}`);
         socket!.off(`${app}/${stateName}`, onMessage);
       }
-    }, []);
+    }, [onMessage]);
     return [state, set];
   };
 };
@@ -97,7 +97,7 @@ export const hook = <V, >(app: string, hook: string): () => [V | undefined, () =
         console.log(`UNMOUNTING HOOK: ${app} - ${hook}`);
         socket!.off(`${app}/${hook}`, onMessage);
       };
-    }, []);
+    }, [onMessage]);
 
     return [state, trigger];
   };
