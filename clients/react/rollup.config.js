@@ -14,6 +14,6 @@ export default {
       strict: false,
     },
   ],
-  plugins: [typescript({sourceMap: false})],
+  plugins: [typescript({sourceMap: true})],
   external: ['react', 'react-dom'],
 }

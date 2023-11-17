@@ -1,5 +1,5 @@
 {
-  "name": "@blueprint/server",
+  "name": "blueprint-server",
   "version": "0.1.0-alpha.2",
   "main": "./build/index.js",
   "types": "./build/types.d.ts",
