@@ -9,8 +9,8 @@ const blueprintPath = process.argv[2] || ".blueprint";
 
 const root = process.cwd();
 const sheetsDirectory = path.join(root, blueprintPath, "/build");
-const staticDirectory = path.join(root, "node_modules/@blueprint/diagram/build/static");
-const indexPath = path.join(root, "node_modules/@blueprint/diagram/build/index.html");
+const staticDirectory = path.join(root, "node_modules/blueprint-diagram/build/static");
+const indexPath = path.join(root, "node_modules/blueprint-diagram/build/index.html");
 
 app.use("/static", express.static(staticDirectory));
 app.use("/sheets", express.static(sheetsDirectory));
