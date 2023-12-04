@@ -11,7 +11,7 @@ const clickCount = () => {
   return _clickCount;
 };
 
-export default app(() => {
+const helloWorld = app(() => {
   const myState$ = state("myState", "Hello State!");
   const myEvent$ = event("myEvent");
   const wordCount$ = hook(
@@ -31,3 +31,5 @@ export default app(() => {
     hooks: [wordCount$, clickCount$]
   };
 });
+
+export default helloWorld;
