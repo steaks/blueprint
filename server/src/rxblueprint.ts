@@ -34,6 +34,7 @@ import {
   ServerOptions,
   RefParam, StateRef, HookRef, EventRef, TriggerOperator
 } from "../types";
+import minimist from "minimist";
 import {randomUUID} from "crypto";
 import http, {IncomingMessage, ServerResponse} from "http";
 import * as qs from "qs";
@@ -446,7 +447,15 @@ export function set(): any {
   return isState(arguments[0]) ? setOperator(arguments[0], arguments[1]) : setState(arguments[0], arguments[1]);
 }
 
+const diagram = (apps: Record<string, App>, session: Session) => {
+  rxserialize.build("App", _.map(apps, a => a.__sheet));
+};
 export const serve = <T>(apps: Record<string, App>, session: Session, options?: ServerOptions) => {
+  const argv = minimist(process.argv.slice(2));
+  if (argv.diagram?.toUpperCase() === "TRUE") {
+    diagram(apps, session);
+    return;
+  }
   const defaultOrigin = "http://localhost:3000";
   const defaultPort = 8080;
   const rxBlueprintServer = {
@@ -499,8 +508,4 @@ export const serve = <T>(apps: Record<string, App>, session: Session, options?: 
   rxserialize.build("App", _.map(apps, a => a.__sheet));
 
   server.listen(options?.port || defaultPort);
-};
-
-export const diagram = (apps: Record<string, App>, session: Session) => {
-  rxserialize.build("App", _.map(apps, a => a.__sheet));
 };
