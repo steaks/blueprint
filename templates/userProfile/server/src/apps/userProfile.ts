@@ -1,4 +1,4 @@
-import {app, state, event, hook, operator, trigger} from "blueprint-server";
+import {app, state, event, task, from, trigger} from "blueprint-server";
 import {queryUser, updateUser} from "../db/user";
 
 export default app(() => {
@@ -8,16 +8,16 @@ export default app(() => {
 
   const save$ = event("save");
 
-  const user$ = hook(
+  const user$ = task(
     "user",
     {},
-    operator(queryUser)
+    from(queryUser)
   );
 
-  const onSave$ = hook(
+  const onSave$ = task(
     "onSave",
     {triggers: [save$]},
-    operator(updateUser, email$, firstName$, lastName$),
+    from(updateUser, email$, firstName$, lastName$),
     trigger(user$)
   );
 
@@ -25,6 +25,6 @@ export default app(() => {
     name: "userProfile",
     state: [email$, firstName$, lastName$],
     events: [save$],
-    hooks: [user$, onSave$]
+    tasks: [user$, onSave$]
   };
 });

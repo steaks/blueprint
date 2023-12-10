@@ -9,7 +9,7 @@ const newFees = event("newFees");
 const session$$ = {
   state: {username},
   events: {newDeposits, newWithdrawals, newFees},
-  hooks: {}
+  tasks: {}
 } as Session;
 
 export default session$$;

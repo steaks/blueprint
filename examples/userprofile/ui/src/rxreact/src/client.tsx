@@ -76,26 +76,26 @@ export const event = (app: string, event: string): () => [() => void] => {
   return () => [trigger];
 };
 
-export const hook = <V, >(app: string, hook: string): () => [V | undefined, () => void] => {
+export const task = <V, >(app: string, task: string): () => [V | undefined, () => void] => {
   return () => {
     const [state, setState] = useState<V>();
     const trigger = useCallback(() => {
-      fetch(`${config.uri}/${socket!.id}/${app}/${hook}`, {method: "POST"})
+      fetch(`${config.uri}/${socket!.id}/${app}/${task}`, {method: "POST"})
     }, []);
     const onMessage = useCallback((message: V) => {
       if (message && (message as any).__type === "Error") {
         console.error(message);
       } else {
-        console.log(`${app}/${hook}`, message);
+        console.log(`${app}/${task}`, message);
         setState(message);
       }
     }, []);
     useEffect(() => {
-      console.log(`MOUNTING HOOK: ${app} - ${hook}`);
-      socket!.on(`${app}/${hook}`, onMessage);
+      console.log(`MOUNTING TASK: ${app} - ${task}`);
+      socket!.on(`${app}/${task}`, onMessage);
       return () => {
-        console.log(`UNMOUNTING HOOK: ${app} - ${hook}`);
-        socket!.off(`${app}/${hook}`, onMessage);
+        console.log(`UNMOUNTING TASK: ${app} - ${task}`);
+        socket!.off(`${app}/${task}`, onMessage);
       };
     }, [onMessage]);
 

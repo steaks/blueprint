@@ -1,4 +1,4 @@
-import {app, state, hook, operator, trigger} from "@blueprint/server";
+import {app, state, task, from, trigger} from "@blueprint/server";
 import session from "../session";
 import activitydb from "./common";
 const deposit = (amount: number, username: string) => {
@@ -13,17 +13,17 @@ const atm$$ = app(() => {
   const depositAmount$ = state<number>("depositAmount");
   const withdrawAmount$ = state<number>("withdrawAmount");
 
-  const deposit$ = hook(
+  const deposit$ = task(
     "deposit",
     {triggers: ["self"]},
-    operator(deposit, depositAmount$, session.state.username),
+    from(deposit, depositAmount$, session.state.username),
     trigger(session.events.newDeposits)
   );
 
-  const withdraw$ = hook(
+  const withdraw$ = task(
     "withdraw",
     {triggers: ["self"]},
-    operator(withdraw, withdrawAmount$, session.state.username),
+    from(withdraw, withdrawAmount$, session.state.username),
     trigger(session.events.newWithdrawals)
   );
 
@@ -31,7 +31,7 @@ const atm$$ = app(() => {
     name: "atm",
     state: [depositAmount$, withdrawAmount$],
     events: [],
-    hooks: [deposit$, withdraw$]
+    tasks: [deposit$, withdraw$]
   };
 });
 

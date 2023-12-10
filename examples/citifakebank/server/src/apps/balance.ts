@@ -1,4 +1,4 @@
-import {app, operator, hook} from "@blueprint/server";
+import {app, from, task} from "@blueprint/server";
 import activitydb from "./common";
 import _ from "lodash";
 import session from "../session";
@@ -16,29 +16,29 @@ const balance = async (deposits: Deposit[], withdraws: Withdraw[], fees: Fee[]) 
   Promise.resolve(_.sumBy(deposits, d => d.amount) - _.sumBy(withdraws, w => w.amount) - _.sumBy(fees, f => f.amount));
 
 const balance$$ = app(() => {
-  const deposits$ = hook(
+  const deposits$ = task(
     {triggers: ["stateChanges", session.events.newDeposits]},
-    operator(deposits, session.state.username)
+    from(deposits, session.state.username)
   );
 
-  const withdraws$ = hook(
+  const withdraws$ = task(
     {triggers: ["stateChanges", session.events.newWithdrawals]},
-    operator(withdraws, session.state.username)
+    from(withdraws, session.state.username)
   );
 
-  const fees$ = hook(
-    operator(fees, session.state.username)
+  const fees$ = task(
+    from(fees, session.state.username)
   );
 
-  const balance$ = hook(
-    operator(balance, deposits$, withdraws$, fees$)
+  const balance$ = task(
+    from(balance, deposits$, withdraws$, fees$)
   );
 
   return {
     name: "balance",
     state: [],
     events: [],
-    hooks: [deposits$, withdraws$, fees$, balance$]
+    tasks: [deposits$, withdraws$, fees$, balance$]
   };
 });
 

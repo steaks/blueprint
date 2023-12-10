@@ -22,7 +22,7 @@ const stateView = {
   style: "rounded=1;whiteSpace=wrap;html=1;fillColor=pink;strokeColor=#000000"
 };
 
-const hookView = {
+const taskView = {
   height: 40,
   width: 100,
   style: "rounded=1;whiteSpace=wrap;html=1;fillColor=#99ccff;strokeColor=#000000"
@@ -64,8 +64,8 @@ const insertState = (graph: mxGraph, parent: mxCell, state: string, xOffset: num
   return e;
 };
 
-const insertHook = (graph: mxGraph, parent: mxCell, hook: string, xOffset: number, yOffset: number) => {
-  const v = graph.insertVertex(parent, null, hook, xOffset, yOffset, hookView.width, hookView.height, hookView.style);
+const insertTask = (graph: mxGraph, parent: mxCell, task: string, xOffset: number, yOffset: number) => {
+  const v = graph.insertVertex(parent, null, task, xOffset, yOffset, taskView.width, taskView.height, taskView.style);
   const e = graph.insertVertex(parent, null, null, xOffset - 30, yOffset + 20, dotView.width, dotView.height, dotView.style);
   graph.insertEdge(parent, null, '', v, e, lineStyle);
 
@@ -94,7 +94,7 @@ const graph = async (sheet: SheetJSON, onClick: (graph: GraphJSON, operator: Ope
   const container = document.getElementById(sheet.name)!;
   const eventNodes = {} as Record<string, {cell: mxCell, connectors: mxCell[]}>;
   const stateNodes = {} as Record<string, {cell: mxCell, connectors: mxCell[]}>;
-  const hookNodes = {} as Record<string, {cell: mxCell, connectors: mxCell[]}>;
+  const taskNodes = {} as Record<string, {cell: mxCell, connectors: mxCell[]}>;
 
   const graph = new mx.mxGraph(container);
   graph.setEnabled(false);
@@ -118,15 +118,15 @@ const graph = async (sheet: SheetJSON, onClick: (graph: GraphJSON, operator: Ope
       const yOffset = eventsHeight + label + yPadding + i * (startView.height + yPadding);
       stateNodes[s.name] = {cell: insertState(graph, parent, s.name, 0, yOffset), connectors:[]};
     });
-    graph.insertVertex(parent, null, "Hooks", graphsXOffset + 150, yPadding, 200, label, labelGraphView.style);
+    graph.insertVertex(parent, null, "Tasks", graphsXOffset + 150, yPadding, 200, label, labelGraphView.style);
     sheet.graphs.forEach((g, i, graphs) => {
       const yOffset = label + yPadding + calculateGraphsHeight(graphs.slice(0, i)) + yPadding * i;
       // const yOffset = label + label + label + yPadding + (300 * yPadding * i);
       const xOffset = graphsXOffset;
       // insertOverivew(graph, parent, g, xOffset, yOffset)
-      const hook = insertHook(graph, parent, g.name, xOffset, yOffset);
+      const task = insertTask(graph, parent, g.name, xOffset, yOffset);
       // const start = insertStart(graph, parent, g, xOffset + xPadding, yOffset + yPadding);
-      hookNodes[g.name] = {cell: hook, connectors: []};
+      taskNodes[g.name] = {cell: task, connectors: []};
       // const last = g.operators.reduce((prev, o, j) => {
       //   const id = generateId();
       //   operators[id] = {operator: o, graph: g};
@@ -151,21 +151,21 @@ const graph = async (sheet: SheetJSON, onClick: (graph: GraphJSON, operator: Ope
     sheet.graphs.forEach((g) => {
       g.triggers?.forEach(t => {
         const triggerCell = stateNodes[t.name] || eventNodes[t.name];
-        const hookCell = hookNodes[g.name];
-        if (hookCell && triggerCell) {
-          const e = graph.insertEdge(parent, null, '', triggerCell.cell, hookCell.cell, dashedArrowStyle);
+        const taskCell = taskNodes[g.name];
+        if (taskCell && triggerCell) {
+          const e = graph.insertEdge(parent, null, '', triggerCell.cell, taskCell.cell, dashedArrowStyle);
           triggerCell.connectors.push(e);
-          hookCell.connectors.push(e);
+          taskCell.connectors.push(e);
           e.setVisible(false);
         }
       });
       g.inputs?.forEach(i => {
         const inputCell = stateNodes[i.name] || eventNodes[i.name];
-        const hookCell = hookNodes[g.name];
-        if (hookCell && inputCell) {
-          const e = graph.insertEdge(parent, null, '', inputCell.cell, hookCell.cell, arrowStyle);
+        const taskCell = taskNodes[g.name];
+        if (taskCell && inputCell) {
+          const e = graph.insertEdge(parent, null, '', inputCell.cell, taskCell.cell, arrowStyle);
           inputCell.connectors.push(e);
-          hookCell.connectors.push(e);
+          taskCell.connectors.push(e);
           e.setVisible(false);
         }
       });
@@ -177,10 +177,10 @@ const graph = async (sheet: SheetJSON, onClick: (graph: GraphJSON, operator: Ope
         model.beginUpdate();
         _.forEach(eventNodes, n => n.connectors.forEach(c => c.setVisible(false)));
         _.forEach(stateNodes, n => n.connectors.forEach(c => c.setVisible(false)));
-        _.forEach(hookNodes, n => n.connectors.forEach(c => c.setVisible(false)));
+        _.forEach(taskNodes, n => n.connectors.forEach(c => c.setVisible(false)));
         eventNodes[value]?.connectors.forEach(c => c.setVisible(true));
         stateNodes[value]?.connectors.forEach(c => c.setVisible(true));
-        hookNodes[value]?.connectors.forEach(c => c.setVisible(true));
+        taskNodes[value]?.connectors.forEach(c => c.setVisible(true));
       } finally {
         model.endUpdate();
         graph.refresh();

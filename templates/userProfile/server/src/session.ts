@@ -6,7 +6,7 @@ const username = state("username", "steven")
 const session = {
   state: {username},
   events: {},
-  hooks: {}
+  tasks: {}
 } as Session;
 
 export default session;

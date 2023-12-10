@@ -1,4 +1,4 @@
-import {app, state, hook, event, operator, trigger} from "@blueprint/server";
+import {app, state, task, event, from, trigger} from "@blueprint/server";
 import {db} from "../postgres";
 
 const employees = async (search: string): Promise<string[]> =>
@@ -33,34 +33,34 @@ const team$$ = app(() => {
 
     const employeesChanged$ = event("employeesChanged");
 
-    const employees$ = hook(
+    const employees$ = task(
       {triggers: ["stateChanges", employeesChanged$]},
-      operator(employees, search$),
+      from(employees, search$),
     );
 
-    const count$ = hook(
+    const count$ = task(
       {triggers: ["stateChanges", employeesChanged$]},
-      operator(count, search$),
+      from(count, search$),
     );
 
-    const add$ = hook(
+    const add$ = task(
       "add",
       {triggers: ["self"]},
-      operator(addEmployee, newEmployee$),
+      from(addEmployee, newEmployee$),
       trigger(employeesChanged$)
     );
 
-    const remove$ = hook(
+    const remove$ = task(
       "remove",
       {triggers: ["self"]},
-      operator(removeEmployee, existingEmployee$),
+      from(removeEmployee, existingEmployee$),
       trigger(employeesChanged$)
     );
 
-    const update$ = hook(
+    const update$ = task(
       "update",
       {triggers: ["self"]},
-      operator(updateEmployee, selectedEmployee$, updatedEmployee$),
+      from(updateEmployee, selectedEmployee$, updatedEmployee$),
       trigger(employeesChanged$)
     );
 
@@ -68,7 +68,7 @@ const team$$ = app(() => {
         name: "team",
         state: [search$, newEmployee$, existingEmployee$, selectedEmployee$, updatedEmployee$],
         events: [employeesChanged$],
-        hooks: [employees$, count$, add$, remove$, update$]
+        tasks: [employees$, count$, add$, remove$, update$]
     };
 });
 
@@ -79,7 +79,7 @@ export default team$$;
 //POST http://localhost:8080/employees/add
 //POST http://localhost:8080/employees/remove
 
-//Webhook Events
+//Webtask Events
 //
 //{name: "/employees/employees", string[]}
 //{name: "/employees/count", number}

@@ -14,8 +14,8 @@ export interface Event {
 }
 
 export interface RefParam<V> {
-  readonly __type: "StateRefParam" | "EventRefParam" | "HookRefParam";
-  readonly ref: State<V> | Event | Hook<V>;
+  readonly __type: "StateRefParam" | "EventRefParam" | "TaskRefParam";
+  readonly ref: State<V> | Event | Task<V>;
 }
 
 export interface StateRef<V> {
@@ -29,8 +29,8 @@ export interface EventRef {
   readonly _next: () => void;
 }
 
-export interface HookRef<V> {
-  readonly __type: "HookRef";
+export interface TaskRef<V> {
+  readonly __type: "TaskRef";
   readonly _next: () => void;
   readonly _getValue: () => V;
 }
@@ -48,18 +48,18 @@ export interface RxOperator<V> {
   readonly _suboperators: Operator<any>[];
   readonly _subgraph: Graph<any, any> | null;
   readonly _stateInputs: State<unknown>[];
-  readonly _hookInputs: Hook<unknown>[];
+  readonly _taskInputs: Task<unknown>[];
 }
 
 export interface TriggerOperator<V> extends RxOperator<V> {
   readonly __type: "TriggerOperator";
 }
 
-export interface HookOptions {
+export interface TaskOptions {
   readonly triggers?: (State<unknown> | Event | "self" | "stateChanges")[];
 }
 
-export interface Hook<V> {
+export interface Task<V> {
   __type: string;
   __name: string;
   _operators: RxOperator<any>[];
@@ -156,7 +156,7 @@ export interface AppContext {
   readonly __name: string;
   readonly __state: Record<string, BehaviorSubject<any>>;
   readonly __events: Record<string, Subject<any>>;
-  readonly __hooks: Record<string, Observable<any>>;
+  readonly __tasks: Record<string, Observable<any>>;
   readonly __session: AppContext;
 }
 
@@ -166,20 +166,20 @@ export interface SessionContext {
   readonly __name: string;
   readonly __state: Record<string, BehaviorSubject<any>>;
   readonly __events: Record<string, Subject<any>>;
-  readonly __hooks: Record<string, Observable<any>>;
+  readonly __tasks: Record<string, Observable<any>>;
 }
 
 export interface AppBlueprint {
   readonly name: string;
   readonly state: State<any>[];
   readonly events: Event[];
-  readonly hooks: Hook<any>[];
+  readonly tasks: Task<any>[];
 }
 
 export interface Session {
   readonly state: Record<string, State<any>>;
   readonly events: Record<string, Event>;
-  readonly hooks: Record<string, Hook<any>>;
+  readonly tasks: Record<string, Task<any>>;
 }
 
 export interface RxBlueprintServer {

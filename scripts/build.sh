@@ -6,3 +6,4 @@ cd examples/citifakebank && make build && cd ../..
 cd templates/helloWorld && make build && cd ../..
 cd templates/skeleton && make build && cd ../..
 cd templates/userProfile && make build && cd ../..
+cd templates/rectangle && make build && cd ../..

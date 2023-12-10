@@ -1,1 +1,1 @@
-export {state, event, hook, app, Blueprint} from "./src/client";
+export {state, event, task, app, Blueprint} from "./src/client";

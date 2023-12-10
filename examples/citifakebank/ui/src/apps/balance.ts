@@ -1,11 +1,11 @@
-import {hook, app} from "../rxreact";
+import {task, app} from "../rxreact";
 
 //state
 
 //events
 
-//hooks
-export const useBalance = hook<string>("balance", "balance");
+//tasks
+export const useBalance = task<string>("balance", "balance");
 
 //App
 export const Balance = app("balance")

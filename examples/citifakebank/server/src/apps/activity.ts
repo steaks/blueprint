@@ -1,4 +1,4 @@
-import {app, hook, operator} from "@blueprint/server";
+import {app, task, from} from "@blueprint/server";
 import activitydb from "./common";
 import session from "../session";
 
@@ -13,25 +13,25 @@ const fees = async (username: string) =>
 
 
 const activity$$ = app(() => {
-  const deposits$ = hook(
+  const deposits$ = task(
     {triggers: ["stateChanges", session.events.newDeposits]},
-    operator(deposits, session.state.username),
+    from(deposits, session.state.username),
   );
 
-  const withdraws$ = hook(
+  const withdraws$ = task(
     {triggers: ["stateChanges", session.events.newWithdrawals]},
-    operator(withdraws, session.state.username),
+    from(withdraws, session.state.username),
   );
 
-  const fees$ = hook(
-    operator(fees, session.state.username),
+  const fees$ = task(
+    from(fees, session.state.username),
   );
 
   return {
     name: "activity",
     state: [],
     events: [],
-    hooks: [deposits$, withdraws$, fees$]
+    tasks: [deposits$, withdraws$, fees$]
   };
 });
 

@@ -1,18 +1,18 @@
-import {app, hook, operator} from "@blueprint/server";
+import {app, task, from} from "@blueprint/server";
 
 const history = async () =>
   Promise.resolve("The bank was formed in 2023.");
 
 const history$$ = app(() => {
-    const history$ = hook(
-      operator(history),
+    const history$ = task(
+      from(history),
     );
 
     return {
         name: "history",
         state: [],
         events: [],
-        hooks: [history$]
+        tasks: [history$]
     };
 });
 
