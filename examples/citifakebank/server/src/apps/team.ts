@@ -34,32 +34,29 @@ const team$$ = app(() => {
     const employeesChanged$ = event("employeesChanged");
 
     const employees$ = task(
-      {triggers: ["stateChanges", employeesChanged$]},
+      {name: "employees", triggers: ["stateChanges", employeesChanged$]},
       from(employees, search$),
     );
 
     const count$ = task(
-      {triggers: ["stateChanges", employeesChanged$]},
+      {name: "count", triggers: ["stateChanges", employeesChanged$]},
       from(count, search$),
     );
 
     const add$ = task(
-      "add",
-      {triggers: ["self"]},
+      {name: "add", triggers: ["self"]},
       from(addEmployee, newEmployee$),
       trigger(employeesChanged$)
     );
 
     const remove$ = task(
-      "remove",
-      {triggers: ["self"]},
+      {name: "remove", triggers: ["self"]},
       from(removeEmployee, existingEmployee$),
       trigger(employeesChanged$)
     );
 
     const update$ = task(
-      "update",
-      {triggers: ["self"]},
+      {name: "update", triggers: ["self"]},
       from(updateEmployee, selectedEmployee$, updatedEmployee$),
       trigger(employeesChanged$)
     );

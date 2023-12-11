@@ -56,6 +56,7 @@ export interface TriggerOperator<V> extends RxOperator<V> {
 }
 
 export interface TaskOptions {
+  readonly name: string;
   readonly triggers?: (State<unknown> | Event | "self" | "stateChanges")[];
 }
 

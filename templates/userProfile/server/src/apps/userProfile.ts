@@ -9,14 +9,12 @@ export default app(() => {
   const save$ = event("save");
 
   const user$ = task(
-    "user",
-    {},
+    {name: "user"},
     from(queryUser)
   );
 
   const onSave$ = task(
-    "onSave",
-    {triggers: [save$]},
+    {name: "onSave", triggers: [save$]},
     from(updateUser, email$, firstName$, lastName$),
     trigger(user$)
   );

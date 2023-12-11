@@ -1,4 +1,4 @@
-import {app, state, event, task, operator, trigger} from "@blueprint/server";
+import {app, state, event, task, trigger, from} from "@blueprint/server";
 import {User} from "../../../shared/src/apps/userProfile";
 
 const db = {
@@ -25,15 +25,13 @@ const userProfile$$ = app(() => {
   const save$ = event("save");
 
   const user$ = task(
-    "user",
-    {},
-    operator(queryUser)
+    {name: "user"},
+    from(queryUser)
   );
 
   const onSave$ = task(
-    "onSave",
-    {triggers: [save$]},
-    operator(updateUser, email$, firstName$, lastName$),
+    {name: "onSave", triggers: [save$]},
+    from(updateUser, email$, firstName$, lastName$),
     trigger(user$)
   );
 

@@ -91,11 +91,10 @@ export const state = <V>(name: string, initialValue?: V): State<V> => {
 
 export function task<A>(o0: RxOperator<A>): Task<A>;
 export function task<A>(options: TaskOptions, o0: RxOperator<A>): Task<A>;
-export function task<A>(name: string, options: TaskOptions, o0: RxOperator<A>): Task<A>;
-export function task<A>(name: string, options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>): Task<A>;
-export function task<A>(name: string, options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>, o2: TriggerOperator<any>): Task<A>;
-export function task<A>(name: string, options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>): Task<A>;
-export function task<A>(name: string, options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>, o2: TriggerOperator<any>, o3: TriggerOperator<any>, o4: TriggerOperator<any>): Task<A>;
+export function task<A>(options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>): Task<A>;
+export function task<A>(options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>, o2: TriggerOperator<any>): Task<A>;
+export function task<A>(options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>): Task<A>;
+export function task<A>(options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>, o2: TriggerOperator<any>, o3: TriggerOperator<any>, o4: TriggerOperator<any>): Task<A>;
 export function task(): Task<any> {
   let name: string;
   let options: TaskOptions;
@@ -104,14 +103,10 @@ export function task(): Task<any> {
     options = {} as TaskOptions
     operators = util.createArgs(arguments, 0) as RxOperator<any>[];
     name = operators[0].__name;
-  } else if (arguments.length === 2) {
-    options = arguments[0] as TaskOptions
-    operators = util.createArgs(arguments, 1) as RxOperator<any>[];
-    name = operators[0].__name;
   } else {
-    name = arguments[0] as string;
-    options = arguments[1] as TaskOptions
-    operators = util.createArgs(arguments, 2) as RxOperator<any>[];
+    options = arguments[0] as TaskOptions
+    name = options.name;
+    operators = util.createArgs(arguments, 1) as RxOperator<any>[];
   }
 
   const optTriggers = options.triggers || ["self", "stateChanges"];

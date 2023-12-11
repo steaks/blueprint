@@ -14,15 +14,13 @@ const atm$$ = app(() => {
   const withdrawAmount$ = state<number>("withdrawAmount");
 
   const deposit$ = task(
-    "deposit",
-    {triggers: ["self"]},
+    {name: "deposit", triggers: ["self"]},
     from(deposit, depositAmount$, session.state.username),
     trigger(session.events.newDeposits)
   );
 
   const withdraw$ = task(
-    "withdraw",
-    {triggers: ["self"]},
+    {name: "withdraw", triggers: ["self"]},
     from(withdraw, withdrawAmount$, session.state.username),
     trigger(session.events.newWithdrawals)
   );

@@ -1,11 +1,11 @@
-import {app, state, task, operator} from "blueprint-server";
+import {app, state, task, from} from "blueprint-server";
 const area = (width: number, height: number) =>
   width * height;
 
 const myApp = app(() => {
   const width$ = state("width", 10);
   const height$ = state("height", 15);
-  const area$ = task(fromarea, width$, height$));
+  const area$ = task(from(area, width$, height$));
 
   return {
     name: "myApp",

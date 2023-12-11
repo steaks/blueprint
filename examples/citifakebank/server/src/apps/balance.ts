@@ -17,12 +17,12 @@ const balance = async (deposits: Deposit[], withdraws: Withdraw[], fees: Fee[]) 
 
 const balance$$ = app(() => {
   const deposits$ = task(
-    {triggers: ["stateChanges", session.events.newDeposits]},
+    {name: "deposits", triggers: ["stateChanges", session.events.newDeposits]},
     from(deposits, session.state.username)
   );
 
   const withdraws$ = task(
-    {triggers: ["stateChanges", session.events.newWithdrawals]},
+    {name: "withdraws", triggers: ["stateChanges", session.events.newWithdrawals]},
     from(withdraws, session.state.username)
   );
 
