@@ -4,7 +4,7 @@ import {Session} from "blueprint-server/types";
 const session$$ = {
   state: {},
   events: {},
-  hooks: {}
+  tasks: {}
 } as Session;
 
 export default session$$;

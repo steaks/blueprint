@@ -1,4 +1,4 @@
-import {app, event, state, hook, operator} from "blueprint-server";
+import {app, event, state, task, from} from "blueprint-server";
 
 const wordCount = (words: string): number => {
   const trimmedWords = words.trim();
@@ -14,21 +14,20 @@ const clickCount = () => {
 const helloWorld = app(() => {
   const myState$ = state("myState", "Hello State!");
   const myEvent$ = event("myEvent");
-  const wordCount$ = hook(
-    operator(wordCount, myState$)
+  const wordCount$ = task(
+    from(wordCount, myState$)
   );
 
-  const clickCount$ = hook(
-    "clickCount",
-    {triggers: [myEvent$]},
-    operator(clickCount)
+  const clickCount$ = task(
+    {name: "clickCount", triggers: [myEvent$]},
+    from(clickCount)
   );
 
   return {
     name: "helloWorld",
     state: [myState$],
     events: [myEvent$],
-    hooks: [wordCount$, clickCount$]
+    tasks: [wordCount$, clickCount$]
   };
 });
 

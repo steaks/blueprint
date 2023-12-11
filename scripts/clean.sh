@@ -6,3 +6,4 @@ cd examples/citifakebank && make clean && cd ../..
 cd templates/helloWorld && make clean && cd ../..
 cd templates/skeleton && make clean && cd ../..
 cd templates/userProfile && make clean && cd ../..
+cd templates/rectangle && make clean && cd ../..

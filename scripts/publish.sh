@@ -6,3 +6,4 @@ cd examples/userprofile && make publish && cd ../..
 cd templates/helloWorld && make publish && cd ../..
 cd templates/skeleton && make publish && cd ../..
 cd templates/userProfile && make publish && cd ../..
+cd templates/rectangle && make publish && cd ../..

@@ -1,10 +1,10 @@
-import {app, state, event, hook} from "blueprint-react";
+import {app, state, event, task} from "blueprint-react";
 
 const HelloWorld = app("helloWorld");
 const useMyState = state<string>("helloWorld", "myState");
 const useMyEvent = event("helloWorld", "myEvent");
-const useWordCount = hook<number>("helloWorld", "wordCount")
-const useClickCount = hook<number>("helloWorld", "clickCount");
+const useWordCount = task<number>("helloWorld", "wordCount")
+const useClickCount = task<number>("helloWorld", "clickCount");
 
 const UI = () => {
   const [myState, setMyState] = useMyState();

@@ -1,4 +1,4 @@
-import {state, event, hook, app} from "../rxreact";
+import {state, event, task, app} from "../rxreact";
 
 //state
 export const useSearch =  state<string>("team", "search");
@@ -10,12 +10,12 @@ export const useUpdatedEmployee = state<string>("team", "updatedEmployee");
 //events
 export const useEmployeesChanged = event("team", "employeesChanged");
 
-//hooks
-export const useEmployees = hook<string[]>("team", "employees");
-export const useCount = hook<number>("team", "count");
-export const useAdd = hook<null>("team", "add");
-export const useRemove = hook<null>("team", "remove");
-export const useUpdate = hook<null>("team", "update");
+//tasks
+export const useEmployees = task<string[]>("team", "employees");
+export const useCount = task<number>("team", "count");
+export const useAdd = task<null>("team", "add");
+export const useRemove = task<null>("team", "remove");
+export const useUpdate = task<null>("team", "update");
 
 //App
 export const Team = app("team")

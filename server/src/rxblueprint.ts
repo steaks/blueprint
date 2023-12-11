@@ -23,8 +23,8 @@ import {
   RxOperator,
   State,
   Event,
-  Hook,
-  HookOptions,
+  Task,
+  TaskOptions,
   Session,
   SessionContext,
   AppContext,
@@ -32,7 +32,7 @@ import {
   App,
   RxBlueprintServer,
   ServerOptions,
-  RefParam, StateRef, HookRef, EventRef, TriggerOperator
+  RefParam, StateRef, TaskRef, EventRef, TriggerOperator
 } from "../types";
 import minimist from "minimist";
 import {randomUUID} from "crypto";
@@ -72,10 +72,10 @@ const isOperator = (v: any): v is RxOperator<any> =>
 const isRefParam = (v: any): v is RefParam<any> =>
   (v as any).__type === "StateRefParam" ||
   (v as any).__type === "EventRefParam" ||
-  (v as any).__type === "HookRefParam";
+  (v as any).__type === "TaskRefParam";
 
-const isHook = (v: any): v is Hook<any> =>
-  (v as any).__type === "Hook";
+const isTask = (v: any): v is Task<any> =>
+  (v as any).__type === "Task";
 
 const nonce = {};
 export const state = <V>(name: string, initialValue?: V): State<V> => {
@@ -89,39 +89,34 @@ export const state = <V>(name: string, initialValue?: V): State<V> => {
 };
 
 
-export function hook<A>(o0: RxOperator<A>): Hook<A>;
-export function hook<A>(options: HookOptions, o0: RxOperator<A>): Hook<A>;
-export function hook<A>(name: string, options: HookOptions, o0: RxOperator<A>): Hook<A>;
-export function hook<A>(name: string, options: HookOptions, o0: RxOperator<A>, o1: TriggerOperator<any>): Hook<A>;
-export function hook<A>(name: string, options: HookOptions, o0: RxOperator<A>, o1: TriggerOperator<any>, o2: TriggerOperator<any>): Hook<A>;
-export function hook<A>(name: string, options: HookOptions, o0: RxOperator<A>, o1: TriggerOperator<any>): Hook<A>;
-export function hook<A>(name: string, options: HookOptions, o0: RxOperator<A>, o1: TriggerOperator<any>, o2: TriggerOperator<any>, o3: TriggerOperator<any>, o4: TriggerOperator<any>): Hook<A>;
-export function hook(): Hook<any> {
+export function task<A>(o0: RxOperator<A>): Task<A>;
+export function task<A>(options: TaskOptions, o0: RxOperator<A>): Task<A>;
+export function task<A>(options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>): Task<A>;
+export function task<A>(options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>, o2: TriggerOperator<any>): Task<A>;
+export function task<A>(options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>): Task<A>;
+export function task<A>(options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>, o2: TriggerOperator<any>, o3: TriggerOperator<any>, o4: TriggerOperator<any>): Task<A>;
+export function task(): Task<any> {
   let name: string;
-  let options: HookOptions;
+  let options: TaskOptions;
   let operators: RxOperator<any>[];
   if (arguments.length === 1) {
-    options = {} as HookOptions
+    options = {} as TaskOptions
     operators = util.createArgs(arguments, 0) as RxOperator<any>[];
     name = operators[0].__name;
-  } else if (arguments.length === 2) {
-    options = arguments[0] as HookOptions
-    operators = util.createArgs(arguments, 1) as RxOperator<any>[];
-    name = operators[0].__name;
   } else {
-    name = arguments[0] as string;
-    options = arguments[1] as HookOptions
-    operators = util.createArgs(arguments, 2) as RxOperator<any>[];
+    options = arguments[0] as TaskOptions
+    name = options.name;
+    operators = util.createArgs(arguments, 1) as RxOperator<any>[];
   }
 
   const optTriggers = options.triggers || ["self", "stateChanges"];
   const context = {graph: name, data: {}, state: {}} as RxContext;
-  const hookEvent = optTriggers.includes("self") ? event(`trigger_${name}`) : null;
-  const hookState = state<any>(`hook_${name}`);
+  const taskEvent = optTriggers.includes("self") ? event(`trigger_${name}`) : null;
+  const taskState = state<any>(`task_${name}`);
   const _inputStates = optTriggers.includes("stateChanges")
     ? [
       ...operators.flatMap(o => o._stateInputs),
-      ...operators.flatMap(o => o._hookInputs.flatMap(h => h._outputState))]
+      ...operators.flatMap(o => o._taskInputs.flatMap(h => h._outputState))]
     : [];
   const _optionStates = optTriggers.filter(t => isState(t)) as State<any>[];
   const _states = _.chain([..._inputStates, ..._optionStates]).uniqBy(s => s.__name).value();
@@ -137,9 +132,9 @@ export function hook(): Hook<any> {
     if (!session) {
       console.log("HERE");
     }
-    hookState.create(app);
-    if (hookEvent) {
-      hookEvent.create(app);
+    taskState.create(app);
+    if (taskEvent) {
+      taskEvent.create(app);
     }
     const operations = operators.map(op => switchMap(async () => {
       const ret = await op(app, session, context);
@@ -149,7 +144,7 @@ export function hook(): Hook<any> {
     const inputStates = optTriggers.includes("stateChanges")
       ? [
         ...operators.flatMap(o => o._stateInputs),
-        ...operators.flatMap(o => o._hookInputs.flatMap(h => h._outputState))
+        ...operators.flatMap(o => o._taskInputs.flatMap(h => h._outputState))
       ]
       : [];
     const optionStates = optTriggers.filter(isState) as State<any>[];
@@ -158,10 +153,10 @@ export function hook(): Hook<any> {
       .uniqBy(s => s.__name)
       .map(s => app.__state[s.__name] || session.__state[s.__name])
       .value();
-    const _hookEvent = hookEvent ? [hookEvent] : [];
+    const _taskEvent = taskEvent ? [taskEvent] : [];
     const optionEvents = optTriggers.filter(isEvent);
     const events = _
-      .chain([...optionEvents, ..._hookEvent])
+      .chain([...optionEvents, ..._taskEvent])
       .uniqBy(e => e.__name)
       .map(e => app.__events[e.__name] || session.__events[e.__name])
       .value();
@@ -169,7 +164,7 @@ export function hook(): Hook<any> {
     const triggers = [...states, ...events, ...initialized];
     if (states.length) {
       const lastestStates$ = combineLatest(states).pipe(filter(v => !_.find(v, vv => vv === nonce)));
-      app.__hooks[name] = merge(...triggers).pipe(
+      app.__tasks[name] = merge(...triggers).pipe(
         map(e => {
           console.log(name, e);
           return "";
@@ -187,7 +182,7 @@ export function hook(): Hook<any> {
         })
       );
     } else {
-      app.__hooks[name] = merge(...triggers).pipe(
+      app.__tasks[name] = merge(...triggers).pipe(
         map(e => {
           console.log(name, e);
           return "";
@@ -207,39 +202,39 @@ export function hook(): Hook<any> {
   };
   return {
     __name: name,
-    __type: "Hook",
+    __type: "Task",
     _operators: operators,
     _triggers: _allTriggers,
     _inputs: _allInputs,
     _output: operators[operators.length - 1].__name,
-    _outputState: hookState,
-    _trigger: hookEvent,
+    _outputState: taskState,
+    _trigger: taskEvent,
     _input: "None",
     create
   };
 }
 
-export const ref = <V>(v: State<V> | Event | Hook<V>): RefParam<V> => {
+export const ref = <V>(v: State<V> | Event | Task<V>): RefParam<V> => {
   if (isState(v)) {
     return {__type: "StateRefParam", ref: v};
   } else if (isEvent(v)) {
     return {__type: "EventRefParam", ref: v}
-  } else if (isHook(v)) {
-    return {__type: "HookRefParam", ref: v}
+  } else if (isTask(v)) {
+    return {__type: "TaskRefParam", ref: v}
   }
   throw new Error("Unrecognized type");
 };
 
-export function operator<R>(func: Func0<R>): RxOperator<R>;
-export function operator<A0, R>(func: Func1<A0, R>, arg0: RxOperator<A0> | State<A0> | Hook<A0> | RefParam<A0>): RxOperator<R>;
-export function operator<A0, A1, R>(func: Func2<A0, A1, R>, arg0: RxOperator<A0> | State<A0> | Hook<A0> | RefParam<A0>, arg1: RxOperator<A1> | State<A1> | Hook<A1> | RefParam<A1>): RxOperator<R>;
-export function operator<A0, A1, A2, R>(func: Func3<A0, A1, A2, R>, arg0: RxOperator<A0> | State<A0> | Hook<A0> | RefParam<A0>, arg1: RxOperator<A1> | State<A1> | Hook<A1> | RefParam<A1>, arg2: RxOperator<A2> | State<A2> | Hook<A2> | RefParam<A2>): RxOperator<R>;
-export function operator<A0, A1, A2, A3, R>(func: Func4<A0, A1, A2, A3, R>, arg0: RxOperator<A0> | State<A0> | Hook<A0> | RefParam<A0>, arg1: RxOperator<A1> | State<A1> | Hook<A1> | RefParam<A1>, arg2: RxOperator<A2> | State<A2> | Hook<A2> | RefParam<A2>, arg3: RxOperator<A3> | State<A3> | Hook<A3> | RefParam<A3>): RxOperator<R>;
-export function operator(): RxOperator<unknown> {
+export function from<R>(func: Func0<R>): RxOperator<R>;
+export function from<A0, R>(func: Func1<A0, R>, arg0: RxOperator<A0> | State<A0> | Task<A0> | RefParam<A0>): RxOperator<R>;
+export function from<A0, A1, R>(func: Func2<A0, A1, R>, arg0: RxOperator<A0> | State<A0> | Task<A0> | RefParam<A0>, arg1: RxOperator<A1> | State<A1> | Task<A1> | RefParam<A1>): RxOperator<R>;
+export function from<A0, A1, A2, R>(func: Func3<A0, A1, A2, R>, arg0: RxOperator<A0> | State<A0> | Task<A0> | RefParam<A0>, arg1: RxOperator<A1> | State<A1> | Task<A1> | RefParam<A1>, arg2: RxOperator<A2> | State<A2> | Task<A2> | RefParam<A2>): RxOperator<R>;
+export function from<A0, A1, A2, A3, R>(func: Func4<A0, A1, A2, A3, R>, arg0: RxOperator<A0> | State<A0> | Task<A0> | RefParam<A0>, arg1: RxOperator<A1> | State<A1> | Task<A1> | RefParam<A1>, arg2: RxOperator<A2> | State<A2> | Task<A2> | RefParam<A2>, arg3: RxOperator<A3> | State<A3> | Task<A3> | RefParam<A3>): RxOperator<R>;
+export function from(): RxOperator<unknown> {
   const func = arguments[0];
   const args = util.createArgs(arguments, 1);
   const stateInputs = args.filter(isState)
-  const hookInputs = args.filter(isHook)
+  const taskInputs = args.filter(isTask)
   // const theOperator = createOperator(func, args);
   const theOperator = async (app: AppContext, session: SessionContext, c: Context): Promise<unknown> => {
     const a = args.map(a => {
@@ -258,13 +253,13 @@ export function operator(): RxOperator<unknown> {
           const subject = (app.__events[a.ref.__name] || session.__events[a.ref.__name]);
           return {__type: "EventRef", _next: () => subject.next("")};
         }
-        if (a.__type === "HookRefParam") {
+        if (a.__type === "TaskRefParam") {
           const subject = (app.__events[`trigger_${a.ref.__name}`] || session.__events[`trigger_${a.ref.__name}`]);
-          const behaviorSubject = (app.__state[`hook_${a.ref.__name}`] || session.__state[`hook_${a.ref.__name}`]);
-          return {__type: "HookRef", _next: () => subject.next(""), _getValue: () => behaviorSubject.getValue()};
+          const behaviorSubject = (app.__state[`task_${a.ref.__name}`] || session.__state[`task_${a.ref.__name}`]);
+          return {__type: "TaskRef", _next: () => subject.next(""), _getValue: () => behaviorSubject.getValue()};
         }
-      } else if (isHook(a)) {
-        return (app.__state[`hook_${a.__name}`] || session.__state[`hook_${a.__name}`]).getValue();
+      } else if (isTask(a)) {
+        return (app.__state[`task_${a.__name}`] || session.__state[`task_${a.__name}`]).getValue();
       }
       return c.data[a.__name];
     });
@@ -277,7 +272,7 @@ export function operator(): RxOperator<unknown> {
   theOperator._suboperators = util.emptySubOperators();
   theOperator._subgraph = util.isGraph(func) ? func : util.emptySubGraph();
   theOperator._stateInputs = stateInputs;
-  theOperator._hookInputs = hookInputs;
+  theOperator._taskInputs = taskInputs;
   return theOperator;
 }
 
@@ -288,7 +283,7 @@ const createSession = (session: Session, socketId: string): SessionContext => {
     __name: "session",
     __state: {},
     __events: {},
-    __hooks: {}
+    __tasks: {}
   } as SessionContext;
   _.forEach(session.state, s => {
     s.create(context);
@@ -296,7 +291,7 @@ const createSession = (session: Session, socketId: string): SessionContext => {
   _.forEach(session.events, e => {
     e.create(context);
   });
-  _.forEach(session.hooks, h => {
+  _.forEach(session.tasks, h => {
     h.create({} as AppContext, context);
   });
   return context;
@@ -312,7 +307,7 @@ export const app = (func: () => AppBlueprint): App => {
       __name: theApp.name,
       __state: {},
       __events: {},
-      __hooks: {}
+      __tasks: {}
     } as AppContext;
     const socket = server.sockets[socketId];
     const session = server.sessions[socketId];
@@ -347,7 +342,7 @@ export const app = (func: () => AppBlueprint): App => {
       };
       server.routes.post[route] = func;
     });
-    theApp.hooks.forEach(h => {
+    theApp.tasks.forEach(h => {
       h.create(context, session);
 
       const route = `/${socketId}/${theApp.name}/${h.__name}`;
@@ -360,12 +355,12 @@ export const app = (func: () => AppBlueprint): App => {
       server.routes.post[route] = func;
 
       //TODO - fix race conditions properly
-      const withDelay$ = context.__hooks[h.__name].pipe(delay(300));
+      const withDelay$ = context.__tasks[h.__name].pipe(delay(300));
       withDelay$.subscribe({
         next: v => {
           if (v !== nonce) {
             console.log(`${socketId}/${theApp.name}/${h.__name}`, v);
-            context.__state[`hook_${h.__name}`].next(v);
+            context.__state[`task_${h.__name}`].next(v);
             socket.emit(`${theApp.name}/${h.__name}`, v);
           }
         },
@@ -384,17 +379,17 @@ export const app = (func: () => AppBlueprint): App => {
 };
 
 
-export function trigger(e: Event | Hook<any>): TriggerOperator<any>;
-export function trigger(e: EventRef | HookRef<any>): void;
-export function trigger(e: Event | Hook<any> | EventRef | HookRef<any>) {
-  return isEvent(e) || isHook(e) ? triggerOperator(e) : next(e);
+export function trigger(e: Event | Task<any>): TriggerOperator<any>;
+export function trigger(e: EventRef | TaskRef<any>): void;
+export function trigger(e: Event | Task<any> | EventRef | TaskRef<any>) {
+  return isEvent(e) || isTask(e) ? triggerOperator(e) : next(e);
 }
 
-const next = (e: EventRef | HookRef<any>) => {
+const next = (e: EventRef | TaskRef<any>) => {
   e._next();
 };
 
-const triggerOperator = (e: Event | Hook<any>): RxOperator<null> => {
+const triggerOperator = (e: Event | Task<any>): RxOperator<null> => {
   const theOperator = async (app: AppContext, session: SessionContext, c: Context): Promise<null> => {
     if (isEvent(e)) {
       (app.__events[e.__name] || session.__events[e.__name]).next("");
@@ -408,11 +403,11 @@ const triggerOperator = (e: Event | Hook<any>): RxOperator<null> => {
   theOperator._suboperators = util.emptySubOperators();
   theOperator._subgraph = null as Graph<any, any> | null;
   theOperator._stateInputs = [] as State<unknown>[];
-  theOperator._hookInputs = [] as Hook<unknown>[];
+  theOperator._taskInputs = [] as Task<unknown>[];
   return theOperator;
 };
 
-export const get = <V>(state: StateRef<V> | HookRef<V>): V =>
+export const get = <V>(state: StateRef<V> | TaskRef<V>): V =>
   state._getValue();
 
 const setState = <V>(state: StateRef<V>, value: V): void => {
@@ -436,7 +431,7 @@ const setOperator = <A0>(state: State<A0>, a: RxOperator<A0> | State<A0> | A0): 
   theOperator._suboperators = util.emptySubOperators();
   theOperator._subgraph = null as Graph<any, any> | null;
   theOperator._stateInputs = [] as State<unknown>[];
-  theOperator._hookInputs = [] as Hook<unknown>[];
+  theOperator._taskInputs = [] as Task<unknown>[];
   return theOperator;
 };
 

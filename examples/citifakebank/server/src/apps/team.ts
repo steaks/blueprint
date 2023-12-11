@@ -1,4 +1,4 @@
-import {app, state, hook, event, operator, trigger} from "@blueprint/server";
+import {app, state, task, event, from, trigger} from "@blueprint/server";
 import {db} from "../postgres";
 
 const employees = async (search: string): Promise<string[]> =>
@@ -33,34 +33,31 @@ const team$$ = app(() => {
 
     const employeesChanged$ = event("employeesChanged");
 
-    const employees$ = hook(
-      {triggers: ["stateChanges", employeesChanged$]},
-      operator(employees, search$),
+    const employees$ = task(
+      {name: "employees", triggers: ["stateChanges", employeesChanged$]},
+      from(employees, search$),
     );
 
-    const count$ = hook(
-      {triggers: ["stateChanges", employeesChanged$]},
-      operator(count, search$),
+    const count$ = task(
+      {name: "count", triggers: ["stateChanges", employeesChanged$]},
+      from(count, search$),
     );
 
-    const add$ = hook(
-      "add",
-      {triggers: ["self"]},
-      operator(addEmployee, newEmployee$),
+    const add$ = task(
+      {name: "add", triggers: ["self"]},
+      from(addEmployee, newEmployee$),
       trigger(employeesChanged$)
     );
 
-    const remove$ = hook(
-      "remove",
-      {triggers: ["self"]},
-      operator(removeEmployee, existingEmployee$),
+    const remove$ = task(
+      {name: "remove", triggers: ["self"]},
+      from(removeEmployee, existingEmployee$),
       trigger(employeesChanged$)
     );
 
-    const update$ = hook(
-      "update",
-      {triggers: ["self"]},
-      operator(updateEmployee, selectedEmployee$, updatedEmployee$),
+    const update$ = task(
+      {name: "update", triggers: ["self"]},
+      from(updateEmployee, selectedEmployee$, updatedEmployee$),
       trigger(employeesChanged$)
     );
 
@@ -68,7 +65,7 @@ const team$$ = app(() => {
         name: "team",
         state: [search$, newEmployee$, existingEmployee$, selectedEmployee$, updatedEmployee$],
         events: [employeesChanged$],
-        hooks: [employees$, count$, add$, remove$, update$]
+        tasks: [employees$, count$, add$, remove$, update$]
     };
 });
 
@@ -79,7 +76,7 @@ export default team$$;
 //POST http://localhost:8080/employees/add
 //POST http://localhost:8080/employees/remove
 
-//Webhook Events
+//Webtask Events
 //
 //{name: "/employees/employees", string[]}
 //{name: "/employees/count", number}
