@@ -29,3 +29,6 @@ jobs:
       - run: make deploy-userprofile-server
       - run: make deploy-userprofile-ui
       - run: make deploy-userprofile-diagram
+      - run: make deploy-rectangle-server
+      - run: make deploy-rectangle-ui
+      - run: make deploy-rectangle-diagram
