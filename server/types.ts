@@ -1,4 +1,4 @@
-import {BehaviorSubject, Observable, Subject} from "rxjs";
+import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import {Socket} from "socket.io";
 
 export type Func0<R> = () => R | Promise<R>;
@@ -11,6 +11,7 @@ export interface Event {
   readonly __type: "Event";
   readonly __name: string;
   readonly create: (app: AppContext | SessionContext) => void;
+  readonly destroy: (app: AppContext | SessionContext) => void;
 }
 
 export interface RefParam<V> {
@@ -39,6 +40,7 @@ export interface State<V> {
   readonly __type: "State";
   readonly __name: string;
   readonly create: (app: AppContext | SessionContext) => void;
+  readonly destroy: (app: AppContext | SessionContext) => void;
 }
 
 export interface RxOperator<V> {
@@ -71,6 +73,7 @@ export interface Task<V> {
   _triggers: (Event | State<any>)[];
   _inputs: State<any>[];
   create: (context: AppContext, session: SessionContext) => void;
+  destroy: (context: AppContext, session: SessionContext) => void;
 }
 
 export interface Context {
@@ -158,7 +161,17 @@ export interface AppContext {
   readonly __state: Record<string, BehaviorSubject<any>>;
   readonly __events: Record<string, Subject<any>>;
   readonly __tasks: Record<string, Observable<any>>;
-  readonly __session: AppContext;
+  readonly __requests$: Subject<BlueprintRequest>;
+  __requestSubscription?: Subscription;
+  __lastRequestId: number;
+}
+
+export interface BlueprintRequest {
+  readonly __type: "event" | "state" | "task";
+  readonly name: string;
+  readonly payload: any;
+  readonly id: number;
+  readonly count: number;
 }
 
 export interface SessionContext {
@@ -168,6 +181,7 @@ export interface SessionContext {
   readonly __state: Record<string, BehaviorSubject<any>>;
   readonly __events: Record<string, Subject<any>>;
   readonly __tasks: Record<string, Observable<any>>;
+  readonly __requests$: Subject<BlueprintRequest>
 }
 
 export interface AppBlueprint {
@@ -189,12 +203,14 @@ export interface RxBlueprintServer {
     post: Record<string, Function>;
   };
   readonly sessions: Record<string, SessionContext>;
+  readonly apps: Record<string, AppContext>;
 }
 
 export interface App {
   readonly __app: AppBlueprint;
   readonly __sheet: SheetJSON;
   readonly create: (server: RxBlueprintServer, socketId: string) => void;
+  readonly destroy: (server: RxBlueprintServer, socketId: string) => void;
 }
 
 export interface ServerOptions {

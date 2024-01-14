@@ -51,9 +51,9 @@ export const state = <V, >(app: string, stateName: string): () => [V | undefined
       setState(value);
       fetch(`${config.uri}/${socket!.id}/${app}/${stateName}`, {
         method: "POST",
-        body: JSON.stringify(value),
+        body: JSON.stringify({id: nextRequestId(app), payload: value}),
         headers: {"content-type": "application/json"}
-      })
+      });
     }, []);
     const onMessage = useCallback((message: V) => {
       setState(message);
@@ -72,7 +72,12 @@ export const state = <V, >(app: string, stateName: string): () => [V | undefined
 };
 
 export const event = (app: string, event: string): () => [() => void] => {
-  const trigger = () => fetch(`${config.uri}/${socket!.id}/${app}/${event}`, {method: "POST"});
+  const trigger = () =>
+    fetch(`${config.uri}/${socket!.id}/${app}/${event}`, {
+      method: "POST",
+      body: JSON.stringify({id: nextRequestId(app), payload: ""}),
+      headers: {"content-type": "application/json"}
+    });
   return () => [trigger];
 };
 
@@ -80,7 +85,11 @@ export const task = <V, >(app: string, task: string): () => [V | undefined, () =
   return () => {
     const [state, setState] = useState<V>();
     const trigger = useCallback(() => {
-      fetch(`${config.uri}/${socket!.id}/${app}/${task}`, {method: "POST"})
+      fetch(`${config.uri}/${socket!.id}/${app}/${task}`, {
+        method: "POST",
+        body: JSON.stringify({id: nextRequestId(app), payload: ""}),
+        headers: {"content-type": "application/json"}
+      });
     }, []);
     const onMessage = useCallback((message: V) => {
       if (message && (message as any).__type === "Error") {
@@ -103,21 +112,48 @@ export const task = <V, >(app: string, task: string): () => [V | undefined, () =
   };
 };
 
-const subscriptions = {} as Record<string, Promise<Response>>;
+interface Subscription {
+  subscription: Promise<Response>;
+  requestId: number;
+  count: number;
+}
+
+const nextRequestId = (app: string): number => {
+  subscriptions[app].requestId = subscriptions[app].requestId + 1;
+  return subscriptions[app].requestId;
+};
+
+const subscriptions = {} as Record<string, Subscription>;
 
 const subscribe = (name: string) => {
   if (!subscriptions[name]) {
     const p = fetch(`${config.uri}/subscribe?app=${name}&socketId=${socket!.id}`, {method: "POST"});
-    subscriptions[name] = p;
+    subscriptions[name] = {requestId: 0, subscription: p, count: 1};
+  } else {
+    subscriptions[name].count = subscriptions[name].count + 1;
   }
   return subscriptions[name];
+};
+
+const unsubscribe = (name: string) => {
+  subscriptions[name].count = subscriptions[name].count - 1;
+  setTimeout(() => {
+    if (subscriptions[name].count <= 0) {
+      fetch(`${config.uri}/unsubscribe?app=${name}&socketId=${socket!.id}`, {method: "POST"});
+      delete subscriptions[name];
+    }
+  }, 300);
 };
 
 export const app = (name: string) => (props: Props) => {
   const [initialized, setInitialized] = useState(false);
   useEffect(() => {
     console.log(`SUBSCRIBING ${name}`);
-    subscribe(name).then(() => setInitialized(true));
+    subscribe(name).subscription.then(() => setInitialized(true));
+    return () => {
+      console.log(`UNSUBSCRIBING ${name}`);
+      unsubscribe(name);
+    };
   }, []);
   if (initialized) {
     return <>{props.children}</>
