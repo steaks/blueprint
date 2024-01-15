@@ -32,11 +32,16 @@ import {
   App,
   RxBlueprintServer,
   ServerOptions,
-  RefParam, StateRef, TaskRef, EventRef, TriggerOperator
+  RefParam,
+  StateRef,
+  TaskRef,
+  EventRef,
+  TriggerOperator,
+  BlueprintRequest
 } from "../types";
 import minimist from "minimist";
 import {randomUUID} from "crypto";
-import http, {IncomingMessage, ServerResponse} from "http";
+import http from "http";
 import * as qs from "qs";
 import parseurl from "parseurl";
 import {Url} from "url";
@@ -58,8 +63,12 @@ const isEvent = (v: any): v is Event =>
   (v as any).__type === "Event";
 export const event = (name: string): Event =>
   ({
-    __type: "Event", __name: name, create: (app: AppContext | SessionContext) => {
+    __type: "Event", __name: name,
+    create: (app: AppContext | SessionContext) => {
       app.__events[name] = new Subject<string>();
+    },
+    destroy: (app: AppContext | SessionContext) => {
+      app.__events[name].complete();
     }
   });
 
@@ -83,7 +92,14 @@ export const state = <V>(name: string, initialValue?: V): State<V> => {
     __type: "State",
     __name: name,
     create: (app: AppContext | SessionContext) => {
-      app.__state[name] = initialValue !== undefined ? new BehaviorSubject(initialValue) : new BehaviorSubject(nonce as unknown as V);
+      if (initialValue !== undefined) {
+        app.__state[name] = new BehaviorSubject<any>(initialValue);
+      } else {
+        app.__state[name] = new BehaviorSubject(nonce as unknown as V);
+      }
+    },
+    destroy: (app: AppContext | SessionContext) => {
+      app.__state[name].complete();
     }
   };
 };
@@ -129,9 +145,6 @@ export function task(): Task<any> {
   const triggerNames = new Set(_allTriggers.map(t => t.__name));
   const _allInputs = operators.flatMap(o => o._stateInputs).filter(i => !triggerNames.has(i.__name));
   const create = (app: AppContext, session: SessionContext): void => {
-    if (!session) {
-      console.log("HERE");
-    }
     taskState.create(app);
     if (taskEvent) {
       taskEvent.create(app);
@@ -200,6 +213,12 @@ export function task(): Task<any> {
       );
     }
   };
+  const destroy = (app: AppContext, session: SessionContext) => {
+    taskState.destroy(app);
+    if (taskEvent) {
+      taskEvent!.destroy(app);
+    }
+  };
   return {
     __name: name,
     __type: "Task",
@@ -210,7 +229,8 @@ export function task(): Task<any> {
     _outputState: taskState,
     _trigger: taskEvent,
     _input: "None",
-    create
+    create,
+    destroy
   };
 }
 
@@ -283,7 +303,8 @@ const createSession = (session: Session, socketId: string): SessionContext => {
     __name: "session",
     __state: {},
     __events: {},
-    __tasks: {}
+    __tasks: {},
+    __requests$: new Subject<BlueprintRequest>()
   } as SessionContext;
   _.forEach(session.state, s => {
     s.create(context);
@@ -301,24 +322,54 @@ export const app = (func: () => AppBlueprint): App => {
   const theApp = func();
   theApp.events.push(event("initialized"));
   const create = (server: RxBlueprintServer, socketId: string) => {
+    const key = `${theApp.name}_${socketId}`;
     const context = {
       __id: randomUUID(),
       __socketId: socketId,
       __name: theApp.name,
       __state: {},
       __events: {},
-      __tasks: {}
+      __tasks: {},
+      __requests$: new Subject<BlueprintRequest>(),
+      __lastRequestId: 0,
     } as AppContext;
+    server.apps[key] = context;
+    context.__requestSubscription = context.__requests$.subscribe(r => {
+      const onDeck = context.__lastRequestId + 1;
+      if (r.id < onDeck) {
+        console.log("LESS");
+        return;
+      } else if (r.id > onDeck) {
+        setTimeout(() => context.__requests$.next({...r, count: r.count + 1}), 300);
+      } else if (r.id === onDeck) {
+        switch (r.__type) {
+          case "state":
+            context.__lastRequestId = r.id;
+            context.__state[r.name].next(r.payload);
+            break;
+          case "event":
+            context.__lastRequestId = r.id;
+            context.__events[r.name].next(r.payload);
+            break;
+          case "task":
+            context.__lastRequestId = r.id;
+            context.__events[r.name].next(r.payload);
+            break;
+        }
+      }
+    });
     const socket = server.sockets[socketId];
     const session = server.sessions[socketId];
     theApp.state.forEach(s => {
       s.create(context);
       const route = `/${socketId}/${theApp.name}/${s.__name}`;
-      const func = (req: Request) => {
-        const value = req.body;
-        context.__state[s.__name].next(value);
+      server.routes.post[route] = (req: Request) => {
+        const id = req.body.id as number;
+        const name = s.__name;
+        const payload = req.body.payload;
+        const request = {__type: "state", id, name, count: 0, payload} as BlueprintRequest;
+        context.__requests$.next(request);
       };
-      server.routes.post[route] = func;
       //TODO - fix race conditions properly
       const withDelay$ = context.__state[s.__name].pipe(delay(300));
       withDelay$.subscribe({
@@ -337,22 +388,24 @@ export const app = (func: () => AppBlueprint): App => {
       e.create(context);
       const route = `/${socketId}/${theApp.name}/${e.__name}`;
       console.log(route);
-      const func = (req: IncomingMessage) => {
-        context.__events[e.__name].next("");
+      server.routes.post[route] = (req: Request) => {
+        const id = req.body.id as number;
+        const name = e.__name;
+        const payload = req.body.payload;
+        const request = {__type: "event", id, name, count: 0, payload} as BlueprintRequest;
+        context.__requests$.next(request);
       };
-      server.routes.post[route] = func;
     });
     theApp.tasks.forEach(h => {
       h.create(context, session);
-
       const route = `/${socketId}/${theApp.name}/${h.__name}`;
-      const func = (req: IncomingMessage) => {
-        const url = parseurl(req) as Url;
-        const query = qs.parse(url.query as string);
-        const value = query.body;
-        context.__events[h._trigger?.__name || ""].next(value);
+      server.routes.post[route] = (req: Request) => {
+        const id = req.body.id as number;
+        const name = h._trigger?.__name || "";
+        const payload = req.body.payload;
+        const request = {__type: "task", id, name, count: 0, payload} as BlueprintRequest;
+        context.__requests$.next(request);
       };
-      server.routes.post[route] = func;
 
       //TODO - fix race conditions properly
       const withDelay$ = context.__tasks[h.__name].pipe(delay(300));
@@ -370,9 +423,33 @@ export const app = (func: () => AppBlueprint): App => {
       });
     });
     context.__events["initialized"].next("");
-  }
+  };
+
+  const destroy = (server: RxBlueprintServer, socketId: string) => {
+    const key = `${theApp.name}_${socketId}`;
+    const app = server.apps[key];
+    theApp.state.forEach(s => {
+      const route = `/${socketId}/${theApp.name}/${s.__name}`;
+      s.destroy(app)
+      delete server.routes.post[route];
+    });
+    theApp.events.forEach(e => {
+      const route = `/${socketId}/${theApp.name}/${e.__name}`;
+      e.destroy(app)
+      delete server.routes.post[route];
+    });
+    theApp.state.forEach(t => {
+      const route = `/${socketId}/${theApp.name}/${t.__name}`;
+      t.destroy(app)
+      delete server.routes.post[route];
+    });
+    app.__requests$.complete();
+    app.__requestSubscription?.unsubscribe();
+  };
+
   return {
     create,
+    destroy,
     __app: theApp,
     __sheet: rxserialize.sheet(theApp)
   };
@@ -445,6 +522,7 @@ export function set(): any {
 const diagram = (apps: Record<string, App>, session: Session) => {
   rxserialize.build("App", _.map(apps, a => a.__sheet));
 };
+
 export const serve = <T>(apps: Record<string, App>, session: Session, options?: ServerOptions) => {
   const argv = minimist(process.argv.slice(2));
   if (argv.diagram?.toUpperCase() === "TRUE") {
@@ -456,7 +534,8 @@ export const serve = <T>(apps: Record<string, App>, session: Session, options?: 
   const rxBlueprintServer = {
     routes: {post: {}},
     sockets: {},
-    sessions: {}
+    sessions: {},
+    apps: {}
   } as RxBlueprintServer;
   const a = express();
   a.use(cors({origin: options?.cors?.origin || defaultOrigin, methods: ["GET", "POST"]}));
@@ -470,8 +549,15 @@ export const serve = <T>(apps: Record<string, App>, session: Session, options?: 
     res.write("Success");
     res.end();
   });
+  a.post("/unsubscribe", (req, res) => {
+    const url = parseurl(req) as Url;
+    const query = qs.parse(url.query as string);
+    const appName = query.app as string;
+    const socketId = query.socketId as string;
+    apps[appName].destroy(rxBlueprintServer, socketId);
+  });
+
   a.post("*", (req, res) => {
-    console.log("HERE");
     if (req.method === "POST") {
       const url = parseurl(req) as Url;
       const route = rxBlueprintServer.routes.post[url.pathname!];
@@ -486,6 +572,7 @@ export const serve = <T>(apps: Record<string, App>, session: Session, options?: 
       }
     }
   });
+
   const server = http.createServer(a);
 
   const io = new Server(server, {
@@ -498,6 +585,19 @@ export const serve = <T>(apps: Record<string, App>, session: Session, options?: 
     rxBlueprintServer.sockets[socket.id] = socket;
     rxBlueprintServer.sessions[socket.id] = createSession(session, socket.id);
     console.log(`a user connected: ${socket.id}`);
+    socket.on('disconnect', () => {
+      console.log(`a user disconnected: ${socket.id}`);
+      _
+        .chain(rxBlueprintServer.apps)
+        .filter(a => a.__socketId === socket.id)
+        .forEach(a => {
+          const key = `${a.__name}_${socket.id}`
+          apps[a.__name].destroy(rxBlueprintServer, socket.id);
+          delete rxBlueprintServer.apps[key];
+        });
+      delete rxBlueprintServer.sockets[socket.id];
+      delete rxBlueprintServer.sessions[socket.id];
+    });
   });
 
   rxserialize.build("App", _.map(apps, a => a.__sheet));

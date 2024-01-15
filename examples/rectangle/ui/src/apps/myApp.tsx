@@ -13,6 +13,7 @@ const UI = () => {
 
   return (
     <MyApp>
+      <a href="/">Home</a>
       <input defaultValue={width} onChange={e => setWidth(Number(e.target.value))} />
       <input defaultValue={height} onChange={e => setHeight(Number(e.target.value))} />
       <div>Area of Rectangle: {area}</div>
