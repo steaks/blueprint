@@ -32,11 +32,16 @@ import {
   App,
   RxBlueprintServer,
   ServerOptions,
-  RefParam, StateRef, TaskRef, EventRef, TriggerOperator, BlueprintRequest
+  RefParam,
+  StateRef,
+  TaskRef,
+  EventRef,
+  TriggerOperator,
+  BlueprintRequest
 } from "../types";
 import minimist from "minimist";
 import {randomUUID} from "crypto";
-import http, {IncomingMessage, ServerResponse} from "http";
+import http from "http";
 import * as qs from "qs";
 import parseurl from "parseurl";
 import {Url} from "url";
@@ -140,9 +145,6 @@ export function task(): Task<any> {
   const triggerNames = new Set(_allTriggers.map(t => t.__name));
   const _allInputs = operators.flatMap(o => o._stateInputs).filter(i => !triggerNames.has(i.__name));
   const create = (app: AppContext, session: SessionContext): void => {
-    if (!session) {
-      console.log("HERE");
-    }
     taskState.create(app);
     if (taskEvent) {
       taskEvent.create(app);
@@ -338,7 +340,6 @@ export const app = (func: () => AppBlueprint): App => {
         console.log("LESS");
         return;
       } else if (r.id > onDeck) {
-        console.log("MORE");
         setTimeout(() => context.__requests$.next({...r, count: r.count + 1}), 300);
       } else if (r.id === onDeck) {
         switch (r.__type) {
@@ -544,7 +545,6 @@ export const serve = <T>(apps: Record<string, App>, session: Session, options?: 
     const query = qs.parse(url.query as string);
     const appName = query.app as string;
     const socketId = query.socketId as string;
-    console.log("HERE");
     apps[appName].create(rxBlueprintServer, socketId);
     res.write("Success");
     res.end();
@@ -558,7 +558,6 @@ export const serve = <T>(apps: Record<string, App>, session: Session, options?: 
   });
 
   a.post("*", (req, res) => {
-    console.log("HERE");
     if (req.method === "POST") {
       const url = parseurl(req) as Url;
       const route = rxBlueprintServer.routes.post[url.pathname!];
