@@ -1,4 +1,4 @@
-import {app, task, from} from "@blueprint/server";
+import {app, task, from} from "blueprint-server";
 import activitydb from "./common";
 import session from "../session";
 
@@ -14,7 +14,7 @@ const fees = async (username: string) =>
 
 const activity$$ = app(() => {
   const deposits$ = task(
-    {name: "activity", triggers: ["stateChanges", session.events.newDeposits]},
+    {name: "deposits", triggers: ["stateChanges", session.events.newDeposits]},
     from(deposits, session.state.username),
   );
 

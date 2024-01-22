@@ -1,5 +1,5 @@
-import {state, event} from "@blueprint/server";
-import {Session} from "@blueprint/server/types";
+import {state, event} from "blueprint-server";
+import {Session} from "blueprint-server/types";
 
 const username = state("username", "steven")
 

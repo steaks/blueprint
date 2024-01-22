@@ -1,4 +1,4 @@
-import {app, state, task, event, from, trigger} from "@blueprint/server";
+import {app, state, task, event, from, trigger} from "blueprint-server";
 import {db} from "../postgres";
 
 const employees = async (search: string): Promise<string[]> =>

@@ -236,7 +236,6 @@ Along with your application you will get a blueprint ui for free. The blueprint 
 3. cd userprofile
 4. make run-server # Run in separate terminal.
 5. make run-ui # Run in separate terminal. Open browser to http://localhost:3000
-6. make run-blueprint # Run in separate terminal. Open browser to http://localhost:3001
 ```
 
 Explore the userprofile [codebase](https://github.com/steaks/blueprint/tree/main/userprofile)

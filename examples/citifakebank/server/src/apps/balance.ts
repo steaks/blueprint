@@ -1,4 +1,4 @@
-import {app, from, task} from "@blueprint/server";
+import {app, from, task} from "blueprint-server";
 import activitydb from "./common";
 import _ from "lodash";
 import session from "../session";

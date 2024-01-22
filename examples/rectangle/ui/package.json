@@ -2,7 +2,7 @@
   "name": "@blueprint/examples-skeleton-ui",
   "version": "0.1.0-alpha.1",
   "dependencies": {
-    "blueprint-react": "0.1.0-alpha.7",
+    "blueprint-react": "0.1.0-alpha.9",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^13.5.0",
@@ -10,6 +10,7 @@
     "@types/node": "^16.11.39",
     "@types/react": "^18.0.12",
     "@types/react-dom": "^18.0.5",
+    "@types/lodash": "^4.14.195",
     "env-cmd": "^10.1.0",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",

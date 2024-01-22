@@ -1,4 +1,4 @@
-import {app, task, from} from "@blueprint/server";
+import {app, task, from} from "blueprint-server";
 
 const history = async () =>
   Promise.resolve("The bank was formed in 2023.");

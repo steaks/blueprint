@@ -1,4 +1,4 @@
-import {app, state, task, from, trigger} from "@blueprint/server";
+import {app, state, task, from, trigger} from "blueprint-server";
 import session from "../session";
 import activitydb from "./common";
 const deposit = (amount: number, username: string) => {

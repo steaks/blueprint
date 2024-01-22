@@ -8,10 +8,10 @@ let _socket: Promise<Socket<any, any>> | null = null;
 const connect = async () => {
   if (!_socket) {
     _socket = new Promise(resolve => {
-      const s = io(config.uri);
+      const s = io(config.uri.replace("http://", "ws://").replace("https://", "ws://"));
       s.on("connect", () => {
-        console.log("CONNECTED");
-        console.log("ID:" + s.id);
+        console.debug("Connected");
+        console.debug("ID:" + s.id);
         socket = s;
         resolve(s);
       });
@@ -20,17 +20,18 @@ const connect = async () => {
   return _socket;
 };
 
-const config = {
-  uri: "http://localhost:8080"
+const namespace = "/__blueprint__";
+const defaultUri = `http://localhost:8080${namespace}`;
+export const config = {
+  uri: defaultUri
 };
 
 export const Blueprint = (p: BlueprintConfig) => {
-  const defaultUri = "http://localhost:8081";
-  const uri = p.uri || defaultUri;
+  const uri = `${p.uri}${namespace}` || defaultUri;
   const [initialized, setInitialized] = useState(false);
   useEffect(() => {
     config.uri = uri;
-    console.log("MOUNTING BLUEPRINT");
+    console.debug("Mounting Blueprint");
     if (!socket) {
       connect().then(() => setInitialized(true));
     } else {
@@ -60,10 +61,10 @@ export const state = <V, >(app: string, stateName: string): () => [V | undefined
     }, []);
 
     useEffect(() => {
-      console.log(`MOUNTING STATE: ${app} - ${stateName}`);
+      console.debug(`Mounting State: ${app} - ${stateName}`);
       socket!.on(`${app}/${stateName}`, onMessage);
       return () => {
-        console.log(`UNMOUNTING STATE: ${app} - ${stateName}`);
+        console.debug(`Unmounting State: ${app} - ${stateName}`);
         socket!.off(`${app}/${stateName}`, onMessage);
       }
     }, [onMessage]);
@@ -95,15 +96,15 @@ export const task = <V, >(app: string, task: string): () => [V | undefined, () =
       if (message && (message as any).__type === "Error") {
         console.error(message);
       } else {
-        console.log(`${app}/${task}`, message);
+        console.debug(`${app}/${task}`, message);
         setState(message);
       }
     }, []);
     useEffect(() => {
-      console.log(`MOUNTING TASK: ${app} - ${task}`);
+      console.debug(`Mounting Task: ${app} - ${task}`);
       socket!.on(`${app}/${task}`, onMessage);
       return () => {
-        console.log(`UNMOUNTING TASK: ${app} - ${task}`);
+        console.debug(`Unmounting Task: ${app} - ${task}`);
         socket!.off(`${app}/${task}`, onMessage);
       };
     }, [onMessage]);
@@ -148,10 +149,10 @@ const unsubscribe = (name: string) => {
 export const app = (name: string) => (props: Props) => {
   const [initialized, setInitialized] = useState(false);
   useEffect(() => {
-    console.log(`SUBSCRIBING ${name}`);
+    console.debug(`Subscribing ${name}`);
     subscribe(name).subscription.then(() => setInitialized(true));
     return () => {
-      console.log(`UNSUBSCRIBING ${name}`);
+      console.debug(`Unsubscribing ${name}`);
       unsubscribe(name);
     };
   }, []);

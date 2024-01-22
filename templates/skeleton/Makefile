@@ -19,11 +19,6 @@ run-server: ## Run the server
 	npm run serve
 
 .ONESHELL:
-run-blueprint: ## Run the blueprint diagram
-	cd server
-	npm run blueprint
-
-.ONESHELL:
 run-server-prod: ## Run the server in production mode
 	cd server
 	npm run build:prod

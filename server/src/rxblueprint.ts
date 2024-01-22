@@ -37,7 +37,9 @@ import {
   TaskRef,
   EventRef,
   TriggerOperator,
-  BlueprintRequest
+  BlueprintRequest,
+  BlueprintIO,
+  BlueprintExpress, Blueprint, Servers, Serialized
 } from "../types";
 import minimist from "minimist";
 import {randomUUID} from "crypto";
@@ -46,18 +48,26 @@ import * as qs from "qs";
 import parseurl from "parseurl";
 import {Url} from "url";
 import _ from "lodash";
-import express, {Request} from "express";
+import express, {NextFunction, Request} from "express";
 import cors from "cors";
-import {Server} from "socket.io";
+import {Server, Socket} from "socket.io";
 import rxserialize from "./rxserialize";
 import util from "./util";
 import bodyParser from "body-parser";
+import {RequestHandler} from "express-serve-static-core";
 
 interface RxContext {
   readonly graph: string;
   readonly data: Record<string, any>;
   readonly state: Record<string, BehaviorSubject<any>>;
 }
+
+const rxBlueprintServer = {
+  routes: {post: {}},
+  sockets: {},
+  sessions: {},
+  apps: {}
+} as RxBlueprintServer;
 
 const isEvent = (v: any): v is Event =>
   (v as any).__type === "Event";
@@ -178,10 +188,7 @@ export function task(): Task<any> {
     if (states.length) {
       const lastestStates$ = combineLatest(states).pipe(filter(v => !_.find(v, vv => vv === nonce)));
       app.__tasks[name] = merge(...triggers).pipe(
-        map(e => {
-          console.log(name, e);
-          return "";
-        }),
+        map(() => ""),
         withLatestFrom(lastestStates$),
         operations[0],
         operations[1] ? operations[1] : tap(_.identity),
@@ -196,10 +203,7 @@ export function task(): Task<any> {
       );
     } else {
       app.__tasks[name] = merge(...triggers).pipe(
-        map(e => {
-          console.log(name, e);
-          return "";
-        }),
+        map(()=> ""),
         operations[0],
         operations[1] ? operations[1] : tap(_.identity),
         operations[2] ? operations[2] : tap(_.identity),
@@ -318,10 +322,13 @@ const createSession = (session: Session, socketId: string): SessionContext => {
   return context;
 };
 
+const route = (socketId: string, app: AppBlueprint, v: State<any> | Event | Task<any>): string =>
+  `/${socketId}/${app.name}/${v.__name}`;
+
 export const app = (func: () => AppBlueprint): App => {
   const theApp = func();
   theApp.events.push(event("initialized"));
-  const create = (server: RxBlueprintServer, socketId: string) => {
+  const create = (socketId: string) => {
     const key = `${theApp.name}_${socketId}`;
     const context = {
       __id: randomUUID(),
@@ -333,11 +340,10 @@ export const app = (func: () => AppBlueprint): App => {
       __requests$: new Subject<BlueprintRequest>(),
       __lastRequestId: 0,
     } as AppContext;
-    server.apps[key] = context;
+    rxBlueprintServer.apps[key] = context;
     context.__requestSubscription = context.__requests$.subscribe(r => {
       const onDeck = context.__lastRequestId + 1;
       if (r.id < onDeck) {
-        console.log("LESS");
         return;
       } else if (r.id > onDeck) {
         setTimeout(() => context.__requests$.next({...r, count: r.count + 1}), 300);
@@ -358,12 +364,11 @@ export const app = (func: () => AppBlueprint): App => {
         }
       }
     });
-    const socket = server.sockets[socketId];
-    const session = server.sessions[socketId];
+    const socket = rxBlueprintServer.sockets[socketId];
+    const session = rxBlueprintServer.sessions[socketId];
     theApp.state.forEach(s => {
       s.create(context);
-      const route = `/${socketId}/${theApp.name}/${s.__name}`;
-      server.routes.post[route] = (req: Request) => {
+      rxBlueprintServer.routes.post[route(socketId, theApp, s)] = (req: Request) => {
         const id = req.body.id as number;
         const name = s.__name;
         const payload = req.body.payload;
@@ -375,7 +380,6 @@ export const app = (func: () => AppBlueprint): App => {
       withDelay$.subscribe({
         next: v => {
           if (v !== nonce) {
-            console.log(`${socketId}/${theApp.name}/${s.__name}`, v);
             socket.emit(`${theApp.name}/${s.__name}`, v);
           }
         },
@@ -386,9 +390,7 @@ export const app = (func: () => AppBlueprint): App => {
     });
     theApp.events.forEach(e => {
       e.create(context);
-      const route = `/${socketId}/${theApp.name}/${e.__name}`;
-      console.log(route);
-      server.routes.post[route] = (req: Request) => {
+      rxBlueprintServer.routes.post[route(socketId, theApp, e)] = (req: Request) => {
         const id = req.body.id as number;
         const name = e.__name;
         const payload = req.body.payload;
@@ -398,8 +400,7 @@ export const app = (func: () => AppBlueprint): App => {
     });
     theApp.tasks.forEach(h => {
       h.create(context, session);
-      const route = `/${socketId}/${theApp.name}/${h.__name}`;
-      server.routes.post[route] = (req: Request) => {
+      rxBlueprintServer.routes.post[route(socketId, theApp, h)] = (req: Request) => {
         const id = req.body.id as number;
         const name = h._trigger?.__name || "";
         const payload = req.body.payload;
@@ -425,23 +426,20 @@ export const app = (func: () => AppBlueprint): App => {
     context.__events["initialized"].next("");
   };
 
-  const destroy = (server: RxBlueprintServer, socketId: string) => {
+  const destroy = (socketId: string) => {
     const key = `${theApp.name}_${socketId}`;
-    const app = server.apps[key];
+    const app = rxBlueprintServer.apps[key];
     theApp.state.forEach(s => {
-      const route = `/${socketId}/${theApp.name}/${s.__name}`;
       s.destroy(app)
-      delete server.routes.post[route];
+      delete rxBlueprintServer.routes.post[route(socketId, theApp, s)];
     });
     theApp.events.forEach(e => {
-      const route = `/${socketId}/${theApp.name}/${e.__name}`;
       e.destroy(app)
-      delete server.routes.post[route];
+      delete rxBlueprintServer.routes.post[route(socketId, theApp, e)];
     });
     theApp.state.forEach(t => {
-      const route = `/${socketId}/${theApp.name}/${t.__name}`;
       t.destroy(app)
-      delete server.routes.post[route];
+      delete rxBlueprintServer.routes.post[route(socketId, theApp, t)];
     });
     app.__requests$.complete();
     app.__requestSubscription?.unsubscribe();
@@ -523,84 +521,146 @@ const diagram = (apps: Record<string, App>, session: Session) => {
   rxserialize.build("App", _.map(apps, a => a.__sheet));
 };
 
-export const serve = <T>(apps: Record<string, App>, session: Session, options?: ServerOptions) => {
-  const argv = minimist(process.argv.slice(2));
-  if (argv.diagram?.toUpperCase() === "TRUE") {
-    diagram(apps, session);
-    return;
-  }
-  const defaultOrigin = "http://localhost:3000";
-  const defaultPort = 8080;
-  const rxBlueprintServer = {
-    routes: {post: {}},
-    sockets: {},
-    sessions: {},
-    apps: {}
-  } as RxBlueprintServer;
-  const a = express();
-  a.use(cors({origin: options?.cors?.origin || defaultOrigin, methods: ["GET", "POST"]}));
-  a.use(bodyParser.json({type: "application/json", strict: false}))
-  a.post("/subscribe", (req, res) => {
-    const url = parseurl(req) as Url;
-    const query = qs.parse(url.query as string);
-    const appName = query.app as string;
-    const socketId = query.socketId as string;
-    apps[appName].create(rxBlueprintServer, socketId);
-    res.write("Success");
-    res.end();
+const onConnection = (apps: Record<string, App>, session: Session) => (socket: Socket) => {
+  rxBlueprintServer.sockets[socket.id] = socket;
+  rxBlueprintServer.sessions[socket.id] = createSession(session, socket.id);
+  console.log(`a user connected: ${socket.id}`);
+  socket.on('disconnect', () => {
+    console.log(`a user disconnected: ${socket.id}`);
+    _
+      .chain(rxBlueprintServer.apps)
+      .filter(a => a.__socketId === socket.id)
+      .forEach(a => {
+        const key = `${a.__name}_${socket.id}`
+        apps[a.__name].destroy(socket.id);
+        delete rxBlueprintServer.apps[key];
+      });
+    delete rxBlueprintServer.sockets[socket.id];
+    delete rxBlueprintServer.sessions[socket.id];
   });
-  a.post("/unsubscribe", (req, res) => {
-    const url = parseurl(req) as Url;
-    const query = qs.parse(url.query as string);
-    const appName = query.app as string;
-    const socketId = query.socketId as string;
-    apps[appName].destroy(rxBlueprintServer, socketId);
-  });
-
-  a.post("*", (req, res) => {
-    if (req.method === "POST") {
-      const url = parseurl(req) as Url;
-      const route = rxBlueprintServer.routes.post[url.pathname!];
-      if (!route) {
-        console.error(`${url.pathname!} was not found`);
-        res.statusCode = 404;
-        res.end();
-      } else {
-        route(req);
-        res.write("Success")
-        res.end();
-      }
-    }
-  });
-
-  const server = http.createServer(a);
-
-  const io = new Server(server, {
-    cors: {
-      origin: options?.cors?.origin || defaultOrigin,
-      methods: ["GET", "POST"]
-    }
-  });
-  io.on('connection', (socket) => {
-    rxBlueprintServer.sockets[socket.id] = socket;
-    rxBlueprintServer.sessions[socket.id] = createSession(session, socket.id);
-    console.log(`a user connected: ${socket.id}`);
-    socket.on('disconnect', () => {
-      console.log(`a user disconnected: ${socket.id}`);
-      _
-        .chain(rxBlueprintServer.apps)
-        .filter(a => a.__socketId === socket.id)
-        .forEach(a => {
-          const key = `${a.__name}_${socket.id}`
-          apps[a.__name].destroy(rxBlueprintServer, socket.id);
-          delete rxBlueprintServer.apps[key];
-        });
-      delete rxBlueprintServer.sockets[socket.id];
-      delete rxBlueprintServer.sessions[socket.id];
-    });
-  });
-
-  rxserialize.build("App", _.map(apps, a => a.__sheet));
-
-  server.listen(options?.port || defaultPort);
 };
+
+const onSubscribe = (apps: Record<string, App>, req: express.Request, res: express.Response) => {
+  const url = parseurl(req) as Url;
+  const query = qs.parse(url.query as string);
+  const appName = query.app as string;
+  const socketId = query.socketId as string;
+  apps[appName].create(socketId);
+  res.write("Success");
+  res.end();
+};
+
+const onUnsubscribe = (apps: Record<string, App>, req: express.Request, res: express.Response) => {
+  const url = parseurl(req) as Url;
+  const query = qs.parse(url.query as string);
+  const appName = query.app as string;
+  const socketId = query.socketId as string;
+  apps[appName].destroy(socketId);
+  res.write("Success");
+  res.end();
+};
+
+const onSheets = (res: express.Response) => {
+  res.json({name: serialized.name, sheets: serialized.slimSheets})
+  res.end();
+};
+
+const onSheet = (req: express.Request, res: express.Response) => {
+  const url = parseurl(req) as Url;
+  const query = qs.parse(url.query as string);
+  const sheetName = query.sheet;
+  const sheet = serialized.sheets.find(s => s.name === sheetName);
+  res.json(sheet)
+  res.end();
+};
+
+const router = (apps: Record<string, App>, namespace: string) => (req: express.Request, res: express.Response) => {
+  const url = parseurl(req) as Url;
+  if (url.pathname === "/__sheets__") {
+    onSheets(res);
+  } else if (url.pathname === "/__sheet__") {
+    onSheet(req, res);
+  } else if (url.pathname === "/subscribe") {
+    onSubscribe(apps, req, res);
+  } else if (url.pathname === "/unsubscribe") {
+    onUnsubscribe(apps, req, res);
+  } else if (req.method === "POST") {
+    const url = parseurl(req) as Url;
+    const route = rxBlueprintServer.routes.post[url.pathname!];
+    if (route) {
+      route(req);
+      res.write("Success")
+      res.end();
+    } else {
+      console.error(`${url.pathname!} was not found`);
+      res.statusCode = 404;
+      res.end();
+    }
+  } else {
+    res.statusCode = 404;
+    res.end();
+  }
+};
+
+const namespace = "/__blueprint__";
+
+const blueprintExpress = (apps: Record<string, App>, session: Session): BlueprintExpress => {
+  const app = router(apps, namespace) as unknown as express.Application;
+  const serve = (options?: ServerOptions) => {
+    const e = express();
+    e.use(cors({origin: options?.cors?.origin || defaultOrigin, methods: ["GET", "POST"]}));
+    e.use(namespace, bodyParser.json());
+    e.use(namespace, app);
+    const server = http.createServer(e);
+    server.listen(options?.port || defaultPort);
+    return server;
+  };
+  return {
+    path: namespace,
+    app,
+    serve
+  }
+};
+
+const blueprintIO = (apps: Record<string, App>, session: Session): BlueprintIO => {
+  const _onConnection = onConnection(apps, session);
+  const serve = (server: http.Server, options?: ServerOptions): Server => {
+    const io = new Server(server, {
+      cors: {
+        origin: options?.cors?.origin || defaultOrigin,
+        methods: ["GET", "POST"]
+      }
+    });
+    io.of(namespace).on('connection', _onConnection);
+    return io;
+  };
+
+  return {
+    namespace: namespace,
+    onConnection: onConnection(apps, session),
+    serve
+  };
+};
+
+export const create = (apps: Record<string, App>, session: Session): Blueprint => {
+  serialized = rxserialize.build("App", _.map(apps, a => a.__sheet));
+  const _express = blueprintExpress(apps, session);
+  const _io = blueprintIO(apps, session);
+  const serve = (options?: ServerOptions): Servers => {
+    const expressServer = _express.serve(options);
+    const ioServer = _io.serve(expressServer, options);
+    return {
+      expressServer: expressServer,
+      ioServer
+    };
+  };
+  return {
+    express: blueprintExpress(apps, session),
+    io: blueprintIO(apps, session),
+    serve
+  }
+};
+
+const defaultOrigin = "http://localhost:3000";
+const defaultPort = 8080;
+let serialized: Serialized;

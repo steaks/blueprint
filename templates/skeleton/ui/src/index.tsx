@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {BrowserRouter, Route, Routes} from "react-router-dom";
-import {Blueprint} from "blueprint-react";
+import {Blueprint, route, Diagram} from "blueprint-react";
 import Home from "./home";
 
 const root = ReactDOM.createRoot(
@@ -14,6 +14,7 @@ root.render(
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />}/>
+          <Route path={route} element={<Diagram />}/>
         </Routes>
       </BrowserRouter>
     </Blueprint>
