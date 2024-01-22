@@ -3,8 +3,12 @@ import {create} from "blueprint-server";
 import session from "./session";
 import myApp from "./apps/myApp";
 
+const options = {
+  cors: {origin: process.env.CORS_ORIGIN}
+};
+
 const bp = create({myApp}, session);
-bp.serve();
+bp.serve(options);
 //From scratch
 // const bp = create({myApp}, session);
 // e.use(bp.express.path, bp.express.app);

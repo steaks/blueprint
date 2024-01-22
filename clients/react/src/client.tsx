@@ -8,7 +8,9 @@ let _socket: Promise<Socket<any, any>> | null = null;
 const connect = async () => {
   if (!_socket) {
     _socket = new Promise(resolve => {
-      const s = io(config.uri.replace("http://", "ws://").replace("https://", "ws://"));
+      const s = io(
+        config.uri.replace("http://", "ws://").replace("https://", "wss://")
+      );
       s.on("connect", () => {
         console.debug("Connected");
         console.debug("ID:" + s.id);
