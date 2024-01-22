@@ -8,9 +8,6 @@ const useExistingEmployee = state<string>("team", "existingEmployee");
 const useSelectedEmployee = state<string>("team", "selectedEmployee");
 const useUpdatedEmployee = state<string>("team", "updatedEmployee");
 
-//events
-const useEmployeesChanged = event("team", "employeesChanged");
-
 //tasks
 const useEmployees = task<string[]>("team", "employees");
 const useCount = task<number>("team", "count");
