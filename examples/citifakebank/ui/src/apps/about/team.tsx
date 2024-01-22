@@ -1,5 +1,5 @@
 import React from "react";
-import {state, event, task, app} from "blueprint-react";
+import {state, task, app} from "blueprint-react";
 
 //state
 const useSearch =  state<string>("team", "search");
