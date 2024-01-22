@@ -20,8 +20,3 @@ run-server:
 	cd server
 	npm run build
 	npm run serve
-
-.ONESHELL:
-run-blueprint:
-	cd server
-	npm run blueprint

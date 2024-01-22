@@ -1,6 +1,5 @@
 import typescript from '@rollup/plugin-typescript';
-
-
+import {nodeResolve} from '@rollup/plugin-node-resolve';
 import pkg from './package.json'
 
 export default {
@@ -14,6 +13,6 @@ export default {
       strict: false,
     },
   ],
-  plugins: [typescript({sourceMap: true})],
+  plugins: [typescript({sourceMap: true}), nodeResolve()],
   external: ['react', 'react-dom'],
 }

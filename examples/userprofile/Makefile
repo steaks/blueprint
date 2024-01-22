@@ -22,11 +22,6 @@ run-server:
 	npm run serve
 
 .ONESHELL:
-run-blueprint:
-	cd server
-	npm run blueprint
-
-.ONESHELL:
 run-server-prod:
 	cd server
 	npm run build:prod

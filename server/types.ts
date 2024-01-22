@@ -1,5 +1,7 @@
 import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
-import {Socket} from "socket.io";
+import {Server, Socket} from "socket.io";
+import express, {NextFunction} from "express";
+import http from "http";
 
 export type Func0<R> = () => R | Promise<R>;
 export type Func1<A0, R> = (a0: A0) => R | Promise<R>;
@@ -154,6 +156,10 @@ export interface SheetJSON {
   events?: EventJSON[];
 }
 
+export interface SlimSheetJSON {
+  readonly name: string;
+}
+
 export interface AppContext {
   readonly __id: string;
   readonly __socketId: string;
@@ -209,8 +215,8 @@ export interface RxBlueprintServer {
 export interface App {
   readonly __app: AppBlueprint;
   readonly __sheet: SheetJSON;
-  readonly create: (server: RxBlueprintServer, socketId: string) => void;
-  readonly destroy: (server: RxBlueprintServer, socketId: string) => void;
+  readonly create: (socketId: string) => void;
+  readonly destroy: (socketId: string) => void;
 }
 
 export interface ServerOptions {
@@ -219,4 +225,32 @@ export interface ServerOptions {
 }
 export interface Cors {
   readonly origin?: string;
+}
+export interface BlueprintExpress {
+  readonly path: string;
+  readonly app: express.Application;
+  readonly serve: (options?: ServerOptions) => http.Server;
+}
+
+export interface BlueprintIO {
+  readonly namespace: string;
+  readonly onConnection: (socket: Socket) => void;
+  readonly serve: (server: http.Server, options?: ServerOptions) => Server;
+}
+
+export interface Servers {
+  readonly expressServer: http.Server;
+  readonly ioServer: Server;
+}
+
+export interface Blueprint {
+  readonly express: BlueprintExpress;
+  readonly io: BlueprintIO;
+  readonly serve: (options?: ServerOptions) => Servers;
+}
+
+export interface Serialized {
+  readonly name: string;
+  readonly sheets: SheetJSON[];
+  readonly slimSheets: SlimSheetJSON[];
 }

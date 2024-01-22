@@ -1,5 +1,4 @@
-import * as fs from "fs";
-import {SheetJSON, AppBlueprint} from "../types";
+import {SheetJSON, AppBlueprint, Serialized} from "../types";
 
 const sheet = (app: AppBlueprint): SheetJSON => {
   const taskTriggers = new Set(app.tasks.flatMap(h => h._operators.filter(o => o.__name.startsWith("Trigger_"))).map(t => t.__name.replace("Trigger_", "")));
@@ -33,21 +32,10 @@ const sheet = (app: AppBlueprint): SheetJSON => {
   return {name: app.name, graphs: graphsJSON, states: statesJSON, events: eventsJSON};
 };
 
-const build = (name: string, sheets: SheetJSON[], path: string = "./.blueprint") => {
+const build = (name: string, sheets: SheetJSON[], path: string = "./.blueprint"): Serialized => {
   const fullPath = `${path}/build`;
-
-  if (!fs.existsSync(fullPath)){
-    fs.mkdirSync(fullPath, {recursive: true});
-  }
-  sheets.forEach(sheet => {
-    const json = JSON.stringify(sheet, null, 2);
-    const file = sheet.name;
-    fs.writeFileSync(`${fullPath}/${file}.json`, json);
-  });
   const slimSheets = sheets.map(s => ({name: s.name}));
-  const index = {name, sheets: slimSheets};
-  const indexJSON = JSON.stringify(index, null, 2);
-  fs.writeFileSync(`${fullPath}/index.json`, indexJSON);
+  return {name, slimSheets, sheets};
 };
 
 export default {sheet, build};

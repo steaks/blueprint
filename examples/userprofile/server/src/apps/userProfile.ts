@@ -1,4 +1,4 @@
-import {app, state, event, task, trigger, from} from "@blueprint/server";
+import {app, state, event, task, trigger, from} from "blueprint-server";
 import {User} from "../../../shared/src/apps/userProfile";
 
 const db = {

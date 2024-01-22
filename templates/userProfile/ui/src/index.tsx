@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {BrowserRouter, Route, Routes} from "react-router-dom";
-import {Blueprint} from "blueprint-react";
+import {Blueprint, route, Diagram} from "blueprint-react";
 import Home from "./home";
 import UserProfile from './apps/userProfile';
 
@@ -16,6 +16,7 @@ root.render(
         <Routes>
           <Route path="/" element={<Home />}/>
           <Route path="/userProfile" element={<UserProfile />}/>
+          <Route path={route} element={<Diagram />}/>
         </Routes>
       </BrowserRouter>
     </Blueprint>
