@@ -1,1 +1,1 @@
-export {from, task, state, event, app, trigger, set, get, ref, create} from "./src/rxblueprint";
+export {from, task, state, event, app, trigger, set, get, ref, create} from "./src/server";

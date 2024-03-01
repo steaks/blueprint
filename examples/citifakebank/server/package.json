@@ -18,7 +18,7 @@
     "pg-promise": "^11.4.3",
     "ts-node": "^10.8.1",
     "typescript": "^4.7.3",
-    "blueprint-server": "0.1.0-alpha.10"
+    "blueprint-server": "0.1.0-alpha.11"
   },
   "engines": {
     "npm": ">=8.0.0",
