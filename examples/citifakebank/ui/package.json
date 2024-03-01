@@ -16,7 +16,7 @@
     "typescript": "^4.7.3",
     "web-vitals": "^2.1.4",
     "socket.io-client": "^4.6.1",
-    "blueprint-react": "0.1.0-alpha.10"
+    "blueprint-react": "0.1.0-alpha.11"
   },
   "scripts": {
     "start": "react-scripts start",

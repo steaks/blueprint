@@ -1,6 +1,5 @@
 import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
-import {Server, Socket} from "socket.io";
-import express, {NextFunction} from "express";
+import express from "express";
 import http from "http";
 
 export type Func0<R> = () => R | Promise<R>;
@@ -45,8 +44,8 @@ export interface State<V> {
   readonly destroy: (app: AppContext | SessionContext) => void;
 }
 
-export interface RxOperator<V> {
-  (app: AppContext, session: SessionContext, context: Context): Promise<V>;
+export interface Operator<V> {
+  (app: AppContext, session: SessionContext, context: OperatorContext): Promise<V>;
   readonly __name: string;
   readonly __type: string;
   readonly _suboperators: Operator<any>[];
@@ -55,7 +54,7 @@ export interface RxOperator<V> {
   readonly _taskInputs: Task<unknown>[];
 }
 
-export interface TriggerOperator<V> extends RxOperator<V> {
+export interface TriggerOperator<V> extends Operator<V> {
   readonly __type: "TriggerOperator";
 }
 
@@ -67,7 +66,7 @@ export interface TaskOptions {
 export interface Task<V> {
   __type: string;
   __name: string;
-  _operators: RxOperator<any>[];
+  _operators: Operator<any>[];
   _input: string;
   _output: string;
   _outputState: State<V>;
@@ -78,17 +77,10 @@ export interface Task<V> {
   destroy: (context: AppContext, session: SessionContext) => void;
 }
 
-export interface Context {
+export interface OperatorContext {
   readonly graph: string;
   readonly data: Record<string, any>;
-}
-
-export interface Operator<R> {
-  (context: Context): Promise<R>;
-  readonly __name: string;
-  readonly __type: string;
-  readonly _suboperators: Operator<any>[];
-  readonly _subgraph: Graph<any, any> | null;
+  readonly state: Record<string, BehaviorSubject<any>>;
 }
 
 export interface Graph<A, B> {
@@ -98,25 +90,6 @@ export interface Graph<A, B> {
   readonly _operators: Operator<any>[];
   readonly _input: string;
   readonly _output: string;
-}
-
-export type Case0<B> = (check: () => boolean, func: Func0<B>) => Branch0<B>;
-export type Case1<A0, B> = (check: (a0: A0) => boolean, func: Func1<A0, B> | Graph<A0, B>) => Branch1<A0, B>;
-
-export interface Branch0<B> {
-  readonly __name: string;
-  readonly __cases: {check: () => boolean, func: Func0<B>}[];
-  readonly __default?: () => B | Promise<B>;
-  readonly case: Case0<B>;
-  readonly default: (func: () => B | Promise<B>) => Operator<B>;
-}
-
-export interface Branch1<A0, B> {
-  readonly __name: string;
-  readonly __cases: {check: (a0: A0) => boolean, func: Func1<A0, B>}[];
-  readonly __default?: Func1<A0, B>;
-  readonly case: Case1<A0, B>;
-  readonly default: (func: Func1<A0, B>) => Operator<B>;
 }
 
 export interface OperatorJSON {
@@ -162,7 +135,7 @@ export interface SlimSheetJSON {
 
 export interface AppContext {
   readonly __id: string;
-  readonly __socketId: string;
+  readonly __connectionId: string;
   readonly __name: string;
   readonly __state: Record<string, BehaviorSubject<any>>;
   readonly __events: Record<string, Subject<any>>;
@@ -182,7 +155,7 @@ export interface BlueprintRequest {
 
 export interface SessionContext {
   readonly __id: string;
-  readonly __socketId: string;
+  readonly __connectionId: string;
   readonly __name: string;
   readonly __state: Record<string, BehaviorSubject<any>>;
   readonly __events: Record<string, Subject<any>>;
@@ -203,11 +176,9 @@ export interface Session {
   readonly tasks: Record<string, Task<any>>;
 }
 
-export interface RxBlueprintServer {
-  readonly sockets: Record<string, Socket>;
-  readonly routes: {
-    post: Record<string, Function>;
-  };
+export interface BlueprintServer {
+  readonly connections: Record<string, express.Response>;
+  readonly routes: {readonly post: Record<string, Function>;};
   readonly sessions: Record<string, SessionContext>;
   readonly apps: Record<string, AppContext>;
 }
@@ -215,8 +186,8 @@ export interface RxBlueprintServer {
 export interface App {
   readonly __app: AppBlueprint;
   readonly __sheet: SheetJSON;
-  readonly create: (socketId: string) => void;
-  readonly destroy: (socketId: string) => void;
+  readonly create: (connectionId: string) => void;
+  readonly destroy: (connectionId: string) => void;
 }
 
 export interface ServerOptions {
@@ -232,20 +203,12 @@ export interface BlueprintExpress {
   readonly serve: (options?: ServerOptions) => http.Server;
 }
 
-export interface BlueprintIO {
-  readonly namespace: string;
-  readonly onConnection: (socket: Socket) => void;
-  readonly serve: (server: http.Server, options?: ServerOptions) => Server;
-}
-
 export interface Servers {
   readonly expressServer: http.Server;
-  readonly ioServer: Server;
 }
 
 export interface Blueprint {
   readonly express: BlueprintExpress;
-  readonly io: BlueprintIO;
   readonly serve: (options?: ServerOptions) => Servers;
 }
 

@@ -13,14 +13,14 @@ import {
   withLatestFrom
 } from "rxjs";
 import {
-  Context,
+  OperatorContext,
   Func0,
   Func1,
   Func2,
   Func3,
   Func4,
   Graph,
-  RxOperator,
+  Operator,
   State,
   Event,
   Task,
@@ -30,7 +30,7 @@ import {
   AppContext,
   AppBlueprint,
   App,
-  RxBlueprintServer,
+  BlueprintServer,
   ServerOptions,
   RefParam,
   StateRef,
@@ -38,36 +38,31 @@ import {
   EventRef,
   TriggerOperator,
   BlueprintRequest,
-  BlueprintIO,
   BlueprintExpress, Blueprint, Servers, Serialized
 } from "../types";
-import minimist from "minimist";
 import {randomUUID} from "crypto";
 import http from "http";
 import * as qs from "qs";
 import parseurl from "parseurl";
 import {Url} from "url";
 import _ from "lodash";
-import express, {NextFunction, Request} from "express";
+import express, {Request} from "express";
 import cors from "cors";
-import {Server, Socket} from "socket.io";
-import rxserialize from "./rxserialize";
+import serialize from "./serialize";
 import util from "./util";
 import bodyParser from "body-parser";
-import {RequestHandler} from "express-serve-static-core";
 
-interface RxContext {
-  readonly graph: string;
-  readonly data: Record<string, any>;
-  readonly state: Record<string, BehaviorSubject<any>>;
-}
 
-const rxBlueprintServer = {
+const defaultOrigin = "http://localhost:3000";
+const defaultPort = 8080;
+let serialized: Serialized;
+
+const blueprintServer = {
   routes: {post: {}},
-  sockets: {},
+  connections: {},
   sessions: {},
   apps: {}
-} as RxBlueprintServer;
+} as BlueprintServer;
 
 const isEvent = (v: any): v is Event =>
   (v as any).__type === "Event";
@@ -85,7 +80,7 @@ export const event = (name: string): Event =>
 const isState = (v: any): v is State<any> =>
   (v as any).__type === "State";
 
-const isOperator = (v: any): v is RxOperator<any> =>
+const isOperator = (v: any): v is Operator<any> =>
   (v as any).__type === "Operator";
 
 const isRefParam = (v: any): v is RefParam<any> =>
@@ -115,28 +110,28 @@ export const state = <V>(name: string, initialValue?: V): State<V> => {
 };
 
 
-export function task<A>(o0: RxOperator<A>): Task<A>;
-export function task<A>(options: TaskOptions, o0: RxOperator<A>): Task<A>;
-export function task<A>(options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>): Task<A>;
-export function task<A>(options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>, o2: TriggerOperator<any>): Task<A>;
-export function task<A>(options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>): Task<A>;
-export function task<A>(options: TaskOptions, o0: RxOperator<A>, o1: TriggerOperator<any>, o2: TriggerOperator<any>, o3: TriggerOperator<any>, o4: TriggerOperator<any>): Task<A>;
+export function task<A>(o0: Operator<A>): Task<A>;
+export function task<A>(options: TaskOptions, o0: Operator<A>): Task<A>;
+export function task<A>(options: TaskOptions, o0: Operator<A>, o1: TriggerOperator<any>): Task<A>;
+export function task<A>(options: TaskOptions, o0: Operator<A>, o1: TriggerOperator<any>, o2: TriggerOperator<any>): Task<A>;
+export function task<A>(options: TaskOptions, o0: Operator<A>, o1: TriggerOperator<any>): Task<A>;
+export function task<A>(options: TaskOptions, o0: Operator<A>, o1: TriggerOperator<any>, o2: TriggerOperator<any>, o3: TriggerOperator<any>, o4: TriggerOperator<any>): Task<A>;
 export function task(): Task<any> {
   let name: string;
   let options: TaskOptions;
-  let operators: RxOperator<any>[];
+  let operators: Operator<any>[];
   if (arguments.length === 1) {
     options = {} as TaskOptions
-    operators = util.createArgs(arguments, 0) as RxOperator<any>[];
+    operators = util.createArgs(arguments, 0) as Operator<any>[];
     name = operators[0].__name;
   } else {
     options = arguments[0] as TaskOptions
     name = options.name;
-    operators = util.createArgs(arguments, 1) as RxOperator<any>[];
+    operators = util.createArgs(arguments, 1) as Operator<any>[];
   }
 
   const optTriggers = options.triggers || ["self", "stateChanges"];
-  const context = {graph: name, data: {}, state: {}} as RxContext;
+  const context = {graph: name, data: {}, state: {}} as OperatorContext;
   const taskEvent = optTriggers.includes("self") ? event(`trigger_${name}`) : null;
   const taskState = state<any>(`task_${name}`);
   const _inputStates = optTriggers.includes("stateChanges")
@@ -249,18 +244,18 @@ export const ref = <V>(v: State<V> | Event | Task<V>): RefParam<V> => {
   throw new Error("Unrecognized type");
 };
 
-export function from<R>(func: Func0<R>): RxOperator<R>;
-export function from<A0, R>(func: Func1<A0, R>, arg0: RxOperator<A0> | State<A0> | Task<A0> | RefParam<A0>): RxOperator<R>;
-export function from<A0, A1, R>(func: Func2<A0, A1, R>, arg0: RxOperator<A0> | State<A0> | Task<A0> | RefParam<A0>, arg1: RxOperator<A1> | State<A1> | Task<A1> | RefParam<A1>): RxOperator<R>;
-export function from<A0, A1, A2, R>(func: Func3<A0, A1, A2, R>, arg0: RxOperator<A0> | State<A0> | Task<A0> | RefParam<A0>, arg1: RxOperator<A1> | State<A1> | Task<A1> | RefParam<A1>, arg2: RxOperator<A2> | State<A2> | Task<A2> | RefParam<A2>): RxOperator<R>;
-export function from<A0, A1, A2, A3, R>(func: Func4<A0, A1, A2, A3, R>, arg0: RxOperator<A0> | State<A0> | Task<A0> | RefParam<A0>, arg1: RxOperator<A1> | State<A1> | Task<A1> | RefParam<A1>, arg2: RxOperator<A2> | State<A2> | Task<A2> | RefParam<A2>, arg3: RxOperator<A3> | State<A3> | Task<A3> | RefParam<A3>): RxOperator<R>;
-export function from(): RxOperator<unknown> {
+export function from<R>(func: Func0<R>): Operator<R>;
+export function from<A0, R>(func: Func1<A0, R>, arg0: Operator<A0> | State<A0> | Task<A0> | RefParam<A0>): Operator<R>;
+export function from<A0, A1, R>(func: Func2<A0, A1, R>, arg0: Operator<A0> | State<A0> | Task<A0> | RefParam<A0>, arg1: Operator<A1> | State<A1> | Task<A1> | RefParam<A1>): Operator<R>;
+export function from<A0, A1, A2, R>(func: Func3<A0, A1, A2, R>, arg0: Operator<A0> | State<A0> | Task<A0> | RefParam<A0>, arg1: Operator<A1> | State<A1> | Task<A1> | RefParam<A1>, arg2: Operator<A2> | State<A2> | Task<A2> | RefParam<A2>): Operator<R>;
+export function from<A0, A1, A2, A3, R>(func: Func4<A0, A1, A2, A3, R>, arg0: Operator<A0> | State<A0> | Task<A0> | RefParam<A0>, arg1: Operator<A1> | State<A1> | Task<A1> | RefParam<A1>, arg2: Operator<A2> | State<A2> | Task<A2> | RefParam<A2>, arg3: Operator<A3> | State<A3> | Task<A3> | RefParam<A3>): Operator<R>;
+export function from(): Operator<unknown> {
   const func = arguments[0];
   const args = util.createArgs(arguments, 1);
   const stateInputs = args.filter(isState)
   const taskInputs = args.filter(isTask)
   // const theOperator = createOperator(func, args);
-  const theOperator = async (app: AppContext, session: SessionContext, c: Context): Promise<unknown> => {
+  const theOperator = async (app: AppContext, session: SessionContext, c: OperatorContext): Promise<unknown> => {
     const a = args.map(a => {
       if (isState(a)) {
         return (app.__state[a.__name] || session.__state[a.__name]).getValue();
@@ -300,10 +295,10 @@ export function from(): RxOperator<unknown> {
   return theOperator;
 }
 
-const createSession = (session: Session, socketId: string): SessionContext => {
+const createSession = (session: Session, connectionId: string): SessionContext => {
   const context = {
     __id: randomUUID(),
-    __socketId: socketId,
+    __connectionId: connectionId,
     __name: "session",
     __state: {},
     __events: {},
@@ -322,17 +317,24 @@ const createSession = (session: Session, socketId: string): SessionContext => {
   return context;
 };
 
-const route = (socketId: string, app: AppBlueprint, v: State<any> | Event | Task<any>): string =>
-  `/${socketId}/${app.name}/${v.__name}`;
+const route = (connectionId: string, app: AppBlueprint, v: State<any> | Event | Task<any>): string =>
+  `/${connectionId}/${app.name}/${v.__name}`;
+
+const emitMessage = (res: express.Response, name: string, payload: object) => {
+  const e = `event: ${name}\n`;
+  const d = `data: ${JSON.stringify(payload)}\n\n`;
+  res.write(e);
+  res.write(d);
+};
 
 export const app = (func: () => AppBlueprint): App => {
   const theApp = func();
   theApp.events.push(event("initialized"));
-  const create = (socketId: string) => {
-    const key = `${theApp.name}_${socketId}`;
+  const create = (connectionId: string) => {
+    const key = `${theApp.name}_${connectionId}`;
     const context = {
       __id: randomUUID(),
-      __socketId: socketId,
+      __connectionId: connectionId,
       __name: theApp.name,
       __state: {},
       __events: {},
@@ -340,7 +342,7 @@ export const app = (func: () => AppBlueprint): App => {
       __requests$: new Subject<BlueprintRequest>(),
       __lastRequestId: 0,
     } as AppContext;
-    rxBlueprintServer.apps[key] = context;
+    blueprintServer.apps[key] = context;
     context.__requestSubscription = context.__requests$.subscribe(r => {
       const onDeck = context.__lastRequestId + 1;
       if (r.id < onDeck) {
@@ -364,11 +366,11 @@ export const app = (func: () => AppBlueprint): App => {
         }
       }
     });
-    const socket = rxBlueprintServer.sockets[socketId];
-    const session = rxBlueprintServer.sessions[socketId];
+    const session = blueprintServer.sessions[connectionId];
+    const connection = blueprintServer.connections[connectionId];
     theApp.state.forEach(s => {
       s.create(context);
-      rxBlueprintServer.routes.post[route(socketId, theApp, s)] = (req: Request) => {
+      blueprintServer.routes.post[route(connectionId, theApp, s)] = (req: Request) => {
         const id = req.body.id as number;
         const name = s.__name;
         const payload = req.body.payload;
@@ -380,7 +382,7 @@ export const app = (func: () => AppBlueprint): App => {
       withDelay$.subscribe({
         next: v => {
           if (v !== nonce) {
-            socket.emit(`${theApp.name}/${s.__name}`, v);
+            emitMessage(connection, `${theApp.name}/${s.__name}`, v);
           }
         },
         error: e => {
@@ -390,7 +392,7 @@ export const app = (func: () => AppBlueprint): App => {
     });
     theApp.events.forEach(e => {
       e.create(context);
-      rxBlueprintServer.routes.post[route(socketId, theApp, e)] = (req: Request) => {
+      blueprintServer.routes.post[route(connectionId, theApp, e)] = (req: Request) => {
         const id = req.body.id as number;
         const name = e.__name;
         const payload = req.body.payload;
@@ -400,7 +402,7 @@ export const app = (func: () => AppBlueprint): App => {
     });
     theApp.tasks.forEach(h => {
       h.create(context, session);
-      rxBlueprintServer.routes.post[route(socketId, theApp, h)] = (req: Request) => {
+      blueprintServer.routes.post[route(connectionId, theApp, h)] = (req: Request) => {
         const id = req.body.id as number;
         const name = h._trigger?.__name || "";
         const payload = req.body.payload;
@@ -413,9 +415,9 @@ export const app = (func: () => AppBlueprint): App => {
       withDelay$.subscribe({
         next: v => {
           if (v !== nonce) {
-            console.log(`${socketId}/${theApp.name}/${h.__name}`, v);
+            console.log(`${connectionId}/${theApp.name}/${h.__name}`, v);
             context.__state[`task_${h.__name}`].next(v);
-            socket.emit(`${theApp.name}/${h.__name}`, v);
+            emitMessage(connection, `${theApp.name}/${h.__name}`, v);
           }
         },
         error: e => {
@@ -426,20 +428,20 @@ export const app = (func: () => AppBlueprint): App => {
     context.__events["initialized"].next("");
   };
 
-  const destroy = (socketId: string) => {
-    const key = `${theApp.name}_${socketId}`;
-    const app = rxBlueprintServer.apps[key];
+  const destroy = (connectionId: string) => {
+    const key = `${theApp.name}_${connectionId}`;
+    const app = blueprintServer.apps[key];
     theApp.state.forEach(s => {
       s.destroy(app)
-      delete rxBlueprintServer.routes.post[route(socketId, theApp, s)];
+      delete blueprintServer.routes.post[route(connectionId, theApp, s)];
     });
     theApp.events.forEach(e => {
       e.destroy(app)
-      delete rxBlueprintServer.routes.post[route(socketId, theApp, e)];
+      delete blueprintServer.routes.post[route(connectionId, theApp, e)];
     });
     theApp.state.forEach(t => {
       t.destroy(app)
-      delete rxBlueprintServer.routes.post[route(socketId, theApp, t)];
+      delete blueprintServer.routes.post[route(connectionId, theApp, t)];
     });
     app.__requests$.complete();
     app.__requestSubscription?.unsubscribe();
@@ -449,7 +451,7 @@ export const app = (func: () => AppBlueprint): App => {
     create,
     destroy,
     __app: theApp,
-    __sheet: rxserialize.sheet(theApp)
+    __sheet: serialize.sheet(theApp)
   };
 };
 
@@ -464,8 +466,8 @@ const next = (e: EventRef | TaskRef<any>) => {
   e._next();
 };
 
-const triggerOperator = (e: Event | Task<any>): RxOperator<null> => {
-  const theOperator = async (app: AppContext, session: SessionContext, c: Context): Promise<null> => {
+const triggerOperator = (e: Event | Task<any>): Operator<null> => {
+  const theOperator = async (app: AppContext, session: SessionContext, c: OperatorContext): Promise<null> => {
     if (isEvent(e)) {
       (app.__events[e.__name] || session.__events[e.__name]).next("");
     } else {
@@ -488,8 +490,8 @@ export const get = <V>(state: StateRef<V> | TaskRef<V>): V =>
 const setState = <V>(state: StateRef<V>, value: V): void => {
   state._next(value);
 };
-const setOperator = <A0>(state: State<A0>, a: RxOperator<A0> | State<A0> | A0): RxOperator<null> => {
-  const theOperator = async (app: AppContext, session: SessionContext, c: Context): Promise<null> => {
+const setOperator = <A0>(state: State<A0>, a: Operator<A0> | State<A0> | A0): Operator<null> => {
+  const theOperator = async (app: AppContext, session: SessionContext, c: OperatorContext): Promise<null> => {
     let arg: A0;
     if (isState(a)) {
       arg = (app.__state[a.__name] || session.__state[a.__name]).getValue();
@@ -511,41 +513,18 @@ const setOperator = <A0>(state: State<A0>, a: RxOperator<A0> | State<A0> | A0): 
 };
 
 export function set<V>(state: StateRef<V>, value: V): void;
-export function set<V>(state: State<V>, a: RxOperator<V> | State<V> | V): RxOperator<null>
+export function set<V>(state: State<V>, a: Operator<V> | State<V> | V): Operator<null>
 
 export function set(): any {
   return isState(arguments[0]) ? setOperator(arguments[0], arguments[1]) : setState(arguments[0], arguments[1]);
 }
 
-const diagram = (apps: Record<string, App>, session: Session) => {
-  rxserialize.build("App", _.map(apps, a => a.__sheet));
-};
-
-const onConnection = (apps: Record<string, App>, session: Session) => (socket: Socket) => {
-  rxBlueprintServer.sockets[socket.id] = socket;
-  rxBlueprintServer.sessions[socket.id] = createSession(session, socket.id);
-  console.log(`a user connected: ${socket.id}`);
-  socket.on('disconnect', () => {
-    console.log(`a user disconnected: ${socket.id}`);
-    _
-      .chain(rxBlueprintServer.apps)
-      .filter(a => a.__socketId === socket.id)
-      .forEach(a => {
-        const key = `${a.__name}_${socket.id}`
-        apps[a.__name].destroy(socket.id);
-        delete rxBlueprintServer.apps[key];
-      });
-    delete rxBlueprintServer.sockets[socket.id];
-    delete rxBlueprintServer.sessions[socket.id];
-  });
-};
-
 const onSubscribe = (apps: Record<string, App>, req: express.Request, res: express.Response) => {
   const url = parseurl(req) as Url;
   const query = qs.parse(url.query as string);
   const appName = query.app as string;
-  const socketId = query.socketId as string;
-  apps[appName].create(socketId);
+  const connectionId = query.connectionId as string;
+  apps[appName].create(connectionId);
   res.write("Success");
   res.end();
 };
@@ -554,8 +533,8 @@ const onUnsubscribe = (apps: Record<string, App>, req: express.Request, res: exp
   const url = parseurl(req) as Url;
   const query = qs.parse(url.query as string);
   const appName = query.app as string;
-  const socketId = query.socketId as string;
-  apps[appName].destroy(socketId);
+  const connectionId = query.connectionId as string;
+  apps[appName].destroy(connectionId);
   res.write("Success");
   res.end();
 };
@@ -574,7 +553,36 @@ const onSheet = (req: express.Request, res: express.Response) => {
   res.end();
 };
 
-const router = (apps: Record<string, App>, namespace: string) => (req: express.Request, res: express.Response) => {
+const onStream = (apps: Record<string, App>, session: Session, req: express.Request, res: express.Response) => {
+  const url = parseurl(req) as Url;
+  const query = qs.parse(url.query as string);
+  const connectionId = query.connectionId as string;
+  blueprintServer.connections[connectionId] = res;
+  blueprintServer.sessions[connectionId] = createSession(session, connectionId);
+  res.writeHead(200, {
+    "Cache-Control": "no-cache",
+    "Content-Type": "text/event-stream",
+    "Connection": "keep-alive"
+  });
+  res.flushHeaders();
+  console.log(`a user connected: ${connectionId}`);
+  res.on("close", () => {
+    console.log(`a user disconnected: ${connectionId}`);
+    _
+      .chain(blueprintServer.apps)
+      .filter(a => a.__connectionId === connectionId)
+      .forEach(a => {
+        const key = `${a.__name}_${connectionId}`
+        apps[a.__name].destroy(connectionId);
+        delete blueprintServer.apps[key];
+        res.end();
+      });
+    delete blueprintServer.connections[connectionId];
+    delete blueprintServer.sessions[connectionId];
+  });
+};
+
+const router = (apps: Record<string, App>, session: Session, namespace: string) => (req: express.Request, res: express.Response) => {
   const url = parseurl(req) as Url;
   if (url.pathname === "/__sheets__") {
     onSheets(res);
@@ -584,9 +592,11 @@ const router = (apps: Record<string, App>, namespace: string) => (req: express.R
     onSubscribe(apps, req, res);
   } else if (url.pathname === "/unsubscribe") {
     onUnsubscribe(apps, req, res);
+  } else if (url.pathname === "/stream") {
+    onStream(apps, session, req, res);
   } else if (req.method === "POST") {
     const url = parseurl(req) as Url;
-    const route = rxBlueprintServer.routes.post[url.pathname!];
+    const route = blueprintServer.routes.post[url.pathname!];
     if (route) {
       route(req);
       res.write("Success")
@@ -605,7 +615,7 @@ const router = (apps: Record<string, App>, namespace: string) => (req: express.R
 const namespace = "/__blueprint__";
 
 const blueprintExpress = (apps: Record<string, App>, session: Session): BlueprintExpress => {
-  const app = router(apps, namespace) as unknown as express.Application;
+  const app = router(apps, session, namespace) as unknown as express.Application;
   const serve = (options?: ServerOptions) => {
     const e = express();
     e.use(cors({origin: options?.cors?.origin || defaultOrigin, methods: ["GET", "POST"]}));
@@ -622,45 +632,17 @@ const blueprintExpress = (apps: Record<string, App>, session: Session): Blueprin
   }
 };
 
-const blueprintIO = (apps: Record<string, App>, session: Session): BlueprintIO => {
-  const _onConnection = onConnection(apps, session);
-  const serve = (server: http.Server, options?: ServerOptions): Server => {
-    const io = new Server(server, {
-      cors: {
-        origin: options?.cors?.origin || defaultOrigin,
-        methods: ["GET", "POST"]
-      }
-    });
-    io.of(namespace).on('connection', _onConnection);
-    return io;
-  };
-
-  return {
-    namespace: namespace,
-    onConnection: onConnection(apps, session),
-    serve
-  };
-};
-
 export const create = (apps: Record<string, App>, session: Session): Blueprint => {
-  serialized = rxserialize.build("App", _.map(apps, a => a.__sheet));
+  serialized = serialize.build("App", _.map(apps, a => a.__sheet));
   const _express = blueprintExpress(apps, session);
-  const _io = blueprintIO(apps, session);
   const serve = (options?: ServerOptions): Servers => {
     const expressServer = _express.serve(options);
-    const ioServer = _io.serve(expressServer, options);
     return {
       expressServer: expressServer,
-      ioServer
     };
   };
   return {
     express: blueprintExpress(apps, session),
-    io: blueprintIO(apps, session),
     serve
   }
 };
-
-const defaultOrigin = "http://localhost:3000";
-const defaultPort = 8080;
-let serialized: Serialized;

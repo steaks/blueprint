@@ -1,25 +1,21 @@
 import React, {useState, useEffect, useCallback} from "react";
-import {default as io, Socket} from "socket.io-client";
 import {BlueprintConfig, Props} from "../types";
 
-let socket = null as Socket<any, any> | null;
-let _socket: Promise<Socket<any, any>> | null = null;
+let eventSource = null as EventSource | null;
+let connectionId = null as string | null;
+let connection = null as null | Promise<null>;
 
-const connect = async () => {
-  if (!_socket) {
-    _socket = new Promise(resolve => {
-      const s = io(
-        config.uri.replace("http://", "ws://").replace("https://", "wss://")
-      );
-      s.on("connect", () => {
-        console.debug("Connected");
-        console.debug("ID:" + s.id);
-        socket = s;
-        resolve(s);
+const connect = () => {
+  if (!connection) {
+    connection = new Promise(resolve => {
+      connectionId = crypto.randomUUID();
+      eventSource = new EventSource(`${config.uri}/stream?connectionId=${connectionId}`)
+      eventSource.addEventListener("open", () => {
+        resolve(null);
       });
-    });
+    })
   }
-  return _socket;
+  return connection;
 };
 
 const namespace = "/__blueprint__";
@@ -34,11 +30,9 @@ export const Blueprint = (p: BlueprintConfig) => {
   useEffect(() => {
     config.uri = uri;
     console.debug("Mounting Blueprint");
-    if (!socket) {
-      connect().then(() => setInitialized(true));
-    } else {
+    connect().then(() => {
       setInitialized(true);
-    }
+    });
   }, [uri]);
 
   if (initialized) {
@@ -52,22 +46,22 @@ export const state = <V, >(app: string, stateName: string): () => [V | undefined
     const [state, setState] = useState<V>();
     const set = useCallback((value: V) => {
       setState(value);
-      fetch(`${config.uri}/${socket!.id}/${app}/${stateName}`, {
+      fetch(`${config.uri}/${connectionId!}/${app}/${stateName}`, {
         method: "POST",
         body: JSON.stringify({id: nextRequestId(app), payload: value}),
         headers: {"content-type": "application/json"}
       });
     }, []);
-    const onMessage = useCallback((message: V) => {
-      setState(message);
+    const onMessage = useCallback((e: MessageEvent) => {
+      setState(JSON.parse(e.data) as V);
     }, []);
 
     useEffect(() => {
       console.debug(`Mounting State: ${app} - ${stateName}`);
-      socket!.on(`${app}/${stateName}`, onMessage);
+      eventSource!.addEventListener(`${app}/${stateName}`, onMessage);
       return () => {
         console.debug(`Unmounting State: ${app} - ${stateName}`);
-        socket!.off(`${app}/${stateName}`, onMessage);
+        eventSource!.removeEventListener(`${app}/${stateName}`, onMessage);
       }
     }, [onMessage]);
     return [state, set];
@@ -76,7 +70,7 @@ export const state = <V, >(app: string, stateName: string): () => [V | undefined
 
 export const event = (app: string, event: string): () => [() => void] => {
   const trigger = () =>
-    fetch(`${config.uri}/${socket!.id}/${app}/${event}`, {
+    fetch(`${config.uri}/${connectionId!}/${app}/${event}`, {
       method: "POST",
       body: JSON.stringify({id: nextRequestId(app), payload: ""}),
       headers: {"content-type": "application/json"}
@@ -88,13 +82,14 @@ export const task = <V, >(app: string, task: string): () => [V | undefined, () =
   return () => {
     const [state, setState] = useState<V>();
     const trigger = useCallback(() => {
-      fetch(`${config.uri}/${socket!.id}/${app}/${task}`, {
+      fetch(`${config.uri}/${connectionId!}/${app}/${task}`, {
         method: "POST",
         body: JSON.stringify({id: nextRequestId(app), payload: ""}),
         headers: {"content-type": "application/json"}
       });
     }, []);
-    const onMessage = useCallback((message: V) => {
+    const onMessage = useCallback((e: MessageEvent) => {
+      const message = JSON.parse(e.data) as V;
       if (message && (message as any).__type === "Error") {
         console.error(message);
       } else {
@@ -104,10 +99,10 @@ export const task = <V, >(app: string, task: string): () => [V | undefined, () =
     }, []);
     useEffect(() => {
       console.debug(`Mounting Task: ${app} - ${task}`);
-      socket!.on(`${app}/${task}`, onMessage);
+      eventSource!.addEventListener(`${app}/${task}`, onMessage);
       return () => {
         console.debug(`Unmounting Task: ${app} - ${task}`);
-        socket!.off(`${app}/${task}`, onMessage);
+        eventSource!.removeEventListener(`${app}/${task}`, onMessage);
       };
     }, [onMessage]);
 
@@ -130,7 +125,7 @@ const subscriptions = {} as Record<string, Subscription>;
 
 const subscribe = (name: string) => {
   if (!subscriptions[name]) {
-    const p = fetch(`${config.uri}/subscribe?app=${name}&socketId=${socket!.id}`, {method: "POST"});
+    const p = fetch(`${config.uri}/subscribe?app=${name}&connectionId=${connectionId!}`, {method: "POST"});
     subscriptions[name] = {requestId: 0, subscription: p, count: 1};
   } else {
     subscriptions[name].count = subscriptions[name].count + 1;
@@ -142,7 +137,7 @@ const unsubscribe = (name: string) => {
   subscriptions[name].count = subscriptions[name].count - 1;
   setTimeout(() => {
     if (subscriptions[name].count <= 0) {
-      fetch(`${config.uri}/unsubscribe?app=${name}&socketId=${socket!.id}`, {method: "POST"});
+      fetch(`${config.uri}/unsubscribe?app=${name}&connectionId=${connectionId!}`, {method: "POST"});
       delete subscriptions[name];
     }
   }, 300);
