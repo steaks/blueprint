@@ -64,7 +64,7 @@ const connect = async () => {
           });
           break;
         case "WebSocket":
-          const socket = io(config.uri.replace("http://", "ws://").replace("https://", "ws://"));
+          const socket = io(config.uri.replace("http://", "ws://").replace("https://", "wss://"));
           socket.on("connect", () => {
             connectionId = socket.id!;
             connection = {__type: "WebSocket", socket};
