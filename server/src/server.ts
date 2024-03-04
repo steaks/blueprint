@@ -42,7 +42,10 @@ import {
   Blueprint,
   Servers,
   Serialized,
-  BlueprintIO, BlueprintConnection, ServerSentEventsConnection, WebSocketConnection
+  BlueprintIO,
+  BlueprintConnection,
+  ServerSentEventsConnection,
+  WebSocketConnection
 } from "../types";
 import {randomUUID} from "crypto";
 import http from "http";
@@ -330,6 +333,20 @@ const createSession = (session: Session, connectionId: string): SessionContext =
 const route = (connectionId: string, app: AppBlueprint, v: State<any> | Event | Task<any>): string =>
   `/${connectionId}/${app.name}/${v.__name}`;
 
+const onDisconnect = (apps: Record<string, App>, connectionId: string) => {
+  console.log(`a user disconnected: ${connectionId}`);
+  _
+    .chain(blueprintServer.apps)
+    .filter(a => a.__connectionId === connectionId)
+    .forEach(a => {
+      const key = `${a.__name}_${connectionId}`
+      apps[a.__name].destroy(connectionId);
+      delete blueprintServer.apps[key];
+    });
+  delete blueprintServer.connections[connectionId];
+  delete blueprintServer.sessions[connectionId];
+};
+
 const onConnection = (apps: Record<string, App>, session: Session, connectionId: string, connection: BlueprintConnection) => {
   blueprintServer.connections[connectionId] = connection;
   blueprintServer.sessions[connectionId] = createSession(session, connectionId);
@@ -343,28 +360,14 @@ const onConnection = (apps: Record<string, App>, session: Session, connectionId:
       });
       connection.res.flushHeaders();
       connection.res.on("close", () => {
-        _onDisconnect(apps, connectionId);
+        onDisconnect(apps, connectionId);
       });
       break;
     case "WebSocket":
       connection.socket.on('disconnect', () => {
-        _onDisconnect(apps, connectionId);
-      })
+        onDisconnect(apps, connectionId);
+      });
   }
-};
-
-const _onDisconnect = (apps: Record<string, App>, connectionId: string) => {
-  console.log(`a user disconnected: ${connectionId}`);
-  _
-    .chain(blueprintServer.apps)
-    .filter(a => a.__connectionId === connectionId)
-    .forEach(a => {
-      const key = `${a.__name}_${connectionId}`
-      apps[a.__name].destroy(connectionId);
-      delete blueprintServer.apps[key];
-    });
-  delete blueprintServer.connections[connectionId];
-  delete blueprintServer.sessions[connectionId];
 };
 
 const emitMessage = (c: BlueprintConnection, name: string, payload: object) => {
@@ -615,6 +618,12 @@ const onServerSentEventsStream = (apps: Record<string, App>, session: Session, r
   onConnection(apps, session, connectionId, connection);
 };
 
+const onWebSocketConnection = (apps: Record<string, App>, session: Session) => (socket: Socket) => {
+  const connectionId = socket.id;
+  const connection = {__type: "WebSocket", socket} as WebSocketConnection;
+  onConnection(apps, session, connectionId, connection);
+};
+
 const onConnectionType = (res: express.Response) => {
   res.json({connectionType: blueprintServer.options.connectionType});
   res.end();
@@ -670,12 +679,6 @@ const blueprintExpress = (apps: Record<string, App>, session: Session): Blueprin
     app,
     serve
   }
-};
-
-const onWebSocketConnection = (apps: Record<string, App>, session: Session) => (socket: Socket) => {
-  const connectionId = socket.id;
-  const connection = {__type: "WebSocket", socket} as WebSocketConnection;
-  onConnection(apps, session, connectionId, connection);
 };
 
 const blueprintIO = (apps: Record<string, App>, session: Session): BlueprintIO => {
