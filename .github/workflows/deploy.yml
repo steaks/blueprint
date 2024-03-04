@@ -26,7 +26,5 @@ jobs:
       - run: make install
       - run: make build
       - run: make test
-      - run: make deploy-userprofile-server
-      - run: make deploy-userprofile-ui
       - run: make deploy-rectangle-server
       - run: make deploy-rectangle-ui

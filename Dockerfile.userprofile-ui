@@ -1,9 +1,0 @@
-FROM node:16
-# ENV NODE_ENV=production
-ENV PORT 3000
-WORKDIR /blueprint
-COPY . .
-RUN make install
-RUN make build
-EXPOSE 3000
-CMD cd examples/userprofile; make run-ui-prod;

@@ -1,4 +1,4 @@
-import {app, state, task} from "blueprint-react";
+import {app, state, task} from "../blueprint-react";
 
 const MyApp = app("myApp");
 const useWidth = state<number>("myApp", "width");

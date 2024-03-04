@@ -1,21 +1,80 @@
 import React, {useState, useEffect, useCallback} from "react";
-import {BlueprintConfig, Props} from "../types";
+import {BlueprintConfig, Props, Connection, ConnectionType} from "../types";
+import {io} from "socket.io-client";
 
-let eventSource = null as EventSource | null;
+let connection = null as Connection | null;
 let connectionId = null as string | null;
-let connection = null as null | Promise<null>;
+let connectionP = null as null | Promise<null>;
 
-const connect = () => {
-  if (!connection) {
-    connection = new Promise(resolve => {
-      connectionId = crypto.randomUUID();
-      eventSource = new EventSource(`${config.uri}/stream?connectionId=${connectionId}`)
-      eventSource.addEventListener("open", () => {
-        resolve(null);
-      });
-    })
+const addListener = <V, >(name: string, onMessage: (data: MessageEvent | V) => void) => {
+  console.log(`Add listener ${name}`);
+  const c = connection!;
+  switch (c.__type) {
+    case "ServerSentEvents":
+      c.eventSource.addEventListener(name, onMessage);
+      break;
+    case "WebSocket":
+      c.socket.on(name, onMessage);
+      break;
   }
-  return connection;
+};
+
+const removeListener = <V, >(name: string, onMessage: (data: MessageEvent | V) => void) => {
+  console.log(`Remove listener ${name}`);
+  const c = connection!;
+  switch (c.__type) {
+    case "ServerSentEvents":
+      c.eventSource.removeEventListener(name, onMessage);
+      break;
+    case "WebSocket":
+      c.socket.off(name, onMessage);
+      break;
+  }
+};
+
+const parseMessage = <V, >(e: MessageEvent | V) => {
+  switch (connection!.__type) {
+    case "ServerSentEvents":
+      return JSON.parse((e as MessageEvent).data) as V;
+    case "WebSocket":
+      return e as V;
+  }
+};
+
+const fetchConnectionType = async () => {
+  const connectionTypeR = await fetch(`${config.uri}/connectionType`, {
+    method: "GET",
+    headers: {"content-type": "application/json"}
+  });
+  const json = await connectionTypeR.json();
+  return json.connectionType as ConnectionType;
+};
+
+const connect = async () => {
+  if (connectionP === null) {
+    connectionP = new Promise(async (resolve) => {
+      const connectionType = await fetchConnectionType();
+      switch (connectionType) {
+        case "ServerSentEvents":
+          connectionId = crypto.randomUUID();
+          const eventSource = new EventSource(`${config.uri}/stream?connectionId=${connectionId}`)
+          eventSource.addEventListener("open", () => {
+            connection = {__type: "ServerSentEvents", eventSource};
+            resolve(null);
+          });
+          break;
+        case "WebSocket":
+          const socket = io(config.uri.replace("http://", "ws://").replace("https://", "ws://"));
+          socket.on("connect", () => {
+            connectionId = socket.id!;
+            connection = {__type: "WebSocket", socket};
+            resolve(null);
+          });
+          break;
+      }
+    });
+  }
+  return await connectionP;
 };
 
 const namespace = "/__blueprint__";
@@ -52,16 +111,14 @@ export const state = <V, >(app: string, stateName: string): () => [V | undefined
         headers: {"content-type": "application/json"}
       });
     }, []);
-    const onMessage = useCallback((e: MessageEvent) => {
-      setState(JSON.parse(e.data) as V);
+    const onMessage = useCallback((e: MessageEvent | V) => {
+      setState(parseMessage(e));
     }, []);
 
     useEffect(() => {
-      console.debug(`Mounting State: ${app} - ${stateName}`);
-      eventSource!.addEventListener(`${app}/${stateName}`, onMessage);
+      addListener(`${app}/${stateName}`, onMessage);
       return () => {
-        console.debug(`Unmounting State: ${app} - ${stateName}`);
-        eventSource!.removeEventListener(`${app}/${stateName}`, onMessage);
+        removeListener(`${app}/${stateName}`, onMessage);
       }
     }, [onMessage]);
     return [state, set];
@@ -88,8 +145,8 @@ export const task = <V, >(app: string, task: string): () => [V | undefined, () =
         headers: {"content-type": "application/json"}
       });
     }, []);
-    const onMessage = useCallback((e: MessageEvent) => {
-      const message = JSON.parse(e.data) as V;
+    const onMessage = useCallback((e: MessageEvent | V) => {
+      const message = parseMessage(e);
       if (message && (message as any).__type === "Error") {
         console.error(message);
       } else {
@@ -98,11 +155,9 @@ export const task = <V, >(app: string, task: string): () => [V | undefined, () =
       }
     }, []);
     useEffect(() => {
-      console.debug(`Mounting Task: ${app} - ${task}`);
-      eventSource!.addEventListener(`${app}/${task}`, onMessage);
+      addListener(`${app}/${task}`, onMessage)
       return () => {
-        console.debug(`Unmounting Task: ${app} - ${task}`);
-        eventSource!.removeEventListener(`${app}/${task}`, onMessage);
+        removeListener(`${app}/${task}`, onMessage)
       };
     }, [onMessage]);
 

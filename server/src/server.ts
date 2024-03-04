@@ -38,7 +38,11 @@ import {
   EventRef,
   TriggerOperator,
   BlueprintRequest,
-  BlueprintExpress, Blueprint, Servers, Serialized
+  BlueprintExpress,
+  Blueprint,
+  Servers,
+  Serialized,
+  BlueprintIO, BlueprintConnection, ServerSentEventsConnection, WebSocketConnection
 } from "../types";
 import {randomUUID} from "crypto";
 import http from "http";
@@ -51,13 +55,19 @@ import cors from "cors";
 import serialize from "./serialize";
 import util from "./util";
 import bodyParser from "body-parser";
+import {Server, Socket} from "socket.io";
 
 
-const defaultOrigin = "http://localhost:3000";
-const defaultPort = 8080;
 let serialized: Serialized;
+const defaultServerOptions = {
+  cors: {origin: "http://localhost:3000"},
+  port: 8080,
+  connectionType: "ServerSentEvents"
+
+} as ServerOptions;
 
 const blueprintServer = {
+  options: defaultServerOptions,
   routes: {post: {}},
   connections: {},
   sessions: {},
@@ -320,11 +330,55 @@ const createSession = (session: Session, connectionId: string): SessionContext =
 const route = (connectionId: string, app: AppBlueprint, v: State<any> | Event | Task<any>): string =>
   `/${connectionId}/${app.name}/${v.__name}`;
 
-const emitMessage = (res: express.Response, name: string, payload: object) => {
-  const e = `event: ${name}\n`;
-  const d = `data: ${JSON.stringify(payload)}\n\n`;
-  res.write(e);
-  res.write(d);
+const onConnection = (apps: Record<string, App>, session: Session, connectionId: string, connection: BlueprintConnection) => {
+  blueprintServer.connections[connectionId] = connection;
+  blueprintServer.sessions[connectionId] = createSession(session, connectionId);
+  console.log(`a user connected: ${connectionId}`);
+  switch (connection.__type) {
+    case "ServerSentEvents":
+      connection.res.writeHead(200, {
+        "Cache-Control": "no-cache",
+        "Content-Type": "text/event-stream",
+        "Connection": "keep-alive"
+      });
+      connection.res.flushHeaders();
+      connection.res.on("close", () => {
+        _onDisconnect(apps, connectionId);
+      });
+      break;
+    case "WebSocket":
+      connection.socket.on('disconnect', () => {
+        _onDisconnect(apps, connectionId);
+      })
+  }
+};
+
+const _onDisconnect = (apps: Record<string, App>, connectionId: string) => {
+  console.log(`a user disconnected: ${connectionId}`);
+  _
+    .chain(blueprintServer.apps)
+    .filter(a => a.__connectionId === connectionId)
+    .forEach(a => {
+      const key = `${a.__name}_${connectionId}`
+      apps[a.__name].destroy(connectionId);
+      delete blueprintServer.apps[key];
+    });
+  delete blueprintServer.connections[connectionId];
+  delete blueprintServer.sessions[connectionId];
+};
+
+const emitMessage = (c: BlueprintConnection, name: string, payload: object) => {
+  switch (c.__type) {
+    case "ServerSentEvents":
+      const e = `event: ${name}\n`;
+      const d = `data: ${JSON.stringify(payload)}\n\n`;
+      c.res.write(e);
+      c.res.write(d);
+      break;
+    case "WebSocket":
+      c.socket.emit(name, payload);
+      break;
+  }
 };
 
 export const app = (func: () => AppBlueprint): App => {
@@ -553,33 +607,17 @@ const onSheet = (req: express.Request, res: express.Response) => {
   res.end();
 };
 
-const onStream = (apps: Record<string, App>, session: Session, req: express.Request, res: express.Response) => {
+const onServerSentEventsStream = (apps: Record<string, App>, session: Session, req: express.Request, res: express.Response) => {
   const url = parseurl(req) as Url;
   const query = qs.parse(url.query as string);
   const connectionId = query.connectionId as string;
-  blueprintServer.connections[connectionId] = res;
-  blueprintServer.sessions[connectionId] = createSession(session, connectionId);
-  res.writeHead(200, {
-    "Cache-Control": "no-cache",
-    "Content-Type": "text/event-stream",
-    "Connection": "keep-alive"
-  });
-  res.flushHeaders();
-  console.log(`a user connected: ${connectionId}`);
-  res.on("close", () => {
-    console.log(`a user disconnected: ${connectionId}`);
-    _
-      .chain(blueprintServer.apps)
-      .filter(a => a.__connectionId === connectionId)
-      .forEach(a => {
-        const key = `${a.__name}_${connectionId}`
-        apps[a.__name].destroy(connectionId);
-        delete blueprintServer.apps[key];
-        res.end();
-      });
-    delete blueprintServer.connections[connectionId];
-    delete blueprintServer.sessions[connectionId];
-  });
+  const connection = {__type: "ServerSentEvents", res} as ServerSentEventsConnection;
+  onConnection(apps, session, connectionId, connection);
+};
+
+const onConnectionType = (res: express.Response) => {
+  res.json({connectionType: blueprintServer.options.connectionType});
+  res.end();
 };
 
 const router = (apps: Record<string, App>, session: Session, namespace: string) => (req: express.Request, res: express.Response) => {
@@ -593,7 +631,9 @@ const router = (apps: Record<string, App>, session: Session, namespace: string) 
   } else if (url.pathname === "/unsubscribe") {
     onUnsubscribe(apps, req, res);
   } else if (url.pathname === "/stream") {
-    onStream(apps, session, req, res);
+    onServerSentEventsStream(apps, session, req, res);
+  } else if (url.pathname === "/connectionType") {
+    onConnectionType(res);
   } else if (req.method === "POST") {
     const url = parseurl(req) as Url;
     const route = blueprintServer.routes.post[url.pathname!];
@@ -616,13 +656,13 @@ const namespace = "/__blueprint__";
 
 const blueprintExpress = (apps: Record<string, App>, session: Session): BlueprintExpress => {
   const app = router(apps, session, namespace) as unknown as express.Application;
-  const serve = (options?: ServerOptions) => {
+  const serve = () => {
     const e = express();
-    e.use(cors({origin: options?.cors?.origin || defaultOrigin, methods: ["GET", "POST"]}));
+    e.use(cors({origin: blueprintServer.options.cors.origin, methods: ["GET", "POST"]}));
     e.use(namespace, bodyParser.json());
     e.use(namespace, app);
     const server = http.createServer(e);
-    server.listen(options?.port || defaultPort);
+    server.listen(blueprintServer.options.port);
     return server;
   };
   return {
@@ -632,17 +672,49 @@ const blueprintExpress = (apps: Record<string, App>, session: Session): Blueprin
   }
 };
 
-export const create = (apps: Record<string, App>, session: Session): Blueprint => {
+const onWebSocketConnection = (apps: Record<string, App>, session: Session) => (socket: Socket) => {
+  const connectionId = socket.id;
+  const connection = {__type: "WebSocket", socket} as WebSocketConnection;
+  onConnection(apps, session, connectionId, connection);
+};
+
+const blueprintIO = (apps: Record<string, App>, session: Session): BlueprintIO => {
+  const _onConnection = onWebSocketConnection(apps, session);
+  const serve = (server: http.Server): Server => {
+    const io = new Server(server, {
+      cors: {
+        origin: blueprintServer.options.cors.origin,
+        methods: ["GET", "POST"]
+      }
+    });
+    io.of(namespace).on('connection', _onConnection);
+    return io;
+  };
+
+  return {
+    namespace: namespace,
+    onConnection: onWebSocketConnection(apps, session),
+    serve
+  };
+};
+
+export const create = (apps: Record<string, App>, session: Session, serverOptions?: Partial<ServerOptions>): Blueprint => {
+  blueprintServer.options = {...blueprintServer.options, ...serverOptions};
   serialized = serialize.build("App", _.map(apps, a => a.__sheet));
   const _express = blueprintExpress(apps, session);
-  const serve = (options?: ServerOptions): Servers => {
-    const expressServer = _express.serve(options);
+  const _io = blueprintIO(apps, session)
+  const serve = (): Servers => {
+    const connectionType = blueprintServer.options.connectionType;
+    const expressServer = _express.serve();
+    const ioServer = connectionType === "WebSocket" ? _io.serve(expressServer) : null;
     return {
-      expressServer: expressServer,
+      expressServer,
+      ioServer
     };
   };
   return {
-    express: blueprintExpress(apps, session),
+    express: _express,
+    io: _io,
     serve
   }
 };

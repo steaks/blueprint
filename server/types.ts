@@ -1,6 +1,7 @@
 import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import express from "express";
 import http from "http";
+import {Server, Socket} from "socket.io";
 
 export type Func0<R> = () => R | Promise<R>;
 export type Func1<A0, R> = (a0: A0) => R | Promise<R>;
@@ -176,8 +177,23 @@ export interface Session {
   readonly tasks: Record<string, Task<any>>;
 }
 
+export interface ServerSentEventsConnection {
+  __type: "ServerSentEvents";
+  res: express.Response;
+}
+
+export interface WebSocketConnection {
+  __type: "WebSocket"
+  socket: Socket;
+}
+export type BlueprintConnection = ServerSentEventsConnection | WebSocketConnection;
+
+type ConnectionType = "ServerSentEvents" | "WebSocket";
+
 export interface BlueprintServer {
-  readonly connections: Record<string, express.Response>;
+  options: ServerOptions;
+  readonly connectionType: ConnectionType;
+  readonly connections: Record<string, BlueprintConnection>;
   readonly routes: {readonly post: Record<string, Function>;};
   readonly sessions: Record<string, SessionContext>;
   readonly apps: Record<string, AppContext>;
@@ -191,8 +207,9 @@ export interface App {
 }
 
 export interface ServerOptions {
-  readonly cors?: Cors;
-  readonly port?: number;
+  readonly cors: Cors;
+  readonly port: number;
+  readonly connectionType: ConnectionType;
 }
 export interface Cors {
   readonly origin?: string;
@@ -203,12 +220,20 @@ export interface BlueprintExpress {
   readonly serve: (options?: ServerOptions) => http.Server;
 }
 
+export interface BlueprintIO {
+  readonly namespace: string;
+  readonly onConnection: (socket: Socket) => void;
+  readonly serve: (server: http.Server, options?: ServerOptions) => Server;
+}
+
 export interface Servers {
   readonly expressServer: http.Server;
+  readonly ioServer: Server | null;
 }
 
 export interface Blueprint {
   readonly express: BlueprintExpress;
+  readonly io: BlueprintIO;
   readonly serve: (options?: ServerOptions) => Servers;
 }
 
