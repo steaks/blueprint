@@ -11,7 +11,7 @@
     "@types/react-dom": "^18.0.5",
     "@types/lodash": "^4.14.195",
     "@typed-mxgraph/typed-mxgraph": "^1.0.6",
-    "blueprint-react": "0.1.0-alpha.11",
+    "blueprint-react": "0.1.0-alpha.12",
     "env-cmd": "^10.1.0",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",

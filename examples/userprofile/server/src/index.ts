@@ -4,8 +4,8 @@ import userProfile from "./apps/userProfile";
 import session from "./session";
 
 const options = {
-  cors: {origin: process.env.CORS_ORIGIN}
+  cors: {origin: process.env.CORS_ORIGIN || "http://localhost:3000"},
 };
 
-const bp = create({userProfile}, session);
-bp.serve(options);
+const bp = create({userProfile}, session, options);
+bp.serve();
