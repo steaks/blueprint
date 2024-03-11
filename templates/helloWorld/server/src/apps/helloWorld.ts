@@ -1,33 +1,29 @@
-import {app, event, state, task, from} from "blueprint-server";
+import {app, state, task, event, from} from "blueprint-server";
 
-const wordCount = (words: string): number => {
-  const trimmedWords = words.trim();
-  return trimmedWords.length === 0 ? 0 : trimmedWords.trim().split(/\s/).length;
+const wordCount = (input: string): number => {
+  const trimmedInput = input.trim();
+  return trimmedInput.length === 0 ? 0 : trimmedInput.trim().split(/\s/).length;
 };
 
-let _clickCount = 0;
-const clickCount = () => {
-  _clickCount = _clickCount + 1;
-  return _clickCount;
-};
+const letters = (input: string): number =>
+  input.trim().length;
 
 const helloWorld = app(() => {
-  const myState$ = state("myState", "Hello State!");
-  const myEvent$ = event("myEvent");
+  const myInput$ = state("myInput", "Hello Input!");
+  const countLetters$ = event("countLetters");
   const wordCount$ = task(
-    from(wordCount, myState$)
+    from(wordCount, myInput$)
   );
-
-  const clickCount$ = task(
-    {name: "clickCount", triggers: [myEvent$]},
-    from(clickCount)
+  const letters$ = task(
+    {name: "letters", triggers: [countLetters$]},
+    from(letters, myInput$)
   );
 
   return {
     name: "helloWorld",
-    state: [myState$],
-    events: [myEvent$],
-    tasks: [wordCount$, clickCount$]
+    state: [myInput$],
+    events: [countLetters$],
+    tasks: [wordCount$, letters$]
   };
 });
 

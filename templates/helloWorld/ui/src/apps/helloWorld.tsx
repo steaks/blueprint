@@ -1,25 +1,24 @@
 import {app, state, event, task} from "blueprint-react";
 
 const HelloWorld = app("helloWorld");
-const useMyState = state<string>("helloWorld", "myState");
-const useMyEvent = event("helloWorld", "myEvent");
-const useWordCount = task<number>("helloWorld", "wordCount")
-const useClickCount = task<number>("helloWorld", "clickCount");
+const useMyState = state<string>("helloWorld", "myInput");
+const useWordCount = task<number>("helloWorld", "wordCount");
+const useCountLetters = event("helloWorld", "countLetters");
+const useLetters = task<number>("helloWorld", "letters");
 
 const UI = () => {
-  const [myState, setMyState] = useMyState();
-  const [triggerMyEvent] = useMyEvent();
+  const [myInput, setMyState] = useMyState();
   const [wordCount] = useWordCount();
-  const [clickCount] = useClickCount();
-
+  const [countLetters] = useCountLetters();
+  const [letters] = useLetters();
 
   return (
     <HelloWorld>
       <div>Hello World!!</div>
-      <input defaultValue={myState} onChange={e => setMyState(e.target.value)} />
-      <button onClick={triggerMyEvent}>Trigger My Event!</button>
-      <div>Word Count: {wordCount}</div>
-      <div>Click Count: {clickCount || 0}</div>
+      <input defaultValue={myInput} onChange={e => setMyState(e.target.value)}/>
+      <button onClick={countLetters}>Count Letters</button>
+      <div>Word count: {wordCount}</div>
+      <div>Letter count: {letters}</div>
     </HelloWorld>
   );
 };
