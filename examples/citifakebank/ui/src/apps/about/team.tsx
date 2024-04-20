@@ -120,7 +120,7 @@ const Edit = () => {
   )
 };
 
-export default () => {
+const UI = () => {
   return (
     <Team>
       <div>
@@ -132,3 +132,5 @@ export default () => {
     </Team>
   );
 };
+
+export default UI;
