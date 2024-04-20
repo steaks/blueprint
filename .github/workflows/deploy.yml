@@ -28,3 +28,5 @@ jobs:
       - run: make test
       - run: make deploy-rectangle-server
       - run: make deploy-rectangle-ui
+      - run: make deploy-usermanagement-server
+      - run: make deploy-usermanagement-ui

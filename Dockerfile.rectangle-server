@@ -3,7 +3,8 @@ FROM node:16
 ENV PORT 8080
 WORKDIR /blueprint
 COPY . .
-RUN make install
-RUN make build 
+RUN make install-core
+RUN make build-core
+RUN cd examples/rectangle && make install && make build && cd ..;
 EXPOSE 8080
 CMD cd examples/rectangle; make run-server-prod;

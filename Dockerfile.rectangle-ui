@@ -3,7 +3,8 @@ FROM node:16
 ENV PORT 3000
 WORKDIR /blueprint
 COPY . .
-RUN make install
-RUN make build
+RUN make install-core
+RUN make build-core
+RUN cd examples/rectangle && make install && make build && cd ..;
 EXPOSE 3000
 CMD cd examples/rectangle; make run-ui-prod;

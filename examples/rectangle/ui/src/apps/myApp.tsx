@@ -1,9 +1,10 @@
 import {app, state, task} from "blueprint-react";
+import {Suspense, useEffect, useState} from "react";
 
 const MyApp = app("myApp");
 const useWidth = state<number>("myApp", "width");
 const useHeight = state<number>("myApp", "height");
-const useArea = task<number>("myApp", "area")
+const useArea = task<number>("myApp", "area");
 
 const UI = () => {
   const [width, setWidth] = useWidth();

@@ -1,66 +1,134 @@
 import React from "react";
 import {state, task, app} from "blueprint-react";
+import {User} from "../../../../shared/src/common";
 
 //state
-const useSearch =  state<string>("team", "search");
-const useNewEmployee = state<string>("team", "newEmployee");
-const useExistingEmployee = state<string>("team", "existingEmployee");
-const useSelectedEmployee = state<string>("team", "selectedEmployee");
-const useUpdatedEmployee = state<string>("team", "updatedEmployee");
+const useSearch = state<string>("team", "search");
+const useNewUser = state<User | null>("team", "newUser");
+const useUpdatedUser = state<User | null>("team", "updatedUser");
+const useRemovedUser = state<User>("team", "removedUser");
 
 //tasks
-const useEmployees = task<string[]>("team", "employees");
-const useCount = task<number>("team", "count");
+const useUsers = task<User[]>("team", "users");
 const useAdd = task<null>("team", "add");
-const useRemove = task<null>("team", "remove");
 const useUpdate = task<null>("team", "update");
+const useRemove = task<null>("team", "remove");
 
 //App
-const Team = app("team")
+const Team = app("team");
 
-const UI = () => {
-  const [search, setSearch] = useSearch();
-  const [employees] = useEmployees();
-  const [count] = useCount();
-  const [selectedEmployee, setSelectedEmployee] = useSelectedEmployee();
-  const [updatedEmployee, setUpdatedEmployee] = useUpdatedEmployee();
-  const [, add] = useAdd();
+const Row = (p: { readonly user: User; }) => {
+  const [, setUpdatedUser] = useUpdatedUser();
+  const [, setRemovedUser] = useRemovedUser();
   const [, remove] = useRemove();
-  const [, update] = useUpdate();
 
-  const [newEmployee, setNewEmployee] = useNewEmployee();
-  const [existingEmployee, setExistingEmployee] = useExistingEmployee();
-
-  const onSelect = (employee: string) => {
-    setSelectedEmployee(employee);
-    setUpdatedEmployee(employee);
+  const onRemove = () => {
+    setRemovedUser(p.user);
+    remove();
   };
 
+  return (
+    <tr key={p.user.id}>
+      <td>{p.user.id}</td>
+      <td>{p.user.name}</td>
+      <td>
+        <button onClick={() => setUpdatedUser(p.user)}>Edit</button>
+      </td>
+      <td>
+        <button onClick={onRemove}>Remove</button>
+      </td>
+    </tr>
+  );
+};
 
+const Browse = () => {
+  const [search, setSearch] = useSearch();
+  const [users] = useUsers();
+
+  return (
+    <>
+      <h3>Users</h3>
+      <input defaultValue={search} onChange={e => setSearch(e.currentTarget.value)} placeholder="Search"/>
+      <table>
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Edit</th>
+          <th>Remove</th>
+        </tr>
+        </thead>
+        <tbody>
+        {users && users.map(u => <Row user={u}/>)}
+        </tbody>
+      </table>
+    </>
+  );
+};
+
+const Add = () => {
+  const [newUser, setNewUser] = useNewUser();
+  const [, add] = useAdd();
+
+  if (!newUser) {
+    return (
+      <>
+        <button onClick={() => setNewUser({id: crypto.randomUUID(), name: ""})}>Add a New User</button>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <h3>Add</h3>
+      <label>Name: </label>
+      <input defaultValue={newUser?.name} onChange={e => setNewUser({...newUser, name: e.currentTarget.value})}/>
+      <br/>
+      <button onClick={add}>Save</button>
+      <button onClick={() => setNewUser(null)}>Cancel</button>
+    </>
+  );
+};
+
+const Edit = () => {
+  const [updatedUser, setUpdatedUser] = useUpdatedUser();
+  const [, setRemovedUser] = useRemovedUser();
+  const [, update] = useUpdate();
+  const [, remove] = useRemove();
+
+  if (!updatedUser) {
+    return <></>
+  }
+
+  const onRemove = () => {
+    setRemovedUser(updatedUser);
+    remove();
+  };
+
+  return (
+    <>
+      <h3>Edit</h3>
+      <div>ID: {updatedUser.id}</div>
+      <label>Name: </label>
+      <input onChange={e => setUpdatedUser({...updatedUser!, name: e.currentTarget.value})}
+             placeholder={updatedUser.name}/>
+      <br/>
+      <button onClick={onRemove}>Remove</button>
+      <button onClick={update}>Save</button>
+      <button onClick={() => setUpdatedUser(null)}>Cancel</button>
+    </>
+  )
+};
+
+export default () => {
   return (
     <Team>
       <div>
         <a href="http://localhost:3000">Home</a>
-        <div>Search:</div>
-        <input defaultValue={search} onChange={e => setSearch(e.currentTarget.value)} />
-        <div>Employees ({count || 0}): </div>
-        <ul>{(employees || []).map(e => <li key={e} onClick={() => onSelect(e)}>{e}</li>)}</ul>
-        <hr />
-        <div>Add New Employee</div>
-        <input defaultValue={newEmployee} onChange={e => setNewEmployee(e.currentTarget.value)} />
-        <button onClick={add}>Add</button>
-        <hr/>
-        <div>Remove Employee</div>
-        <input defaultValue={existingEmployee} onChange={e => setExistingEmployee(e.currentTarget.value)}/>
-        <button onClick={remove}>Remove</button>
-        <hr/>
-        <div>Edit Employee</div>
-        <div>Editing: {selectedEmployee}</div>
-        <input value={updatedEmployee} onChange={e => setUpdatedEmployee(e.currentTarget.value)} />
-        <button onClick={update}>Update</button>
+        <Browse/>
+        <Add/>
+        <Edit/>
       </div>
     </Team>
   );
 };
-
-export default UI;

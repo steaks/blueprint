@@ -1,10 +1,14 @@
-import React, {useState, useEffect, useCallback} from "react";
+import React, {useState, useEffect, useCallback, useRef} from "react";
 import {BlueprintConfig, Props, Connection, ConnectionType} from "../types";
 import {io} from "socket.io-client";
+import {Diagram} from "./diagram";
 
 let connection = null as Connection | null;
 let connectionId = null as string | null;
 let connectionP = null as null | Promise<null>;
+
+const isDiagramRoute = () =>
+  window.location.pathname.startsWith("/__blueprint__");
 
 const addListener = <V, >(name: string, onMessage: (data: MessageEvent | V) => void) => {
   console.log(`Add listener ${name}`);
@@ -94,7 +98,9 @@ export const Blueprint = (p: BlueprintConfig) => {
     });
   }, [uri]);
 
-  if (initialized) {
+  if (initialized && isDiagramRoute()) {
+    return <Diagram />
+  } else if (initialized) {
     return <>{p.children}</>
   }
   return <></>;

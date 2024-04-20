@@ -1,85 +1,114 @@
-import {app, state, task, event, from, trigger} from "blueprint-server";
+import {app, state, task, event, from, trigger, ref, get, set} from "blueprint-server";
 import {db} from "../postgres";
+import {User} from "../../../shared/src/common";
+import {StateRef} from "blueprint-server/types/types";
 
-const employees = async (search: string): Promise<string[]> =>
-  await db.map<string>(`SELECT name FROM employees WHERE '${search}' != '' AND name LIKE '%${search}%'`, {search}, row => row.name);
-
-const count = async (search: string): Promise<number> => {
-    const cnt = await db.map<number>(`SELECT COUNT(*) AS cnt FROM employees WHERE '${search}' != '' AND name LIKE '%${search}%'`, [], row => row.cnt);
-    return cnt[0];
+const onRemove = async (selectedRef: StateRef<User | null>): Promise<void> => {
+  const selected = get(selectedRef);
+  if (!selected) {
+    return;
+  }
+  const cnt = await db.one<number>(`SELECT COUNT(*) AS cnt FROM users WHERE id = '${selected.id}'`, [], row => Number(row.cnt));
+  if (cnt === 0) {
+    set(selectedRef, null);
+  }
 };
 
-const addEmployee = async (newEmployee: string): Promise<void> => {
-    await db.none("INSERT INTO employees(name) VALUES(${newEmployee})", {newEmployee});
+const onUpdate = (updatedUser: StateRef<User | null>) => {
+  set(updatedUser, null);
 };
 
-const removeEmployee = async (deleteEmployee: string): Promise<void> => {
-    await db.none(`DELETE FROM employees WHERE name = '${deleteEmployee}'`, []);
+const onAdd = (newUser: StateRef<User | null>) => {
+  set(newUser, null);
 };
 
-const updateEmployee = async (selectedEmployee: string, updatedEmployee: string): Promise<void> => {
-    console.log(selectedEmployee, updatedEmployee);
-    await db.none(`UPDATE employees SET name = '${updatedEmployee}' WHERE name = '${selectedEmployee}'`, []);
-    //TODO
-    // await db.none(`DELETE FROM employees WHERE name = '${deleteEmployee}'`, []);
+const users = async (search: string): Promise<User[]> =>
+  await db.map<User>(`SELECT id, name FROM users WHERE '${search}' = '' OR name LIKE '%${search}%' ORDER BY name`, {search}, row => ({
+    id: row.id,
+    name: row.name
+  }));
+
+const addUser = async (user: User | null): Promise<void> => {
+  if (user) {
+    await db.none(`INSERT INTO users(id, name) VALUES('${user.id}', '${user.name}')`);
+  }
+};
+
+const removeUser = async (user: User): Promise<void> => {
+  await db.none(`DELETE FROM users WHERE id = '${user.id}'`);
+};
+
+const updateUser = async (selected: User | null): Promise<void> => {
+  if (selected) {
+    await db.none(`UPDATE users SET name = '${selected.name}' WHERE id = '${selected.id}'`, []);
+  }
 };
 
 const team$$ = app(() => {
-    const search$ = state<string>("search");
-    const newEmployee$ = state<string>("newEmployee");
-    const existingEmployee$= state<string>("existingEmployee");
-    const selectedEmployee$ = state<string>("selectedEmployee");
-    const updatedEmployee$ = state<string>("updatedEmployee");
+  const search$ = state("search", "");
+  const newUser$ = state<User | null>("newUser", null);
+  const updatedUser$ = state<User | null>("updatedUser", null);
+  const removedUser$ = state<User | null>("removedUser", null);
 
-    const employeesChanged$ = event("employeesChanged");
+  const usersChanged$ = event("usersChanged");
 
-    const employees$ = task(
-      {name: "employees", triggers: ["stateChanges", employeesChanged$]},
-      from(employees, search$),
-    );
+  const users$ = task(
+    {name: "users", triggers: ["stateChanges", usersChanged$]},
+    from(users, search$),
+  );
 
-    const count$ = task(
-      {name: "count", triggers: ["stateChanges", employeesChanged$]},
-      from(count, search$),
-    );
+  const add$ = task(
+    {name: "add", triggers: ["self"]},
+    from(addUser, newUser$),
+    trigger(usersChanged$),
+  );
 
-    const add$ = task(
-      {name: "add", triggers: ["self"]},
-      from(addEmployee, newEmployee$),
-      trigger(employeesChanged$)
-    );
+  const remove$ = task(
+    {name: "remove", triggers: ["self"]},
+    from(removeUser, removedUser$),
+    trigger(usersChanged$)
+  );
 
-    const remove$ = task(
-      {name: "remove", triggers: ["self"]},
-      from(removeEmployee, existingEmployee$),
-      trigger(employeesChanged$)
-    );
+  const update$ = task(
+    {name: "update", triggers: ["self"]},
+    from(updateUser, updatedUser$),
+    trigger(usersChanged$)
+  );
 
-    const update$ = task(
-      {name: "update", triggers: ["self"]},
-      from(updateEmployee, selectedEmployee$, updatedEmployee$),
-      trigger(employeesChanged$)
-    );
+  const onAdd$ = task(
+    {name: "onAdd", triggers: [add$]},
+    from(onAdd, ref(newUser$))
+  );
 
-    return {
-        name: "team",
-        state: [search$, newEmployee$, existingEmployee$, selectedEmployee$, updatedEmployee$],
-        events: [employeesChanged$],
-        tasks: [employees$, count$, add$, remove$, update$]
-    };
+  const onRemove$ = task(
+    {name: "onAdd", triggers: [remove$]},
+    from(onRemove, ref(updatedUser$))
+  );
+
+  const onUpdate$ = task(
+    {name: "onUpdate", triggers: [update$]},
+    from(onUpdate, ref(updatedUser$))
+  );
+
+  return {
+    name: "team",
+    state: [search$, newUser$, updatedUser$, removedUser$],
+    events: [usersChanged$],
+    tasks: [users$, add$, remove$, update$, onUpdate$, onRemove$, onAdd$]
+  };
 });
 
 export default team$$;
 
-//POST http://localhost:8080/employees/search?body={search}
-//POST http://localhost:8080/employees/newEmployee?body={newEmployee}
-//POST http://localhost:8080/employees/add
-//POST http://localhost:8080/employees/remove
+//POST http://localhost:8080/users/search?body={search}
+//POST http://localhost:8080/users/newUser?body={newUser}
+//POST http://localhost:8080/users/add
+//POST http://localhost:8080/users/remove
 
 //Webtask Events
 //
-//{name: "/employees/employees", string[]}
-//{name: "/employees/count", number}
+//{name: "/users/users", string[]}
+//{name: "/users/count", number}
 
 /*
 - Build levels 1-4

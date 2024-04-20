@@ -1,7 +1,19 @@
-import "dotenv/config";
-import {create} from "blueprint-server";
-import helloWorld from "./apps/helloWorld";
-import session from "./session";
+import {app, create, from, state, task} from "blueprint-server";
 
-const bp = create({helloWorld}, session);
+const wordCount = (input: string): number =>
+  input.split(/\s/).filter(x => x).length;
+
+const helloWorld = app(() => {
+  const myInput$ = state("myInput", "Hello World!");
+  const wordCount$ = task(from(wordCount, myInput$));
+
+  return {
+    name: "helloWorld",
+    state: [myInput$],
+    events: [],
+    tasks: [wordCount$]
+  };
+});
+
+const bp = create({helloWorld});
 bp.serve();
