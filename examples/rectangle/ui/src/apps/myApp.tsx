@@ -1,5 +1,4 @@
 import {app, state, task} from "blueprint-react";
-import {Suspense, useEffect, useState} from "react";
 
 const MyApp = app("myApp");
 const useWidth = state<number>("myApp", "width");
