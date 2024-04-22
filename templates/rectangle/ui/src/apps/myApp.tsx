@@ -20,8 +20,4 @@ const UI = () => {
   );
 };
 
-const calculateAreaServer = (width: number, height: number): Promise<number> => {
-  return Promise.resolve(width * height)
-};
-
 export default UI;
