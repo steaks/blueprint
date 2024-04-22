@@ -1,9 +1,11 @@
 # Blueprint
-*The ergonomic web application framework*
+*Simple state and data management for web applications*
 
-Blueprint is a full-stack web application framework. It combines server and frontend state/events into a single push-based architecture. This approach streamlines state management, synchronizing data, and ui reactivity.
+Blueprint is a full-stack web application framework that simplifies state and data management. Blueprint handles data synchronization, data flow dependencies and race-conditions so devs can focus on business logic. See [why blueprint](https://blueprint-docs.readthedocs.io/en/latest/whyBlueprint/) for a more comprehensive explanation of why Blueprint outperforms traditional web application frameworks.
 
-## Simple Example
+#### A simple example
+
+The example below creates a web page that calculates the area of a rectangle provided width and height. Blueprint recognizes area should automatically re-calculated when width or height change.
 
 ```
 //server
@@ -23,21 +25,16 @@ const myApp = app(() => {
     tasks: [area$]
   };
 });
-
-const bp = create({myApp});
-bp.serve();
 ```
 
-```
-//ui
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import {app, state, task, Blueprint} from "blueprint-server";
+```typescript
+//frontend
+import {app, state, task} from "blueprint-react";
 
 const MyApp = app("myApp");
 const useWidth = state<number>("myApp", "width");
 const useHeight = state<number>("myApp", "height");
-const useArea = task<number>("myApp", "area")
+const useArea = task<number>("myApp", "area");
 
 const UI = () => {
   const [width, setWidth] = useWidth();
@@ -53,39 +50,12 @@ const UI = () => {
     </MyApp>
   );
 };
-
-const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
-root.render(
-  <Blueprint>
-    <UI />
-  </Blueprint>
-);
 ```
+Go to [blueprint-docs.readthedocs.io](https://blueprint-docs.readthedocs.io/en/latest/) to see a live example of this web application.
 
-**Result:**
-<iframe src="https://rectangle-ui-7y67ff2sba-uc.a.run.app/myApp" frameBorder=0 style="background-color:#f8f8f8;border:1px solid #e1e4e5;width:100%;"></iframe>
-<br />
-**Diagram:**
-<iframe src="https://rectangle-ui-7y67ff2sba-uc.a.run.app/__blueprint__?sheet=myApp" frameBorder=0 width="100%" height="300px" style="background-color:#f8f8f8;border:1px solid #e1e4e5;width:100%;"></iframe>
-<br />
+#### How to Get Started?
 
-## Quick Start
-
-The fastest way to get started is to spin up the helloWorld app.
-
-```
-wget https://raw.githubusercontent.com/steaks/blueprint-templates/main/createBlueprint.sh
-chmod +x createBlueprint.sh
-./createBlueprint.sh -t helloWorld MyApp
-cd MyApp
-make install
-make build
-make run-server
-make run-ui #in separate terminal
-```
-
-Visit [http://localhost:3000](http://localhost:3000) to view your app.<br/>
-Visit [http://localhost:3000/__blueprint__](http://localhost:3000/__blueprint__) to view the architecture diagram.
+Get started by following this [tutorial](https://blueprint-docs.readthedocs.io/en/latest/gettingStarted/) to build your first Blueprint web application.
 
 ## Contributing
 
