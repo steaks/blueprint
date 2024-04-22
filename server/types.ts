@@ -61,7 +61,7 @@ export interface TriggerOperator<V> extends Operator<V> {
 
 export interface TaskOptions {
   readonly name: string;
-  readonly triggers?: (State<unknown> | Event | "self" | "stateChanges")[];
+  readonly triggers?: (State<unknown> | Event | Task<unknown> | "self" | "stateChanges")[];
 }
 
 export interface Task<V> {
@@ -72,8 +72,9 @@ export interface Task<V> {
   _output: string;
   _outputState: State<V>;
   _trigger: Event | null;
-  _triggers: (Event | State<any>)[];
+  _triggers: (Event | State<any> | Task<any>)[];
   _inputs: State<any>[];
+  _state: State<V>;
   create: (context: AppContext, session: SessionContext) => void;
   destroy: (context: AppContext, session: SessionContext) => void;
 }
@@ -144,6 +145,7 @@ export interface AppContext {
   readonly __requests$: Subject<BlueprintRequest>;
   __requestSubscription?: Subscription;
   __lastRequestId: number;
+  __lastResponseId: number;
 }
 
 export interface BlueprintRequest {

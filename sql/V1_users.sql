@@ -1,0 +1,7 @@
+CREATE TABLE public.users (
+    id VARCHAR NOT NULL,
+    name VARCHAR NOT NULL
+);
+
+ALTER TABLE public.users
+OWNER TO "CITIFAKEBANK_BOT";

@@ -69,6 +69,12 @@ const defaultServerOptions = {
 
 } as ServerOptions;
 
+const defaultSession = (): Session => ({
+  state: {},
+  events: {},
+  tasks: {}
+});
+
 const blueprintServer = {
   options: defaultServerOptions,
   routes: {post: {}},
@@ -79,6 +85,7 @@ const blueprintServer = {
 
 const isEvent = (v: any): v is Event =>
   (v as any).__type === "Event";
+
 export const event = (name: string): Event =>
   ({
     __type: "Event", __name: name,
@@ -157,10 +164,10 @@ export function task(): Task<any> {
   const _initialized = optTriggers.includes("stateChanges") && _states.length === 0 ? [event("initialized")] : [];
   const _allTriggers = [
     ..._inputStates,
-    ...optTriggers.filter(t => isState(t) || isEvent(t)) as (State<any> | Event)[],
+    ...optTriggers.filter(t => isState(t) || isEvent(t) || isTask(t)) as (State<any> | Event | Task<any>)[],
     ..._initialized
   ]
-  const triggerNames = new Set(_allTriggers.map(t => t.__name));
+  const triggerNames = new Set(_allTriggers.map(t => isTask(t) ? t._state.__name : t.__name));
   const _allInputs = operators.flatMap(o => o._stateInputs).filter(i => !triggerNames.has(i.__name));
   const create = (app: AppContext, session: SessionContext): void => {
     taskState.create(app);
@@ -179,8 +186,9 @@ export function task(): Task<any> {
       ]
       : [];
     const optionStates = optTriggers.filter(isState) as State<any>[];
+    const optionTasks = optTriggers.filter(isTask).map(t => t._state);
     const states = _
-      .chain([...inputStates, ...optionStates])
+      .chain([...inputStates, ...optionStates, ...optionTasks])
       .uniqBy(s => s.__name)
       .map(s => app.__state[s.__name] || session.__state[s.__name])
       .value();
@@ -240,6 +248,7 @@ export function task(): Task<any> {
     _output: operators[operators.length - 1].__name,
     _outputState: taskState,
     _trigger: taskEvent,
+    _state: taskState,
     _input: "None",
     create,
     destroy
@@ -398,6 +407,7 @@ export const app = (func: () => AppBlueprint): App => {
       __tasks: {},
       __requests$: new Subject<BlueprintRequest>(),
       __lastRequestId: 0,
+      __lastResponseId: 0,
     } as AppContext;
     blueprintServer.apps[key] = context;
     context.__requestSubscription = context.__requests$.subscribe(r => {
@@ -701,11 +711,12 @@ const blueprintIO = (apps: Record<string, App>, session: Session): BlueprintIO =
   };
 };
 
-export const create = (apps: Record<string, App>, session: Session, serverOptions?: Partial<ServerOptions>): Blueprint => {
+export const create = (apps: Record<string, App>, session?: Session, serverOptions?: Partial<ServerOptions>): Blueprint => {
+  const _session = session || defaultSession();
   blueprintServer.options = {...blueprintServer.options, ...serverOptions};
   serialized = serialize.build("App", _.map(apps, a => a.__sheet));
-  const _express = blueprintExpress(apps, session);
-  const _io = blueprintIO(apps, session)
+  const _express = blueprintExpress(apps, _session);
+  const _io = blueprintIO(apps, _session)
   const serve = (): Servers => {
     const connectionType = blueprintServer.options.connectionType;
     const expressServer = _express.serve();
