@@ -51,11 +51,11 @@ const UI = () => {
   );
 };
 ```
-Go to [blueprint-docs.readthedocs.io](https://blueprint-docs.readthedocs.io/en/latest/) to see a live example of this web application.
+See the live example at [blueprint-docs.readthedocs.io](https://blueprint-docs.readthedocs.io/en/latest/).
 
 #### How to Get Started?
 
-Get started by following this [tutorial](https://blueprint-docs.readthedocs.io/en/latest/gettingStarted/) to build your first Blueprint web application.
+Get started by following this [tutorial](https://blueprint-docs.readthedocs.io/en/latest/gettingStarted/).
 
 ## Contributing
 
@@ -63,4 +63,6 @@ Blueprint welcomes all contributors. Contributions can take many forms - bug fix
 
 ## Links
 
-- Documentation: https://blueprint-docs.readthedocs.io
+- [Documentation](https://blueprint-docs.readthedocs.io)
+- [Getting Started](https://blueprint-docs.readthedocs.io/en/latest/gettingStarted/)
+- [Examples](https://blueprint-docs.readthedocs.io/en/latest/examples)

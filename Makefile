@@ -16,6 +16,9 @@ test:
 clean:
 	bash ./scripts/clean.sh
 
+zip-templates:
+	bash ./scripts/zipTemplates.sh
+
 npmpublish:
 	bash ./scripts/publish.sh
 
