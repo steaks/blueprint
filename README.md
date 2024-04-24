@@ -7,7 +7,7 @@ Blueprint is a full-stack web application framework that simplifies state and da
 
 The example below creates a web page that calculates the area of a rectangle provided width and height. Blueprint recognizes area should automatically re-calculated when width or height change.
 
-```
+```typescript
 //server
 import {app, state, task, from} from "blueprint-server";
 const area = (width: number, height: number) =>
