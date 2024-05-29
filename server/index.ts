@@ -1,1 +1,1 @@
-export {from, task, state, event, app, trigger, set, get, ref, create} from "./src/server";
+export {from, task, state, event, app, trigger, set, get, ref, create, useQuery, useEffect, useState, useEvent} from "./src/server";

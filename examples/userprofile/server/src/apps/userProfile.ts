@@ -1,4 +1,4 @@
-import {app, state, event, task, trigger, from} from "blueprint-server";
+import {app, useEffect, useEvent, useQuery, useState} from "blueprint-server";
 import {User} from "../../../shared/src/apps/userProfile";
 
 const db = {
@@ -18,28 +18,20 @@ const updateUser = (email: string, firstName: string, lastName: string): Promise
 };
 
 const userProfile$$ = app(() => {
-  const email$ = state<string>("email");
-  const firstName$ = state<string>("firstName");
-  const lastName$ = state<string>("lastName");
+  const email$ = useState<string>("email");
+  const firstName$ = useState<string>("firstName");
+  const lastName$ = useState<string>("lastName");
 
-  const save$ = event("save");
-
-  const user$ = task(
-    {name: "user"},
-    from(queryUser)
-  );
-
-  const onSave$ = task(
-    {name: "onSave", triggers: [save$]},
-    from(updateUser, email$, firstName$, lastName$),
-    trigger(user$)
-  );
+  const save$ = useEvent("save");
+  const user$ = useQuery(queryUser, [], {name: "user"});
+  const onSave$ = useEffect(updateUser, [email$, firstName$, lastName$], {name: "onSave", triggers: [save$], onSuccess: [user$]})
 
   return {
     name: "userProfile",
     state: [email$, firstName$, lastName$],
     events: [save$],
-    tasks: [user$, onSave$]
+    queries: [user$, onSave$],
+    effects: [onSave$]
   };
 });
 

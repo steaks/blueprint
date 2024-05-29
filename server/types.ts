@@ -64,6 +64,22 @@ export interface TaskOptions {
   readonly triggers?: (State<unknown> | Event | Task<unknown> | "self" | "stateChanges")[];
 }
 
+export interface QueryOptions {
+  readonly name?: string;
+  readonly triggers?: (State<unknown> | Event | Task<unknown> | "self" | "deps")[];
+  readonly onSuccess?: (Event | Query<unknown>)[];
+}
+
+export type Query<V> = Task<V>
+
+export interface EffectOptions {
+  readonly name?: string;
+  readonly triggers?: (State<unknown> | Event | Task<unknown> | "self" | "deps")[];
+  readonly onSuccess?: (Event | Query<unknown>)[];
+}
+
+export type Effect = Task<any>
+
 export interface Task<V> {
   __type: string;
   __name: string;
@@ -168,9 +184,11 @@ export interface SessionContext {
 
 export interface AppBlueprint {
   readonly name: string;
-  readonly state: State<any>[];
-  readonly events: Event[];
-  readonly tasks: Task<any>[];
+  state?: State<any>[];
+  events?: Event[];
+  tasks?: Task<any>[];
+  queries?: Query<any>[];
+  effects?: Effect[];
 }
 
 export interface Session {

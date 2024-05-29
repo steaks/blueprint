@@ -45,7 +45,9 @@ import {
   BlueprintIO,
   BlueprintConnection,
   ServerSentEventsConnection,
-  WebSocketConnection
+  WebSocketConnection,
+  QueryOptions,
+  Query, Effect
 } from "../types";
 import {randomUUID} from "crypto";
 import http from "http";
@@ -97,6 +99,8 @@ export const event = (name: string): Event =>
     }
   });
 
+export const useEvent = event;
+
 const isState = (v: any): v is State<any> =>
   (v as any).__type === "State";
 
@@ -128,6 +132,62 @@ export const state = <V>(name: string, initialValue?: V): State<V> => {
     }
   };
 };
+
+export const useState = state;
+
+type Param<T> = Operator<T> | State<T> | Query<T> | Effect | RefParam<T>;
+
+export function useQuery<R>(query: Func0<R>, deps: [], options?: QueryOptions): Query<R>;
+export function useQuery<A0, R>(query: Func1<A0, R>, deps: [Param<A0>], options?: QueryOptions): Query<R>;
+export function useQuery<A0, A1, R>(query: Func2<A0, A1, R>, deps: [Param<A0>, Param<A1>], options?: QueryOptions): Query<R>;
+export function useQuery<A0, A1, A2, R>(query: Func3<A0, A1, A2, R>, deps: [Param<A0>, Param<A1>, Param<A2>], options?: QueryOptions): Query<R>;
+export function useQuery<A0, A1, A2, A3, R>(query: Func4<A0, A1, A2, A3, R>, deps: [Param<A0>, Param<A1>, Param<A2>, Param<A3>], options?: QueryOptions): Query<R>;
+export function useQuery(): Query<any> {
+  const query = arguments[0];
+  const deps = arguments[1] as [];
+  const options = arguments[2] as QueryOptions;
+  const after = options.onSuccess?.map(f => trigger(f)) || []
+  const optTriggers = options.triggers || ["deps"];
+  const triggers = optTriggers.map(t => t === "deps" ? "stateChanges" : t);
+  const name = options.name || query.name;
+  const operator = from(query, ...deps);
+  const taskOptions = {
+    name,
+    triggers
+  };
+  if (after.length === 0) {
+    return task(taskOptions, operator);
+  } else if (after.length === 1) {
+    return task(taskOptions, operator, after[0]);
+  }
+  return task(taskOptions, operator, after[0], after[1]);
+}
+
+export function useEffect<R>(query: Func0<R>, deps: [], options?: QueryOptions): Effect;
+export function useEffect<A0, R>(query: Func1<A0, R>, deps: [Param<A0>], options?: QueryOptions): Effect;
+export function useEffect<A0, A1, R>(query: Func2<A0, A1, R>, deps: [Param<A0>, Param<A1>], options?: QueryOptions): Effect;
+export function useEffect<A0, A1, A2, R>(query: Func3<A0, A1, A2, R>, deps: [Param<A0>, Param<A1>, Param<A2>], options?: QueryOptions): Effect;
+export function useEffect<A0, A1, A2, A3, R>(query: Func4<A0, A1, A2, A3, R>, deps: [Param<A0>, Param<A1>, Param<A2>, Param<A3>], options?: QueryOptions): Effect;
+export function useEffect(): Query<any> {
+  const query = arguments[0];
+  const deps = arguments[1] as [];
+  const options = arguments[2] as QueryOptions;
+  const after = options.onSuccess?.map(f => trigger(f)) || []
+  const optTriggers = options.triggers || ["self"];
+  const triggers = optTriggers.map(t => t === "deps" ? "stateChanges" : t);
+  const name = options.name || query.name;
+  const operator = from(query, ...deps);
+  const taskOptions = {
+    name,
+    triggers
+  };
+  if (after.length === 0) {
+    return task(taskOptions, operator);
+  } else if (after.length === 1) {
+    return task(taskOptions, operator, after[0]);
+  }
+  return task(taskOptions, operator, after[0], after[1]);
+}
 
 
 export function task<A>(o0: Operator<A>): Task<A>;
@@ -395,7 +455,13 @@ const emitMessage = (c: BlueprintConnection, name: string, payload: object) => {
 
 export const app = (func: () => AppBlueprint): App => {
   const theApp = func();
+  theApp.state = theApp.state || [];
+  theApp.events = theApp.events || [];
+  theApp.tasks = theApp.tasks || [];
   theApp.events.push(event("initialized"));
+  theApp.tasks = theApp.tasks || [];
+  _.each(theApp.queries || [], q => theApp.tasks!.push(q));
+  _.each(theApp.effects || [], e => theApp.tasks!.push(e));
   const create = (connectionId: string) => {
     const key = `${theApp.name}_${connectionId}`;
     const context = {
@@ -435,7 +501,7 @@ export const app = (func: () => AppBlueprint): App => {
     });
     const session = blueprintServer.sessions[connectionId];
     const connection = blueprintServer.connections[connectionId];
-    theApp.state.forEach(s => {
+    theApp.state!.forEach(s => {
       s.create(context);
       blueprintServer.routes.post[route(connectionId, theApp, s)] = (req: Request) => {
         const id = req.body.id as number;
@@ -457,7 +523,7 @@ export const app = (func: () => AppBlueprint): App => {
         }
       });
     });
-    theApp.events.forEach(e => {
+    theApp.events!.forEach(e => {
       e.create(context);
       blueprintServer.routes.post[route(connectionId, theApp, e)] = (req: Request) => {
         const id = req.body.id as number;
@@ -467,7 +533,7 @@ export const app = (func: () => AppBlueprint): App => {
         context.__requests$.next(request);
       };
     });
-    theApp.tasks.forEach(h => {
+    theApp.tasks!.forEach(h => {
       h.create(context, session);
       blueprintServer.routes.post[route(connectionId, theApp, h)] = (req: Request) => {
         const id = req.body.id as number;
@@ -498,16 +564,16 @@ export const app = (func: () => AppBlueprint): App => {
   const destroy = (connectionId: string) => {
     const key = `${theApp.name}_${connectionId}`;
     const app = blueprintServer.apps[key];
-    theApp.state.forEach(s => {
+    theApp.state!.forEach(s => {
       s.destroy(app)
       delete blueprintServer.routes.post[route(connectionId, theApp, s)];
     });
-    theApp.events.forEach(e => {
+    theApp.events!.forEach(e => {
       e.destroy(app)
       delete blueprintServer.routes.post[route(connectionId, theApp, e)];
     });
-    theApp.state.forEach(t => {
-      t.destroy(app)
+    theApp.tasks!.forEach(t => {
+      t.destroy(app, blueprintServer.sessions[connectionId]);
       delete blueprintServer.routes.post[route(connectionId, theApp, t)];
     });
     app.__requests$.complete();

@@ -1,12 +1,12 @@
 import React from "react";
-import {state, event, task, app} from "blueprint-react";
+import {state, event, query, app} from "blueprint-react";
 import {User} from "../../../shared/src/apps/userProfile";
 
 export const useEmail = state<string>("userProfile", "email");
 export const useFirstName = state<string>("userProfile", "firstName");
 export const useLastName = state<string>("userProfile", "lastName");
 export const useSave = event("userProfile", "save");
-export const useUser = task<User>("userProfile", "user");
+export const useUser = query<User>("userProfile", "user");
 export const UserProfile = app("userProfile");
 
 const UserProfileUI = () => {
