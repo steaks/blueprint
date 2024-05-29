@@ -1,18 +1,15 @@
 import React from "react";
-import {state, task, app} from "blueprint-react";
+import {state, app, query, effect} from "blueprint-react";
 import {User} from "../../../shared/src/common";
 
-//state
 const useSearch = state<string>("team", "search");
 const useNewUser = state<User | null>("team", "newUser");
 const useUpdatedUser = state<User | null>("team", "updatedUser");
 const useRemovedUser = state<User>("team", "removedUser");
-
-//tasks
-const useUsers = task<User[]>("team", "users");
-const useAdd = task<null>("team", "add");
-const useUpdate = task<null>("team", "update");
-const useRemove = task<null>("team", "remove");
+const useUsers = query<User[]>("team", "users");
+const useAdd = effect<null>("team", "add");
+const useUpdate = effect<null>("team", "update");
+const useRemove = effect<null>("team", "remove");
 
 //App
 const Team = app("team");
@@ -20,7 +17,7 @@ const Team = app("team");
 const Row = (p: { readonly user: User; }) => {
   const [, setUpdatedUser] = useUpdatedUser();
   const [, setRemovedUser] = useRemovedUser();
-  const [, remove] = useRemove();
+  const [remove] = useRemove();
 
   const onRemove = () => {
     setRemovedUser(p.user);
@@ -68,7 +65,7 @@ const Browse = () => {
 
 const Add = () => {
   const [newUser, setNewUser] = useNewUser();
-  const [, add] = useAdd();
+  const [add] = useAdd();
 
   if (!newUser) {
     return (
@@ -93,8 +90,8 @@ const Add = () => {
 const Edit = () => {
   const [updatedUser, setUpdatedUser] = useUpdatedUser();
   const [, setRemovedUser] = useRemovedUser();
-  const [, update] = useUpdate();
-  const [, remove] = useRemove();
+  const [update] = useUpdate();
+  const [remove] = useRemove();
 
   if (!updatedUser) {
     return <></>
@@ -134,3 +131,5 @@ const UI = () => {
 };
 
 export default UI;
+
+//Supabase

@@ -171,6 +171,39 @@ export const task = <V, >(app: string, task: string): () => [V | undefined, () =
   };
 };
 
+export const query = <V, >(app: string, query: string): () => [V | undefined, () => void] =>
+  task(app, query);
+
+export const effect = <V, >(app: string, effect: string): () => [() => void] => {
+  return () => {
+    const [state, setState] = useState<V>();
+    const trigger = useCallback(() => {
+      fetch(`${config.uri}/${connectionId!}/${app}/${effect}`, {
+        method: "POST",
+        body: JSON.stringify({id: nextRequestId(app), payload: ""}),
+        headers: {"content-type": "application/json"}
+      });
+    }, []);
+    const onMessage = useCallback((e: MessageEvent | V) => {
+      const message = parseMessage(e);
+      if (message && (message as any).__type === "Error") {
+        console.error(message);
+      } else {
+        console.debug(`${app}/${effect}`, message);
+        setState(message);
+      }
+    }, []);
+    useEffect(() => {
+      addListener(`${app}/${effect}`, onMessage)
+      return () => {
+        removeListener(`${app}/${effect}`, onMessage)
+      };
+    }, [onMessage]);
+
+    return [trigger];
+  };
+};
+
 interface Subscription {
   subscription: Promise<Response>;
   requestId: number;

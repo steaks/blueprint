@@ -1,10 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import {Blueprint, app, state, task} from "blueprint-react";
+import {Blueprint, app, state, query} from "blueprint-react";
 
 const HelloWorldApp = app("helloWorld");
 const useMyInput = state<string>("helloWorld", "myInput");
-const useWordCount = task<number>("helloWorld", "wordCount");
+const useWordCount = query<number>("helloWorld", "wordCount");
 
 const HelloWorld = () => {
   const [myInput, setMyInput] = useMyInput();
