@@ -1,7 +1,7 @@
 # Blueprint
 *Hooks for the Backend*
 
-Blueprint is a web server designed for quick adoption by React developers. It leverages hooks, reactivity, and is aware of your frontend state. This allows you to build your server the same way you build your frontend. See [why blueprint](./whyBlueprint.md) for more.
+Blueprint is a web server designed for quick adoption by React developers. It leverages hooks, reactivity, and is aware of your frontend state. This allows you to build your server the same way you build your frontend. See [why blueprint](https://blueprint-docs.readthedocs.io/en/latest/whyBlueprint/) for more.
 
 #### A simple example
 
