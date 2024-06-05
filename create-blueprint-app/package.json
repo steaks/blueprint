@@ -1,0 +1,26 @@
+{
+  "name": "create-blueprint-app",
+  "version": "0.1.0-alpha.2",
+  "description": "A CLI tool to create apps from blueprint templates",
+  "main": "index.js",
+  "bin": {
+    "create-blueprint-app": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "cli",
+    "blueprint",
+    "template",
+    "app-creation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "commander": "^7.0.0",
+    "ora": "^5.4.1",
+    "tar": "^6.0.0"
+  }
+}
