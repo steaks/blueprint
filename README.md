@@ -1,7 +1,7 @@
 # Blueprint
 *Hooks for the Backend*
 
-Blueprint is a web server designed for quick adoption by React developers. It leverages hooks, reactivity, and is aware of your frontend state. This allows you to build your server the same way you build your frontend. See [why blueprint](https://blueprint-docs.readthedocs.io/en/latest/whyBlueprint/) for more.
+Blueprint is a middleware for Express that syncs frontend state to your backend so you can build server-hooks rather than endpoints. Server-side hooks operate just like React hooks. They have access to your frontend state, execute on dependency changes, trigger re-renders, and are type-safe. Building with server-side hooks allows devs to create complex applications with straightforward code. See the [documentation site](https://blueprint-docs.readthedocs.io/en/latest/) for more.
 
 #### A simple example
 
