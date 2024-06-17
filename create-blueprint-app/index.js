@@ -43,45 +43,42 @@ const tarballPath = `${template}-blueprint.tar.gz`;
 
 const spinner = ora('Downloading and setting up the project...').start();
 
-axios({
-  url,
-  method: 'GET',
-  responseType: 'stream'
-}).then(response => {
-  const writer = fs.createWriteStream(tarballPath);
+const execute = async () => {
+  const response = await axios({url, method: 'GET', responseType: 'stream'});
+  new Promise((resolve, reject) => {
+    const writer = fs.createWriteStream(tarballPath);
 
-  response.data.pipe(writer);
+    response.data.pipe(writer);
 
-  writer.on('finish', async () => {
-    await tar.x({
-      file: tarballPath
+    writer.on('finish', async () => {
+      await tar.x({file: tarballPath});
+      fs.renameSync(template, appName);
+      fs.unlinkSync(tarballPath);
+
+      spinner.text = 'Running make install and make build...';
+
+      // Change to the project directory and run `make install` and `make build`
+      exec(`cd ${appName} && make install && make build`, (error, stdout, stderr) => {
+        spinner.stop();
+        if (error) {
+          console.error(`Error running make install/build: ${error.message}`);
+          reject();
+        }
+        if (stderr) {
+          reject();
+          console.error(`Error output: ${stderr}`);
+        }
+        console.log(`Project setup completed. Navigate to ${appName} and start working on your project.`);
+        resolve();
+      });
     });
-    fs.renameSync(template, appName);
-    fs.unlinkSync(tarballPath);
 
-    spinner.text = 'Running make install and make build...';
-
-    // Change to the project directory and run `make install` and `make build`
-    exec(`cd ${appName} && make install && make build`, (error, stdout, stderr) => {
+    writer.on('error', (err) => {
       spinner.stop();
-      if (error) {
-        console.error(`Error running make install/build: ${error.message}`);
-        process.exit(1);
-      }
-      if (stderr) {
-        console.error(`Error output: ${stderr}`);
-      }
-      console.log(`Project setup completed. Navigate to ${appName} and start working on your project.`);
+      console.error('Error writing file:', err);
+      reject();
     });
   });
+};
 
-  writer.on('error', (err) => {
-    spinner.stop();
-    console.error('Error writing file:', err);
-    process.exit(1);
-  });
-}).catch(error => {
-  spinner.stop();
-  console.error('Error downloading or extracting template:', error);
-  process.exit(1);
-});
+execute().catch(() => process.exit(1));
