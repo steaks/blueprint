@@ -13,12 +13,10 @@ import {
   TextField,
   Toolbar,
   Typography,
-  useTheme
 } from "@mui/material";
 import {DataGrid, GridColDef, GridRowsProp} from "@mui/x-data-grid";
 
 //users
-const useSearch = state<string>("dashboard", "search");
 const useNewUser = state<User | null>("dashboard", "newUser");
 const useUpdatedUser = state<User | null>("dashboard", "updatedUser");
 const useRemovedUser = state<User>("dashboard", "removedUser");
@@ -62,13 +60,13 @@ const modalStyle = {
 };
 
 
-const Browse = () => {
+const BrowseUsers = () => {
   const [users] = useUsers();
   const [teams] = useTeams();
   const [, setUpdatedUser] = useUpdatedUser();
   const [, setRemovedUser] = useRemovedUser();
   const [remove] = useRemove();
-  const [newUser, setNewUser] = useNewUser();
+  const [, setNewUser] = useNewUser();
   const defaultTeamId = teams ? teams[0].id : undefined;
 
   const onRemove = (user: User) => {
@@ -114,7 +112,7 @@ const Browse = () => {
   );
 };
 
-const Add = () => {
+const AddUser = () => {
   const [newUser, setNewUser] = useNewUser();
   const [add] = useAdd();
   const [teams] = useTeams();
@@ -131,37 +129,35 @@ const Add = () => {
   return (
     <Modal open={true}>
       <Box sx={modalStyle}>
-        <h3>Add User</h3>
-        <InputLabel>Name</InputLabel>
-        <TextField defaultValue={newUser?.name} onChange={e => setNewUser({...newUser, name: e.target.value})}/>
-        <br/>
-        <InputLabel>Team</InputLabel>
-        <Select onChange={e => onTeamSelect(e)} value={newUser?.teamId}>
-          {teams?.map(t => <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>)}
-        </Select>
-        <br/>
-        <Button variant="contained" onClick={add}>Save</Button>
-        <Button variant="contained" onClick={() => setNewUser(null)}>Cancel</Button>
+        <Typography variant="h2">New User</Typography>
+        <Box mt={1}>
+          <InputLabel>Name</InputLabel>
+          <TextField defaultValue={newUser?.name} onChange={e => setNewUser({...newUser, name: e.target.value})}/>
+        </Box>
+        <Box mt={1}>
+          <InputLabel>Team</InputLabel>
+          <Select onChange={e => onTeamSelect(e)} value={newUser?.teamId} sx={{minWidth: 250}}>
+            {teams?.map(t => <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>)}
+          </Select>
+        </Box>
+        <Box mt={1} display="flex" justifyContent="flex-end">
+          <Button variant="contained" onClick={() => setNewUser(null)}>Cancel</Button>
+          &nbsp;
+          <Button variant="contained" onClick={add}>Save</Button>
+        </Box>
       </Box>
     </Modal>
   );
 };
 
-const Edit = () => {
+const EditUer = () => {
   const [updatedUser, setUpdatedUser] = useUpdatedUser();
-  const [, setRemovedUser] = useRemovedUser();
   const [update] = useUpdate();
-  const [remove] = useRemove();
   const [teams] = useTeams();
 
   if (!updatedUser) {
     return <></>
   }
-
-  const onRemove = () => {
-    setRemovedUser(updatedUser);
-    remove();
-  };
 
   const onTeamSelect = (e: SelectChangeEvent) => {
     const teamId = teams?.find(t => t.id === e.target.value)?.id;
@@ -171,20 +167,22 @@ const Edit = () => {
   return (
     <Modal open={true}>
       <Box sx={modalStyle}>
-        <h3>Edit</h3>
-        <div>ID: {updatedUser.id}</div>
-        <label>Name: </label>
-        <TextField onChange={e => setUpdatedUser({...updatedUser!, name: e.target.value})}
-                   placeholder={updatedUser.name}/>
-        <br/>
-        <label>Team: </label>
-        <Select onChange={e => onTeamSelect(e)} value={updatedUser.teamId}>
-          {teams?.map(t => <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>)}
-        </Select>
-        <br/>
-        <Button variant="contained" onClick={onRemove}>Remove</Button>
-        <Button variant="contained" onClick={update}>Save</Button>
-        <Button variant="contained" onClick={() => setUpdatedUser(null)}>Cancel</Button>
+        <Typography variant="h2">Edit User</Typography>
+        <Box mt={1}>
+          <InputLabel>Name: </InputLabel>
+          <TextField onChange={e => setUpdatedUser({...updatedUser!, name: e.target.value})} placeholder={updatedUser.name}/>
+        </Box>
+        <Box mt={1}>
+          <InputLabel>Team: </InputLabel>
+          <Select onChange={e => onTeamSelect(e)} value={updatedUser.teamId} sx={{minWidth: 250}}>
+            {teams?.map(t => <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>)}
+          </Select>
+        </Box>
+        <Box mt={1} display="flex" justifyContent="flex-end">
+          <Button variant="contained" onClick={() => setUpdatedUser(null)}>Cancel</Button>
+          &nbsp;
+          <Button variant="contained" onClick={update}>Save</Button>
+        </Box>
       </Box>
     </Modal>
   )
@@ -201,12 +199,16 @@ const AddTeam = () => {
   return (
     <Modal open={true}>
       <Box sx={modalStyle}>
-        <h3>Add Team</h3>
-        <label>Name: </label>
-        <TextField defaultValue={newTeam?.name} onChange={e => setNewTeam({...newTeam!, name: e.target.value})}/>
-        <br/>
-        <Button variant="contained" onClick={addTeam}>Save</Button>
-        <Button variant="contained" onClick={() => setNewTeam(null)}>Cancel</Button>
+        <Typography variant="h2">New Team</Typography>
+        <Box mt={1}>
+          <InputLabel>Name: </InputLabel>
+          <TextField defaultValue={newTeam?.name} onChange={e => setNewTeam({...newTeam!, name: e.target.value})}/>
+        </Box>
+        <Box mt={1} display="flex" justifyContent="flex-end">
+          <Button variant="contained" onClick={() => setNewTeam(null)}>Cancel</Button>
+          &nbsp;
+          <Button variant="contained" onClick={addTeam}>Save</Button>
+        </Box>
       </Box>
     </Modal>
   );
@@ -214,31 +216,26 @@ const AddTeam = () => {
 
 const EditTeam = () => {
   const [updatedTeam, setUpdatedTeam] = useUpdatedTeam();
-  const [, setRemovedTeam] = useRemovedTeam();
   const [update] = useUpdateTeam();
-  const [remove] = useRemoveTeam();
 
   if (!updatedTeam) {
     return <></>
   }
 
-  const onRemove = () => {
-    setRemovedTeam(updatedTeam);
-    remove();
-  };
-
   return (
     <Modal open={true}>
       <Box sx={modalStyle}>
-        <h3>Edit</h3>
-        <div>ID: {updatedTeam.id}</div>
-        <label>Name: </label>
-        <TextField onChange={e => setUpdatedTeam({...updatedTeam!, name: e.target.value})}
-                   placeholder={updatedTeam.name}/>
-        <br/>
-        <Button variant="contained" onClick={onRemove}>Remove</Button>
-        <Button variant="contained" onClick={update}>Save</Button>
-        <Button variant="contained" onClick={() => setUpdatedTeam(null)}>Cancel</Button>
+        <Typography variant="h2">Edit User</Typography>
+        <Box mt={1}>
+          <InputLabel>Name: </InputLabel>
+          <TextField onChange={e => setUpdatedTeam({...updatedTeam!, name: e.target.value})}
+                     placeholder={updatedTeam.name}/>
+        </Box>
+        <Box mt={1} display="flex" justifyContent="flex-end">
+          <Button variant="contained" onClick={() => setUpdatedTeam(null)}>Cancel</Button>
+          &nbsp;
+          <Button variant="contained" onClick={update}>Save</Button>
+        </Box>
       </Box>
     </Modal>
   )
@@ -290,7 +287,7 @@ const BrowseTeams = () => {
 const Teams = () => {
   return (
     <>
-      <h3>TEAMS</h3>
+      <Box mt={2} typography="h2">Teams</Box>
       <BrowseTeams/>
       <AddTeam/>
       <EditTeam/>
@@ -302,10 +299,10 @@ const Teams = () => {
 const Users = () => {
   return (
     <>
-      <h3>USERS</h3>
-      <Browse/>
-      <Add/>
-      <Edit/>
+      <Box mt={2} typography="h2">Users</Box>
+      <BrowseUsers/>
+      <AddUser/>
+      <EditUer/>
     </>
   );
 };
@@ -327,21 +324,26 @@ const AddTask = () => {
   return (
     <Modal open={true}>
       <Box sx={modalStyle}>
-        <Box>Tasks</Box>
-        <Typography variant="h5">Tasks</Typography>
-        <label>Name: </label>
-        <TextField defaultValue={newTask?.name} onChange={e => setNewTask({...newTask, name: e.target.value})}/>
-        <br/>
-        <label>Status: </label>
-        <TextField defaultValue={newTask?.status} onChange={e => setNewTask({...newTask, status: e.target.value})}/>
-        <br/>
-        <label>Owner: </label>
-        <Select onChange={e => onOwnerSelect(e)} value={newTask.ownerId}>
-          {users?.map(u => <MenuItem key={u.id} value={u.id}>{u.name}</MenuItem>)}
-        </Select>
-        <br/>
-        <Button variant="contained" onClick={addTask}>Save</Button>
-        <Button variant="contained" onClick={() => setNewTask(null)}>Cancel</Button>
+        <Typography variant="h2">New Task</Typography>
+        <Box mt={1}>
+          <InputLabel>Name: </InputLabel>
+          <TextField defaultValue={newTask?.name} onChange={e => setNewTask({...newTask, name: e.target.value})}/>
+        </Box>
+        <Box mt={1}>
+          <InputLabel>Status: </InputLabel>
+          <TextField defaultValue={newTask?.status} onChange={e => setNewTask({...newTask, status: e.target.value})}/>
+        </Box>
+        <Box mt={1}>
+          <InputLabel>Owner: </InputLabel>
+          <Select onChange={e => onOwnerSelect(e)} value={newTask.ownerId} sx={{minWidth: 250}}>
+            {users?.map(u => <MenuItem key={u.id} value={u.id}>{u.name}</MenuItem>)}
+          </Select>
+        </Box>
+        <Box mt={1} display="flex" justifyContent="flex-end">
+          <Button variant="contained" onClick={() => setNewTask(null)}>Cancel</Button>
+          &nbsp;
+          <Button variant="contained" onClick={addTask}>Save</Button>
+        </Box>
       </Box>
     </Modal>
   );
@@ -349,9 +351,7 @@ const AddTask = () => {
 
 const EditTask = () => {
   const [updatedTask, setUpdatedTask] = useUpdatedTask();
-  const [, setRemovedTask] = useRemovedTask();
   const [update] = useUpdateTask();
-  const [remove] = useRemoveTask();
   const [users] = useUsers();
 
   if (!updatedTask) {
@@ -363,32 +363,29 @@ const EditTask = () => {
     setUpdatedTask({...updatedTask, ownerId})
   };
 
-  const onRemove = () => {
-    setRemovedTask(updatedTask);
-    remove();
-  };
-
   return (
     <Modal open={true}>
       <Box sx={modalStyle}>
-        <h3>Edit</h3>
-        <div>ID: {updatedTask.id}</div>
-        <label>Name: </label>
-        <TextField onChange={e => setUpdatedTask({...updatedTask!, name: e.target.value})}
-                   placeholder={updatedTask.name}/>
-        <br/>
-        <label>Status: </label>
-        <TextField onChange={e => setUpdatedTask({...updatedTask!, status: e.target.value})}
-                   placeholder={updatedTask.status}/>
-        <br/>
-        <label>Owner: </label>
-        <Select onChange={e => onOwnerSelect(e)} value={updatedTask.ownerId}>
-          {users?.map(u => <MenuItem key={u.id} value={u.id}>{u.name}</MenuItem>)}
-        </Select>
-        <br/>
-        <Button variant="contained" onClick={onRemove}>Remove</Button>
-        <Button variant="contained" onClick={update}>Save</Button>
-        <Button variant="contained" onClick={() => setUpdatedTask(null)}>Cancel</Button>
+        <Typography variant="h2">Edit Task</Typography>
+        <Box mt={1}>
+          <InputLabel>Name:</InputLabel>
+          <TextField onChange={e => setUpdatedTask({...updatedTask!, name: e.target.value})} placeholder={updatedTask.name}/>
+        </Box>
+        <Box mt={1}>
+          <InputLabel>Status:</InputLabel>
+          <TextField onChange={e => setUpdatedTask({...updatedTask!, status: e.target.value})} placeholder={updatedTask.status}/>
+        </Box>
+        <Box mt={1}>
+          <InputLabel>Owner:</InputLabel>
+          <Select onChange={e => onOwnerSelect(e)} value={updatedTask.ownerId} sx={{minWidth: 250}}>
+            {users?.map(u => <MenuItem key={u.id} value={u.id}>{u.name}</MenuItem>)}
+          </Select>
+        </Box>
+        <Box mt={1} display="flex" justifyContent="flex-end">
+          <Button variant="contained" onClick={() => setUpdatedTask(null)}>Cancel</Button>
+          &nbsp;
+          <Button variant="contained" onClick={update}>Save</Button>
+        </Box>
       </Box>
     </Modal>
   )
@@ -442,7 +439,7 @@ const BrowseTasks = () => {
 
   return (
     <>
-      <h3>TASKS</h3>
+      <Box mt={2} typography="h2">Tasks</Box>
       <Box height={800}>
         <Box display="flex" justifyContent="end" mb={1}>
           <Button variant="contained" onClick={() => setNewTask({id: crypto.randomUUID(), name: "", status: "To Do"})}>+ New Task</Button>
@@ -465,18 +462,13 @@ const Tasks = () => {
 
 const UI = () => {
   const [tab, setTab] = useState("users");
-  const theme = useTheme();
-  const foo = `solid black ${theme.palette.grey}`
 
   return (
     <Dashboard>
       <AppBar>
         <Toolbar>
-          {/*<IconButton edge="start" color="inherit" aria-label="menu" sx={{mr: 2}}>*/}
-          {/*  <MenuIcon/>*/}
-          {/*</IconButton>*/}
           <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
-            TASKS APP SHOWCASE
+            TASKS APPLICATION
           </Typography>
           <Button onClick={() => setTab("users")}>USERS</Button>
           <Button onClick={() => setTab("teams")}>TEAMS</Button>
@@ -487,7 +479,7 @@ const UI = () => {
           <Box>
             <Tasks/>
           </Box>
-          <Box pl={8} borderLeft={foo}>
+          <Box pl={8}>
             <Box display={tab === "users" ? "block" : "none"}>
               <Users/>
             </Box>
@@ -502,5 +494,3 @@ const UI = () => {
 };
 
 export default UI;
-
-//Supabase
