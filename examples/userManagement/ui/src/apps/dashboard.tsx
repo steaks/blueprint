@@ -37,10 +37,10 @@ const useRemoveTeam = effect<null>("dashboard", "removeTeam");
 //tasks
 const useTasks = query<Task[]>("dashboard", "tasks");
 const useNewTask = state<Task | null>("dashboard", "newTask");
-const useAddTask = effect<null>("dashboard", "addTask");
 const useRemovedTask = state<Task>("dashboard", "removedTask");
-const useRemoveTask = effect<null>("dashboard", "removeTask");
 const useUpdatedTask = state<Task | null>("dashboard", "updatedTask");
+const useAddTask = effect<null>("dashboard", "addTask");
+const useRemoveTask = effect<null>("dashboard", "removeTask");
 const useUpdateTask = effect<null>("dashboard", "updateTask");
 
 
@@ -74,31 +74,13 @@ const BrowseUsers = () => {
     remove();
   };
 
-  const rows = (users || []).map(u => {
-    const team = teams?.find(t => t.id === u.teamId)?.name;
-    return ({
-      id: u.id,
-      name: u.name,
-      team,
-      edit: u,
-      remove: u
-    });
-  });
-
+  const rows = (users || []).map(u => ({...u, edit: u, remove: u}));
   const columns: GridColDef[] = [
     {field: "id", headerName: "ID"},
     {field: "name", headerName: "Name"},
-    {field: "team", headerName: "Team"},
-    {
-      field: "edit",
-      headerName: "Edit",
-      renderCell: (p) => <Button variant="contained" onClick={() => setUpdatedUser(p.value)}>Edit</Button>
-    },
-    {
-      field: "remove",
-      headerName: "Remove",
-      renderCell: (p) => <Button variant="contained" onClick={() => onRemove(p.value)}>Remove</Button>
-    },
+    {field: "teamName", headerName: "Team"},
+    {field: "edit", headerName: "Edit", renderCell: (p) => <Button variant="contained" onClick={() => setUpdatedUser(p.value)}>Edit</Button>},
+    {field: "remove", headerName: "Remove", renderCell: (p) => <Button variant="contained" onClick={() => onRemove(p.value)}>Remove</Button>},
   ];
 
   return (
@@ -150,7 +132,7 @@ const AddUser = () => {
   );
 };
 
-const EditUer = () => {
+const EditUser = () => {
   const [updatedUser, setUpdatedUser] = useUpdatedUser();
   const [update] = useUpdate();
   const [teams] = useTeams();
@@ -253,26 +235,13 @@ const BrowseTeams = () => {
     remove();
   };
 
-  const rows = (teams || []).map(t => ({
-    id: t.id,
-    name: t.name,
-    edit: t,
-    remove: t
-  })) as GridRowsProp;
+  const rows = (teams || []).map(t => ({...t, edit: t, remove: t}));
 
   const columns: GridColDef[] = [
     {field: "id", headerName: "ID"},
     {field: "name", headerName: "Name"},
-    {
-      field: "edit",
-      headerName: "Edit",
-      renderCell: (p) => <Button variant="contained" onClick={() => setUpdatedTeam(p.value)}>Edit</Button>
-    },
-    {
-      field: "remove",
-      headerName: "Remove",
-      renderCell: (p) => <Button variant="contained" onClick={() => onRemove(p.value)}>Remove</Button>
-    },
+    {field: "edit", headerName: "Edit", renderCell: (p) => <Button variant="contained" onClick={() => setUpdatedTeam(p.value)}>Edit</Button>},
+    {field: "remove", headerName: "Remove", renderCell: (p) => <Button variant="contained" onClick={() => onRemove(p.value)}>Remove</Button>},
   ];
   return (
     <>
@@ -302,7 +271,7 @@ const Users = () => {
       <Box mt={2} typography="h2">Users</Box>
       <BrowseUsers/>
       <AddUser/>
-      <EditUer/>
+      <EditUser/>
     </>
   );
 };
@@ -393,8 +362,6 @@ const EditTask = () => {
 
 const BrowseTasks = () => {
   const [tasks] = useTasks();
-  const [users] = useUsers();
-  const [teams] = useTeams();
   const [, setUpdatedTask] = useUpdatedTask();
   const [, setRemovedTask] = useRemovedTask();
   const [remove] = useRemoveTask();
@@ -405,36 +372,15 @@ const BrowseTasks = () => {
     remove();
   };
 
-  const rows = (tasks || []).map(t => {
-    const owner = users?.find(u => u.id === t.ownerId);
-    const team = teams?.find(t => t.id === owner?.teamId);
-    return ({
-      id: t.id,
-      name: t.name,
-      owner: owner?.name,
-      team: team?.name,
-      status: t.status,
-      edit: t,
-      remove: t
-    });
-  }) as GridRowsProp;
-
+  const rows = (tasks || []).map(t => ({...t, edit: t, remove: t}));
   const columns: GridColDef[] = [
     {field: "id", headerName: "ID"},
-    {field: "name", headerName: "Name"},
-    {field: "owner", headerName: "Owner"},
-    {field: "team", headerName: "Team"},
+    {field: "name", headerName: "Name", width: 200},
+    {field: "ownerName", headerName: "Owner"},
+    {field: "teamName", headerName: "Team"},
     {field: "status", headerName: "Status"},
-    {
-      field: "edit",
-      headerName: "Edit",
-      renderCell: (p) => <Button variant="contained" onClick={() => setUpdatedTask(p.value)}>Edit</Button>
-    },
-    {
-      field: "remove",
-      headerName: "Remove",
-      renderCell: (p) => <Button variant="contained" onClick={() => onRemove(p.value)}>Remove</Button>
-    },
+    {field: "edit", headerName: "Edit", renderCell: (p) => <Button variant="contained" onClick={() => setUpdatedTask(p.value)}>Edit</Button>},
+    {field: "remove", headerName: "Remove", renderCell: (p) => <Button variant="contained" onClick={() => onRemove(p.value)}>Remove</Button>},
   ];
 
   return (

@@ -26,11 +26,18 @@ const onRemove = async (selectedRef: StateRef<User | null>): Promise<void> => {
 };
 
 const users = async (search: string): Promise<User[]> =>
-  await db.map<User>(`SELECT id, team_id, name FROM users WHERE '${search}' = '' OR name LIKE '%${search}%' ORDER BY name`, {search}, row => ({
-    id: row.id,
-    teamId: row.team_id,
-    name: row.name
-  }));
+  await db.map<User>(`
+    SELECT u.id, u.name, u.team_id, t.name AS team_name
+    FROM users u
+    LEFT JOIN teams t
+      ON u.team_id = t.id
+    WHERE '${search}' = '' OR u.name LIKE '%${search}%' 
+    ORDER BY u.name`, {search}, row => ({
+      id: row.id,
+      name: row.name,
+      teamId: row.team_id,
+      teamName: row.team_name
+    }));
 
 const add = async (user: User | null): Promise<void> => {
   if (user) {
@@ -57,7 +64,7 @@ const onAdd = (newUser: StateRef<User | null>) => {
 };
 
 const teams = async (): Promise<Team[]> =>
-  await db.map<Team>(`SELECT * FROM teams`, {}, r => ({id: r.id, name: r.name}))
+  await db.map<Team>(`SELECT * FROM teams ORDER BY NAME`, {}, r => ({id: r.id, name: r.name}))
 
 const addTeam = async (team: Team | null): Promise<void> => {
   if (team) {
@@ -94,11 +101,20 @@ const onUpdateTeam = (updatedTeam: StateRef<Team | null>) => {
 };
 
 const tasks = async (): Promise<Task[]> =>
-  await db.map<Task>(`SELECT * FROM tasks`, {}, r => ({
+  await db.map<Task>(`
+    SELECT t.id, t.name, t.owner_id, t.status, u.name AS owner_name, tt.name AS team_name
+    FROM tasks t
+    JOIN users u
+      ON t.owner_id = u.id
+    LEFT JOIN teams tt
+      ON u.team_id = tt.id
+    ORDER BY t.name`, {}, r => ({
     id: r.id,
     name: r.name,
     ownerId: r.owner_id,
     status: r.status,
+    ownerName: r.owner_name,
+    teamName: r.team_name
   }));
 
 const addTask = async (task: Task | null) => {

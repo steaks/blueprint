@@ -40,9 +40,9 @@ _db.public.none(`
 _db.public.none(`
   INSERT INTO public.tasks(id, name, owner_id, status) 
   VALUES
-    ('aa526ecf-69d5-4144-9e83-a75e232803d4', 'Do Stuff',  '11526ecf-69d5-4144-9e83-a75e232803d4', 'To Do'), 
-    ('aa3ef09d-7853-4664-8b17-f648373964a5', 'Do More Stuff', '11526ecf-69d5-4144-9e83-a75e232803d4', 'To Do'),
-    ('aa0c8997-f0bb-45b4-be88-db7e62201f24', 'Do Other Stuff', '11526ecf-69d5-4144-9e83-a75e232803d4', 'In Progress')
+    ('aa526ecf-69d5-4144-9e83-a75e232803d4', 'Build Histogram',  '11526ecf-69d5-4144-9e83-a75e232803d4', 'To Do'), 
+    ('aa3ef09d-7853-4664-8b17-f648373964a5', 'Style Header', '11526ecf-69d5-4144-9e83-a75e232803d4', 'To Do'),
+    ('aa0c8997-f0bb-45b4-be88-db7e62201f24', 'Build Calculations', '973ef09d-7853-4664-8b17-f648373964a5', 'In Progress')
 `);
 
 export const db = _db.adapters.createPgPromise() as pg.IDatabase<any, any>;

@@ -1,7 +1,8 @@
 export interface User {
   readonly id: string;
-  readonly teamId?: string;
   readonly name: string;
+  readonly teamId?: string;
+  readonly teamName?: string;
 }
 
 export interface Team {
@@ -12,6 +13,8 @@ export interface Team {
 export interface Task {
   readonly id: string;
   readonly name: string;
-  readonly ownerId?: string;
   readonly status: string;
+  readonly ownerId?: string;
+  readonly ownerName?: string;
+  readonly teamName?: string
 }
