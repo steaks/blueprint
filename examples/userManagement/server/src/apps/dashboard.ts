@@ -25,14 +25,13 @@ const onRemove = async (selectedRef: StateRef<User | null>): Promise<void> => {
   await db.none(`UPDATE tasks SET owner_id = NULL WHERE owner_id = '${selected.id}'`);
 };
 
-const users = async (search: string): Promise<User[]> =>
+const users = async (): Promise<User[]> =>
   await db.map<User>(`
     SELECT u.id, u.name, u.team_id, t.name AS team_name
     FROM users u
     LEFT JOIN teams t
       ON u.team_id = t.id
-    WHERE '${search}' = '' OR u.name LIKE '%${search}%' 
-    ORDER BY u.name`, {search}, row => ({
+    ORDER BY u.name`, {}, row => ({
       id: row.id,
       name: row.name,
       teamId: row.team_id,
@@ -153,12 +152,11 @@ const foo = {
 
 const dashboard = app(() => {
   //users
-  const search$ = useState("search", "");
   const newUser$ = useState<User | null>("newUser", null);
   const updatedUser$ = useState<User | null>("updatedUser", null);
   const removedUser$ = useState<User | null>("removedUser", null);
   const usersChanged$ = useEvent("usersChanged");
-  const users$ = useQuery(users, [search$], {triggers: ["deps", usersChanged$]})
+  const users$ = useQuery(users, [], {triggers: ["deps", usersChanged$]})
   const add$ = useEffect(add, [newUser$]);
   const remove$ = useEffect(remove, [removedUser$]);
   const update$ = useEffect(update, [updatedUser$]);
@@ -195,7 +193,7 @@ const dashboard = app(() => {
 
   return {
     name: "dashboard",
-    state: [search$, newUser$, updatedUser$, removedUser$, newTeam$, updatedTeam$, removedTeam$, newTask$, removedTask$, updatedTask$],
+    state: [newUser$, updatedUser$, removedUser$, newTeam$, updatedTeam$, removedTeam$, newTask$, removedTask$, updatedTask$],
     events: [usersChanged$, teamsChanged$, tasksChanged$],
     queries: [users$, teams$, tasks$],
     effects: [add$, remove$, update$, onUpdate$, onRemove$, onAdd$, addTeam$, onAddTeam$, removeTeam$, onRemoveTeam$, updateTeam$, onUpdateTeam$, addTask$, onAddTask$, removeTask$, onRemoveTask$, updateTask$, onUpdateTask$],
