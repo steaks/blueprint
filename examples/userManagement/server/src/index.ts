@@ -1,7 +1,7 @@
 import "dotenv/config";
 import {create} from "blueprint-server";
 import session from "./session";
-import team from "./apps/team";
+import dashboard from "./apps/dashboard";
 import {ServerOptions} from "blueprint-server/types/types";
 
 const options = {
@@ -9,5 +9,5 @@ const options = {
   connectionType: "WebSocket"
 } as Partial<ServerOptions>;
 
-const bp = create({team}, session, options);
+const bp = create({dashboard}, session, options);
 bp.serve();

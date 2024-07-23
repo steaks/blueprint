@@ -7,6 +7,8 @@ let connection = null as Connection | null;
 let connectionId = null as string | null;
 let connectionP = null as null | Promise<null>;
 
+const subscribers = {} as Record<string, number>;
+
 const isDiagramRoute = () =>
   window.location.pathname.startsWith("/__blueprint__");
 
